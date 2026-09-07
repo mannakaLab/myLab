@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>キッズ体調メモ & 医師伝達ツール</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for temperature graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8fafc;
+        }
+        .timeline-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .timeline-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-12 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-lg font-bold shrink-0">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-800 text-base leading-tight">キッズ体調メモ</h1>
+                    <p class="text-[11px] text-slate-500 flex items-center gap-1">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>端末内自動保存 (オフライン対応)</span>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Active Child Selector & Action Buttons -->
+            <div class="flex items-center gap-1.5">
+                <select id="child-select" class="bg-slate-100 text-slate-700 text-xs font-semibold py-1.5 px-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 max-w-[130px] truncate">
+                    <option value="">お子さまを選択</option>
+                </select>
+                <button id="manage-children-btn" title="お子さま管理" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold p-2 rounded-lg transition-colors">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+                <button id="open-child-modal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 shrink-0">
+                    <i class="fa-solid fa-plus"></i> 追加
+                </button>
+                <button id="open-backup-modal-btn" title="バックアップ・データ管理" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold p-2 rounded-lg transition-colors">
+                    <i class="fa-solid fa-database"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 md:grid-cols-12 gap-6">
+
+        <!-- Left Column: Input Form -->
+        <section class="md:col-span-5 space-y-5">
+            
+            <!-- Quick Input Card -->
+            <div class="bg-white rounded-2xl p-4 md:p-5 border border-slate-200 shadow-sm space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-emerald-600"></i> 体調を記録する
+                    </h2>
+                    <span class="text-[11px] text-slate-400" id="current-datetime-display">---</span>
+                </div>
+
+                <form id="record-form" class="space-y-3.5">
+                    <!-- Date & Time Picker -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">記録日時</label>
+                        <input type="datetime-local" id="input-datetime" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+
+                    <!-- Temperature Input with Quick Buttons -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-semibold text-slate-600">体温 (℃)</label>
+                            <span class="text-[11px] text-slate-400">ワンタップ選択もOK</span>
+                        </div>
+                        <input type="number" step="0.1" min="34" max="43" id="input-temp" placeholder="例: 37.5" required class="w-full text-xl font-bold bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-2">
+                        
+                        <div class="grid grid-cols-4 gap-1.5 text-xs">
+                            <button type="button" onclick="setTemp(36.8)" class="py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 font-medium transition-colors">36.8℃</button>
+                            <button type="button" onclick="setTemp(37.5)" class="py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded font-medium transition-colors">37.5℃</button>
+                            <button type="button" onclick="setTemp(38.5)" class="py-1 bg-orange-50 hover:bg-orange-100 text-orange-800 rounded font-medium transition-colors">38.5℃</button>
+                            <button type="button" onclick="setTemp(39.2)" class="py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 rounded font-medium transition-colors">39.2℃</button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Badges: Mood & Appetite -->
+                    <div class="space-y-3 pt-2 border-t border-slate-100">
+                        <!-- Mood -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">機嫌</label>
+                            <div class="grid grid-cols-4 gap-1 text-center text-xs">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="mood" value="良好" class="peer hidden" checked>
+                                    <div class="py-1.5 border border-slate-200 rounded-lg peer-checked:bg-emerald-500 peer-checked:text-white peer-checked:border-emerald-500 font-medium transition-all">😄 良好</div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="mood" value="普通" class="peer hidden">
+                                    <div class="py-1.5 border border-slate-200 rounded-lg peer-checked:bg-emerald-500 peer-checked:text-white peer-checked:border-emerald-500 font-medium transition-all">🙂 普通</div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="mood" value="不機嫌" class="peer hidden">
+                                    <div class="py-1.5 border border-slate-200 rounded-lg peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500 font-medium transition-all">🙁 不機嫌</div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="mood" value="ぐったり" class="peer hidden">
+                                    <div class="py-1.5 border border-slate-200 rounded-lg peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 font-medium transition-all">😫 ぐったり</div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Appetite / Hydration -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">食欲・水分補給</label>
+                            <div class="grid grid-cols-3 gap-1 text-center text-xs">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="appetite" value="取れている" class="peer hidden" checked>
+                                    <div class="py-1.5 border border-slate-200 rounded-lg peer-checked:bg-emerald-500 peer-checked:text-white peer-checked:border-emerald-500 font-medium transition-all">🥣 取れている</div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="appetite" value="水分のみ" class="peer hidden">
+                                    <div class="py-1.5 border border-slate-200 rounded-lg peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500 font-medium transition-all">🥛 水分のみ</div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="appetite" value="取れない" class="peer hidden">
+                                    <div class="py-1.5 border border-slate-200 rounded-lg peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 font-medium transition-all">❌ 取れない</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Symptoms Checkboxes -->
+                    <div class="pt-2 border-t border-slate-100">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">症状（複数選択可）</label>
+                        <div class="grid grid-cols-3 gap-1.5 text-xs">
+                            <label class="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" name="symptom" value="発熱" class="rounded text-emerald-600 focus:ring-emerald-500"> 発熱
+                            </label>
+                            <label class="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" name="symptom" value="咳" class="rounded text-emerald-600 focus:ring-emerald-500"> 咳
+                            </label>
+                            <label class="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" name="symptom" value="鼻水・鼻づまり" class="rounded text-emerald-600 focus:ring-emerald-500"> 鼻水
+                            </label>
+                            <label class="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" name="symptom" value="嘔吐・吐き気" class="rounded text-emerald-600 focus:ring-emerald-500"> 嘔吐
+                            </label>
+                            <label class="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" name="symptom" value="下痢・水様便" class="rounded text-emerald-600 focus:ring-emerald-500"> 下痢
+                            </label>
+                            <label class="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" name="symptom" value="発疹・かゆみ" class="rounded text-emerald-600 focus:ring-emerald-500"> 発疹
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Medication -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">服薬・対処</label>
+                        <select id="input-med" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="なし">なし</option>
+                            <option value="解熱剤（座薬）使用">解熱剤（座薬）使用</option>
+                            <option value="解熱剤（シロップ/粉）使用">解熱剤（シロップ/粉）使用</option>
+                            <option value="処方薬（風邪薬/咳止め等）服用">処方薬（風邪薬/咳止め等）服用</option>
+                            <option value="抗生剤服用">抗生剤服用</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+
+                    <!-- Free Note -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">メモ・気になること</label>
+                        <textarea id="input-note" rows="2" placeholder="例: 夜中に2回起きた、水分を欲しがる等" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> 記録を保存する
+                    </button>
+                </form>
+            </div>
+
+        </section>
+
+        <!-- Right Column: Advice, Summary, Chart, History -->
+        <section class="md:col-span-7 space-y-5">
+
+            <!-- Dynamic Advice Banner -->
+            <div id="advice-card-container" class="bg-blue-50 border border-blue-200 rounded-2xl p-4 shadow-sm text-xs space-y-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-blue-800 font-bold">
+                        <i class="fa-solid fa-user-nurse text-blue-600 text-base"></i>
+                        <span>状態にあわせたお世話ガイド</span>
+                    </div>
+                    <a href="tel:#8000" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded-lg text-[11px] flex items-center gap-1 transition-colors">
+                        <i class="fa-solid fa-phone"></i> #8000(小児救急相談)
+                    </a>
+                </div>
+                <p id="advice-text" class="text-slate-700 leading-relaxed">
+                    体調を記録すると、最新の状態（体温・年齢・機嫌など）に合わせたアドバイスが表示されます。
+                </p>
+            </div>
+
+            <!-- Doctor Summary Output Card -->
+            <div class="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-4 shadow-sm space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">
+                            <i class="fa-solid fa-stethoscope"></i>
+                        </span>
+                        <div>
+                            <h2 class="font-bold text-slate-800 text-sm">医者に伝える経緯サマリー</h2>
+                            <p class="text-[11px] text-slate-500">問診やオンライン受診時にコピペして使えます</p>
+                        </div>
+                    </div>
+                    <button id="copy-summary-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition-transform active:scale-95 flex items-center gap-1.5 shrink-0">
+                        <i class="fa-solid fa-copy"></i> コピペ用にコピー
+                    </button>
+                </div>
+
+                <div class="relative">
+                    <textarea id="summary-text-area" readonly class="w-full h-40 bg-white/90 border border-emerald-200 rounded-xl p-3 text-xs font-mono text-slate-700 leading-relaxed focus:outline-none resize-none shadow-inner" placeholder="体調記録を追加すると、受診用のまとめテキストが自動生成されます..."></textarea>
+                </div>
+
+                <div class="flex items-center justify-between text-[11px] text-slate-500">
+                    <span>💡 診察前にコピーしてメッセージ欄に貼り付けてください</span>
+                    <button id="refresh-summary-btn" class="text-emerald-700 hover:underline flex items-center gap-1 font-semibold">
+                        <i class="fa-solid fa-rotate"></i> 更新
+                    </button>
+                </div>
+            </div>
+
+            <!-- Temperature Chart Card -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-slate-800 text-xs flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-rose-500"></i> 体温推移グラフ
+                    </h3>
+                    <span class="text-[11px] text-slate-400">時系列表示</span>
+                </div>
+                <div class="h-40 w-full">
+                    <canvas id="tempChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Timeline Records Header & List -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                    <h3 class="font-bold text-slate-800 text-xs flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-indigo-500"></i> 記録履歴
+                    </h3>
+                    <span id="record-count-badge" class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">0件</span>
+                </div>
+
+                <!-- Timeline List -->
+                <div id="timeline-container" class="space-y-2.5 max-h-80 overflow-y-auto pr-1 timeline-scroll">
+                    <div id="empty-timeline-msg" class="text-center py-8 text-slate-400 text-xs">
+                        <i class="fa-regular fa-clipboard text-3xl mb-2 text-slate-300 block"></i>
+                        まだ記録はありません。<br>左側のフォームから体温や状態を記録してください。
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Child Add/Edit Modal -->
+    <div id="child-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                <h3 class="font-bold text-slate-800 text-sm" id="child-modal-title">お子さまの情報を追加</h3>
+                <button id="close-child-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg px-1">&times;</button>
+            </div>
+            <form id="child-form" class="space-y-3">
+                <input type="hidden" id="child-edit-id" value="">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">お名前（またはニックネーム）</label>
+                    <input type="text" id="child-name" required placeholder="例: たろう" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">生年月日</label>
+                    <div class="grid grid-cols-12 gap-1.5 items-center">
+                        <div class="col-span-4">
+                            <select id="child-era" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-1.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="reiwa" selected>令和</option>
+                                <option value="heisei">平成</option>
+                                <option value="seireki">西暦</option>
+                            </select>
+                        </div>
+                        <div class="col-span-3 flex items-center gap-0.5">
+                            <input type="number" id="child-birth-year" min="1" max="2030" placeholder="4" class="w-full min-w-0 bg-slate-50 border border-slate-200 rounded-lg px-1 py-2 text-xs text-center focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <span class="text-xs text-slate-500 shrink-0">年</span>
+                        </div>
+                        <div class="col-span-2 flex items-center gap-0.5">
+                            <input type="number" id="child-birth-month" min="1" max="12" placeholder="5" class="w-full min-w-0 bg-slate-50 border border-slate-200 rounded-lg px-1 py-2 text-xs text-center focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <span class="text-xs text-slate-500 shrink-0">月</span>
+                        </div>
+                        <div class="col-span-3 flex items-center gap-0.5">
+                            <input type="number" id="child-birth-day" min="1" max="31" placeholder="10" class="w-full min-w-0 bg-slate-50 border border-slate-200 rounded-lg px-1 py-2 text-xs text-center focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <span class="text-xs text-slate-500 shrink-0">日</span>
+                        </div>
+                    </div>
+                    <!-- Computed Age Live Badge -->
+                    <div id="computed-age-badge" class="mt-2 text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg px-3 py-1.5 flex items-center justify-between hidden">
+                        <span>現在の計算年齢:</span>
+                        <strong id="computed-age-text" class="text-xs font-bold">--</strong>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">持病・アレルギー等メモ（任意）</label>
+                    <input type="text" id="child-allergy" placeholder="例: 卵アレルギー、喘息傾向あり" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl transition-colors text-xs mt-1">
+                    保存する
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Children Management Modal -->
+    <div id="manage-children-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl p-5 max-w-md w-full space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                <h3 class="font-bold text-slate-800 text-sm">登録されているお子さま一覧</h3>
+                <button id="close-manage-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg px-1">&times;</button>
+            </div>
+            
+            <div id="children-list-container" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                <!-- Dynamically populated -->
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                <button id="manage-add-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition-colors flex items-center gap-1">
+                    <i class="fa-solid fa-plus"></i> お子さまを追加
+                </button>
+                <button id="manage-close-btn" class="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+                    閉じる
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup and Data Modal -->
+    <div id="backup-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl p-5 max-w-md w-full space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                <h3 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-database text-emerald-600 mr-1.5"></i>データ管理・バックアップ</h3>
+                <button id="close-backup-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg px-1">&times;</button>
+            </div>
+            
+            <p class="text-xs text-slate-600 leading-relaxed">
+                データはお使いの端末（ブラウザ）に安全に自動保存されます。機種変更やアプリの初期化に備えてバックアップファイルをダウンロードできます。
+            </p>
+
+            <div class="space-y-2.5 pt-1">
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                    <h4 class="font-bold text-xs text-slate-800"><i class="fa-solid fa-download text-indigo-500 mr-1"></i> バックアップを保存</h4>
+                    <p class="text-[11px] text-slate-500">全てのお子さま情報と体調記録を1つのファイルに書き出します。</p>
+                    <button id="export-json-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-file-arrow-down"></i> バックアップファイルを保存 (JSON)
+                    </button>
+                </div>
+
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                    <h4 class="font-bold text-xs text-slate-800"><i class="fa-solid fa-upload text-emerald-500 mr-1"></i> バックアップから復元</h4>
+                    <p class="text-[11px] text-slate-500">保存したJSONファイルを読み込んでデータを元に戻します。</p>
+                    <input type="file" id="import-json-input" accept=".json" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                </div>
+
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                    <h4 class="font-bold text-xs text-slate-800"><i class="fa-solid fa-file-csv text-amber-500 mr-1"></i> CSV出力</h4>
+                    <p class="text-[11px] text-slate-500">表計算ソフト等で開けるCSVファイル形式で記録を出力します。</p>
+                    <button id="export-csv-btn" class="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-file-csv"></i> CSVファイルを保存
+                    </button>
+                </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex justify-end">
+                <button id="close-backup-modal-bottom-btn" class="bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+                    閉じる
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-message">メッセージ</span>
+    </div>
+
+    <!-- Application Logic Script -->
+    <script>
+        const STORAGE_KEY_CHILDREN = 'kids_care_children_v1';
+        const STORAGE_KEY_RECORDS = 'kids_care_records_v1';
+
+        let childrenList = [];
+        let healthRecords = [];
+        let activeChildId = null;
+        let chartInstance = null;
+
+        // Request Persistent Storage to avoid auto browser cleanup
+        if (navigator.storage && navigator.storage.persist) {
+            navigator.storage.persist().then(granted => {
+                if (granted) console.log("Storage persistence enabled.");
+            });
+        }
+
+        // DOM Elements
+        const childSelect = document.getElementById('child-select');
+        const openChildModalBtn = document.getElementById('open-child-modal-btn');
+        const childModal = document.getElementById('child-modal');
+        const closeChildModalBtn = document.getElementById('close-child-modal-btn');
+        const childForm = document.getElementById('child-form');
+
+        const manageChildrenBtn = document.getElementById('manage-children-btn');
+        const manageChildrenModal = document.getElementById('manage-children-modal');
+        const closeManageModalBtn = document.getElementById('close-manage-modal-btn');
+        const manageCloseBtn = document.getElementById('manage-close-btn');
+        const manageAddBtn = document.getElementById('manage-add-btn');
+        const childrenListContainer = document.getElementById('children-list-container');
+
+        const backupModal = document.getElementById('backup-modal');
+        const openBackupModalBtn = document.getElementById('open-backup-modal-btn');
+        const closeBackupModalBtn = document.getElementById('close-backup-modal-btn');
+        const closeBackupModalBottomBtn = document.getElementById('close-backup-modal-bottom-btn');
+        const exportJsonBtn = document.getElementById('export-json-btn');
+        const importJsonInput = document.getElementById('import-json-input');
+        const exportCsvBtn = document.getElementById('export-csv-btn');
+
+        const recordForm = document.getElementById('record-form');
+        const inputDatetime = document.getElementById('input-datetime');
+        const inputTemp = document.getElementById('input-temp');
+        const summaryTextArea = document.getElementById('summary-text-area');
+        const timelineContainer = document.getElementById('timeline-container');
+        const emptyTimelineMsg = document.getElementById('empty-timeline-msg');
+        const recordCountBadge = document.getElementById('record-count-badge');
+        const adviceCardContainer = document.getElementById('advice-card-container');
+        const adviceText = document.getElementById('advice-text');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        // LocalStorage Helpers
+        function loadLocalChildren() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_CHILDREN);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                console.error("Failed to load children", e);
+                return [];
+            }
+        }
+
+        function saveLocalChildren(list) {
+            try {
+                localStorage.setItem(STORAGE_KEY_CHILDREN, JSON.stringify(list));
+            } catch (e) {
+                console.error("Failed to save children", e);
+            }
+        }
+
+        function loadLocalRecords() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_RECORDS);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                console.error("Failed to load records", e);
+                return [];
+            }
+        }
+
+        function saveLocalRecords(list) {
+            try {
+                localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(list));
+            } catch (e) {
+                console.error("Failed to save records", e);
+            }
+        }
+
+        // Automatic cleanup for records older than 90 days
+        function autoCleanupOldRecords() {
+            const allRecords = loadLocalRecords();
+            if (allRecords.length === 0) return;
+
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - 90);
+
+            const validRecords = allRecords.filter(r => {
+                const recordDate = new Date(r.datetime);
+                return !isNaN(recordDate.getTime()) && recordDate >= cutoff;
+            });
+
+            if (validRecords.length !== allRecords.length) {
+                saveLocalRecords(validRecords);
+            }
+        }
+
+        // Age Calculator Helper
+        function calculateAgeString(birthdateStr) {
+            if (!birthdateStr) return '';
+            const birth = new Date(birthdateStr);
+            if (isNaN(birth.getTime())) return '';
+            
+            const now = new Date();
+            let years = now.getFullYear() - birth.getFullYear();
+            let months = now.getMonth() - birth.getMonth();
+            let days = now.getDate() - birth.getDate();
+
+            if (days < 0) {
+                months--;
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            if (years < 0) return '未来の日付';
+            if (years === 0 && months === 0) {
+                const diffTime = Math.abs(now - birth);
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                return `生後${diffDays}日`;
+            }
+            if (years === 0) {
+                return `${months}ヶ月`;
+            }
+            return `${years}歳${months}ヶ月`;
+        }
+
+        function getAgeInMonths(birthdateStr) {
+            if (!birthdateStr) return null;
+            const birth = new Date(birthdateStr);
+            if (isNaN(birth.getTime())) return null;
+            const now = new Date();
+            let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+            if (now.getDate() < birth.getDate()) months--;
+            return months;
+        }
+
+        function getChildAgeDisplay(child) {
+            if (child.birthdate) {
+                return calculateAgeString(child.birthdate);
+            }
+            return child.age || '年齢未設定';
+        }
+
+        function parseBirthdateInput() {
+            const era = document.getElementById('child-era').value;
+            const yearNum = parseInt(document.getElementById('child-birth-year').value, 10);
+            const monthNum = parseInt(document.getElementById('child-birth-month').value, 10);
+            const dayNum = parseInt(document.getElementById('child-birth-day').value, 10);
+
+            if (!yearNum || !monthNum || !dayNum) return null;
+
+            let fullYear = yearNum;
+            if (era === 'reiwa') {
+                fullYear = 2018 + yearNum;
+            } else if (era === 'heisei') {
+                fullYear = 1988 + yearNum;
+            }
+
+            const formattedMonth = String(monthNum).padStart(2, '0');
+            const formattedDay = String(dayNum).padStart(2, '0');
+            const dateStr = `${fullYear}-${formattedMonth}-${formattedDay}`;
+
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return null;
+
+            return dateStr;
+        }
+
+        function updateComputedAgePreview() {
+            const dateStr = parseBirthdateInput();
+            const badge = document.getElementById('computed-age-badge');
+            const text = document.getElementById('computed-age-text');
+
+            if (dateStr) {
+                const ageStr = calculateAgeString(dateStr);
+                if (ageStr && ageStr !== '未来の日付') {
+                    text.textContent = ageStr;
+                    badge.classList.remove('hidden');
+                    return;
+                }
+            }
+            badge.classList.add('hidden');
+        }
+
+        ['child-era', 'child-birth-year', 'child-birth-month', 'child-birth-day'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', updateComputedAgePreview);
+                el.addEventListener('change', updateComputedAgePreview);
+            }
+        });
+
+        // Toast Helper
+        window.showToast = function(msg) {
+            toastMessage.textContent = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        };
+
+        // Modals Controls
+        openChildModalBtn.addEventListener('click', () => {
+            document.getElementById('child-modal-title').textContent = "お子さまの情報を追加";
+            document.getElementById('child-edit-id').value = "";
+            childForm.reset();
+            document.getElementById('computed-age-badge').classList.add('hidden');
+            childModal.classList.remove('hidden');
+        });
+
+        closeChildModalBtn.addEventListener('click', () => childModal.classList.add('hidden'));
+
+        manageChildrenBtn.addEventListener('click', openManageModal);
+        closeManageModalBtn.addEventListener('click', () => manageChildrenModal.classList.add('hidden'));
+        manageCloseBtn.addEventListener('click', () => manageChildrenModal.classList.add('hidden'));
+        manageAddBtn.addEventListener('click', () => {
+            manageChildrenModal.classList.add('hidden');
+            openChildModalBtn.click();
+        });
+
+        openBackupModalBtn.addEventListener('click', () => backupModal.classList.remove('hidden'));
+        closeBackupModalBtn.addEventListener('click', () => backupModal.classList.add('hidden'));
+        closeBackupModalBottomBtn.addEventListener('click', () => backupModal.classList.add('hidden'));
+
+        function openManageModal() {
+            renderManageChildrenList();
+            manageChildrenModal.classList.remove('hidden');
+        }
+
+        function renderManageChildrenList() {
+            childrenListContainer.innerHTML = '';
+            if (childrenList.length === 0) {
+                childrenListContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">登録されているお子さまはいません</p>`;
+                return;
+            }
+
+            childrenList.forEach((child) => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl";
+                const ageStr = getChildAgeDisplay(child);
+
+                item.innerHTML = `
+                    <div>
+                        <span class="font-bold text-xs text-slate-800">${child.name}</span>
+                        <span class="text-[11px] text-slate-500 ml-1">(${ageStr})</span>
+                        ${child.allergy ? `<p class="text-[10px] text-amber-700 mt-0.5"><i class="fa-solid fa-circle-info mr-1"></i>${child.allergy}</p>` : ''}
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="editChild('${child.id}')" class="bg-white hover:bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded-lg border border-slate-200 font-medium transition-colors">
+                            <i class="fa-solid fa-pen"></i> 編集
+                        </button>
+                        <button onclick="deleteChild('${child.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs px-2 py-1 rounded-lg border border-rose-200 font-medium transition-colors">
+                            <i class="fa-solid fa-trash-can"></i> 削除
+                        </button>
+                    </div>
+                `;
+                childrenListContainer.appendChild(item);
+            });
+        }
+
+        window.editChild = function(id) {
+            const child = childrenList.find(c => c.id === id);
+            if (!child) return;
+
+            document.getElementById('child-modal-title').textContent = "お子さま情報の編集";
+            document.getElementById('child-edit-id').value = child.id;
+            document.getElementById('child-name').value = child.name || '';
+            document.getElementById('child-allergy').value = child.allergy || '';
+
+            if (child.birthdate) {
+                const [y, m, d] = child.birthdate.split('-');
+                const yearNum = parseInt(y, 10);
+                if (yearNum >= 2019) {
+                    document.getElementById('child-era').value = 'reiwa';
+                    document.getElementById('child-birth-year').value = yearNum - 2018;
+                } else {
+                    document.getElementById('child-era').value = 'seireki';
+                    document.getElementById('child-birth-year').value = yearNum;
+                }
+                document.getElementById('child-birth-month').value = parseInt(m, 10);
+                document.getElementById('child-birth-day').value = parseInt(d, 10);
+                updateComputedAgePreview();
+            } else {
+                document.getElementById('child-birth-year').value = '';
+                document.getElementById('child-birth-month').value = '';
+                document.getElementById('child-birth-day').value = '';
+                document.getElementById('computed-age-badge').classList.add('hidden');
+            }
+
+            manageChildrenModal.classList.add('hidden');
+            childModal.classList.remove('hidden');
+        };
+
+        window.deleteChild = function(id) {
+            const child = childrenList.find(c => c.id === id);
+            if (!child) return;
+
+            childrenList = childrenList.filter(c => c.id !== id);
+            saveLocalChildren(childrenList);
+
+            const allRecords = loadLocalRecords().filter(r => r.childId !== id);
+            saveLocalRecords(allRecords);
+
+            if (activeChildId === id) {
+                activeChildId = childrenList.length > 0 ? childrenList[0].id : null;
+            }
+
+            updateChildSelectDropdown();
+            refreshRecordsForActiveChild();
+            renderManageChildrenList();
+            showToast(`${child.name}ちゃんを削除しました`);
+        };
+
+        function updateChildSelectDropdown() {
+            childSelect.innerHTML = '';
+            if (childrenList.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'お子さまを追加してください';
+                childSelect.appendChild(opt);
+                activeChildId = null;
+            } else {
+                childrenList.forEach((child) => {
+                    const opt = document.createElement('option');
+                    opt.value = child.id;
+                    const ageStr = getChildAgeDisplay(child);
+                    opt.textContent = `${child.name} (${ageStr})`;
+                    childSelect.appendChild(opt);
+                });
+
+                if (!activeChildId || !childrenList.some(c => c.id === activeChildId)) {
+                    activeChildId = childrenList[0].id;
+                }
+                childSelect.value = activeChildId;
+            }
+        }
+
+        childSelect.addEventListener('change', (e) => {
+            activeChildId = e.target.value;
+            refreshRecordsForActiveChild();
+        });
+
+        // Add/Edit Child Form Submission
+        childForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('child-edit-id').value;
+            const name = document.getElementById('child-name').value.trim();
+            const allergy = document.getElementById('child-allergy').value.trim();
+            const birthdate = parseBirthdateInput();
+
+            if (!name) return;
+
+            if (editId) {
+                const child = childrenList.find(c => c.id === editId);
+                if (child) {
+                    child.name = name;
+                    child.birthdate = birthdate || '';
+                    child.allergy = allergy;
+                    showToast(`${name}ちゃんの情報を更新しました`);
+                }
+            } else {
+                const newChild = {
+                    id: 'child_' + Date.now(),
+                    name,
+                    birthdate: birthdate || '',
+                    allergy
+                };
+                childrenList.push(newChild);
+                activeChildId = newChild.id;
+                showToast(`${name}ちゃんを登録しました`);
+            }
+
+            saveLocalChildren(childrenList);
+            updateChildSelectDropdown();
+            refreshRecordsForActiveChild();
+
+            childModal.classList.add('hidden');
+            childForm.reset();
+            document.getElementById('child-edit-id').value = '';
+            document.getElementById('computed-age-badge').classList.add('hidden');
+        });
+
+        function refreshRecordsForActiveChild() {
+            if (!activeChildId) {
+                healthRecords = [];
+            } else {
+                const allRecords = loadLocalRecords();
+                healthRecords = allRecords
+                    .filter(r => r.childId === activeChildId)
+                    .sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+            }
+            renderRecords();
+            updateChart();
+            generateDoctorSummary();
+            updateAdviceCard();
+        }
+
+        // Add Health Record
+        recordForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            if (!activeChildId) {
+                showToast("まずはお子さまを登録・選択してください");
+                openChildModalBtn.click();
+                return;
+            }
+
+            const tempVal = parseFloat(inputTemp.value);
+            if (isNaN(tempVal)) {
+                showToast("有効な体温を入力してください");
+                return;
+            }
+
+            const moodVal = document.querySelector('input[name="mood"]:checked')?.value || "普通";
+            const appetiteVal = document.querySelector('input[name="appetite"]:checked')?.value || "取れている";
+            const selectedSymptoms = Array.from(document.querySelectorAll('input[name="symptom"]:checked')).map(cb => cb.value);
+            const medVal = document.getElementById('input-med').value || "なし";
+            const noteVal = document.getElementById('input-note').value.trim() || "";
+
+            const newRecord = {
+                id: 'rec_' + Date.now(),
+                childId: activeChildId,
+                datetime: inputDatetime.value,
+                temp: tempVal,
+                mood: moodVal,
+                appetite: appetiteVal,
+                symptoms: selectedSymptoms,
+                medication: medVal,
+                note: noteVal,
+                createdAt: new Date().toISOString()
+            };
+
+            const allRecords = loadLocalRecords();
+            allRecords.unshift(newRecord);
+            saveLocalRecords(allRecords);
+
+            showToast("体調を記録しました ✅");
+
+            document.getElementById('input-note').value = '';
+            document.querySelectorAll('input[name="symptom"]').forEach(cb => cb.checked = false);
+            setNowDatetime();
+
+            refreshRecordsForActiveChild();
+        });
+
+        window.deleteRecord = function(recordId) {
+            const allRecords = loadLocalRecords().filter(r => r.id !== recordId);
+            saveLocalRecords(allRecords);
+            refreshRecordsForActiveChild();
+            showToast("記録を削除しました");
+        };
+
+        function renderRecords() {
+            recordCountBadge.textContent = `${healthRecords.length}件`;
+
+            if (healthRecords.length === 0) {
+                emptyTimelineMsg.classList.remove('hidden');
+                timelineContainer.innerHTML = '';
+                timelineContainer.appendChild(emptyTimelineMsg);
+                return;
+            }
+
+            emptyTimelineMsg.classList.add('hidden');
+            timelineContainer.innerHTML = '';
+
+            healthRecords.forEach(rec => {
+                const dateObj = new Date(rec.datetime);
+                const dateStr = `${dateObj.getMonth()+1}/${dateObj.getDate()} (${['日','月','火','水','木','金','土'][dateObj.getDay()]})`;
+                const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                const isFever = rec.temp >= 37.5;
+                const tempBadgeColor = rec.temp >= 38.5 
+                    ? 'bg-rose-100 text-rose-700 border-rose-200' 
+                    : isFever 
+                    ? 'bg-amber-100 text-amber-800 border-amber-200' 
+                    : 'bg-emerald-100 text-emerald-800 border-emerald-200';
+
+                const card = document.createElement('div');
+                card.className = "p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors space-y-1.5 relative group";
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-500">${dateStr} ${timeStr}</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full font-bold border ${tempBadgeColor}">
+                                ${rec.temp.toFixed(1)} ℃
+                            </span>
+                        </div>
+                        <button onclick="deleteRecord('${rec.id}')" class="text-slate-300 hover:text-rose-500 text-xs p-1 transition-colors" title="削除">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
+                        <span>機嫌: <strong class="text-slate-800">${rec.mood}</strong></span>
+                        <span>食欲: <strong class="text-slate-800">${rec.appetite}</strong></span>
+                        ${rec.medication && rec.medication !== 'なし' ? `<span class="text-indigo-600 font-semibold"><i class="fa-solid fa-pills"></i> ${rec.medication}</span>` : ''}
+                    </div>
+
+                    ${rec.symptoms && rec.symptoms.length > 0 ? `
+                        <div class="flex flex-wrap gap-1 pt-0.5">
+                            ${rec.symptoms.map(s => `<span class="bg-white border border-slate-200 text-slate-700 px-2 py-0.5 rounded text-[10px]">${s}</span>`).join('')}
+                        </div>
+                    ` : ''}
+
+                    ${rec.note ? `
+                        <p class="text-xs text-slate-600 bg-white p-2 rounded-lg border border-slate-100 italic">
+                            "${rec.note}"
+                        </p>
+                    ` : ''}
+                `;
+
+                timelineContainer.appendChild(card);
+            });
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            const chronological = [...healthRecords].reverse();
+            
+            const labels = chronological.map(r => {
+                const d = new Date(r.datetime);
+                return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+            });
+            const temps = chronological.map(r => r.temp);
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '体温 (℃)',
+                        data: temps,
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.08)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: temps.map(t => t >= 38.5 ? '#e11d48' : t >= 37.5 ? '#f59e0b' : '#22c55e')
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `体温: ${ctx.raw} ℃`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 35.5,
+                            max: 41.0,
+                            ticks: { stepSize: 0.5 }
+                        },
+                        x: {
+                            ticks: { maxRotation: 45, minRotation: 45, font: { size: 9 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generateDoctorSummary() {
+            const activeChild = childrenList.find(c => c.id === activeChildId);
+            const childName = activeChild ? activeChild.name : 'お子さま';
+            const ageDisplay = activeChild ? getChildAgeDisplay(activeChild) : '';
+            const childAge = ageDisplay ? ` (${ageDisplay})` : '';
+            const allergyInfo = activeChild && activeChild.allergy ? `\n【基礎疾患・アレルギー】${activeChild.allergy}` : '';
+
+            if (healthRecords.length === 0) {
+                summaryTextArea.value = `【患者情報】${childName}ちゃん${childAge}${allergyInfo}\n\n※ 記録を追加すると、ここに受診用サマリーが自動生成されます。`;
+                return;
+            }
+
+            const temps = healthRecords.map(r => r.temp);
+            const maxTemp = Math.max(...temps).toFixed(1);
+            const latestRecord = healthRecords[0];
+
+            const allSymptomsSet = new Set();
+            healthRecords.forEach(r => {
+                if (r.symptoms) r.symptoms.forEach(s => allSymptomsSet.add(s));
+            });
+            const symptomsList = Array.from(allSymptomsSet).join('、') || '特になし';
+
+            const medsList = healthRecords
+                .filter(r => r.medication && r.medication !== 'なし')
+                .map(r => {
+                    const d = new Date(r.datetime);
+                    return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')} ${r.medication}`;
+                });
+
+            const timelineExcerpt = healthRecords.slice(0, 6).map(r => {
+                const d = new Date(r.datetime);
+                const timeStr = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                let line = `・${timeStr} ${r.temp.toFixed(1)}℃ [機嫌:${r.mood}/食欲:${r.appetite}]`;
+                if (r.symptoms && r.symptoms.length > 0) line += ` (${r.symptoms.join(',')})`;
+                if (r.note) line += ` メモ:${r.note}`;
+                return line;
+            }).join('\n');
+
+            const text = `【患者情報】${childName}ちゃん${childAge}${allergyInfo}
+【主な症状】${symptomsList}
+【最高体温】${maxTemp}℃ (最新: ${latestRecord.temp.toFixed(1)}℃)
+
+【直近の服薬・対処履歴】
+${medsList.length > 0 ? medsList.join('\n') : '・なし'}
+
+【経過タイムライン】
+${timelineExcerpt}
+
+【相談したいこと】
+現在の状態での受診判断およびケアについてアドバイスをお願いします。`;
+
+            summaryTextArea.value = text;
+        }
+
+        function updateAdviceCard() {
+            const activeChild = childrenList.find(c => c.id === activeChildId);
+            const ageMonths = activeChild ? getAgeInMonths(activeChild.birthdate) : null;
+            const latest = healthRecords[0];
+
+            adviceCardContainer.className = "rounded-2xl p-4 shadow-sm text-xs space-y-2 border transition-all ";
+
+            if (!latest) {
+                adviceCardContainer.classList.add("bg-blue-50", "border-blue-200");
+                adviceText.innerHTML = "体調を記録すると、最新の状態（体温・年齢・機嫌など）に合わせたケア方法や受診の目安が表示されます。";
+                return;
+            }
+
+            // High risk condition check
+            if (ageMonths !== null && ageMonths < 3 && latest.temp >= 38.0) {
+                adviceCardContainer.classList.add("bg-rose-50", "border-rose-300");
+                adviceText.innerHTML = `<strong class="text-rose-700 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>生後3ヶ月未満の38℃以上の発熱:</strong> 早期の医師の診察が必要です。夜間・休日でも小児科を受診するか、#8000 にご相談ください。`;
+                return;
+            }
+
+            if (latest.mood === 'ぐったり' || latest.temp >= 39.5) {
+                adviceCardContainer.classList.add("bg-rose-50", "border-rose-300");
+                adviceText.innerHTML = `<strong class="text-rose-700 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i>高熱・ぐったりしている場合:</strong> 水分が摂れない、呼吸が荒い、呼びかけへの反応が薄い場合は速やかに受診してください。脇の下や太ももの付け根を保冷剤などで冷やすのも有効です。`;
+                return;
+            }
+
+            if (latest.temp >= 38.0) {
+                adviceCardContainer.classList.add("bg-amber-50", "border-amber-200");
+                adviceText.innerHTML = `<strong class="text-amber-800 font-bold"><i class="fa-solid fa-temperature-arrow-up mr-1"></i>発熱中（38℃以上）:</strong> 少量ずつこまめに水分補給（経口補水液や麦茶）を行いましょう。手足が冷たい時は暖かくし、熱があがりきって熱く汗をかいてきたら薄着にして涼しくします。`;
+                return;
+            }
+
+            adviceCardContainer.classList.add("bg-emerald-50", "border-emerald-200");
+            adviceText.innerHTML = `<strong class="text-emerald-800 font-bold"><i class="fa-solid fa-shield-heart mr-1"></i>平熱〜微熱圏:</strong> 落ち着いています。保温や水分補給を行い、引き続き状態を観察してあげてください。`;
+        }
+
+        document.getElementById('copy-summary-btn').addEventListener('click', () => {
+            const text = summaryTextArea.value;
+            if (!text) return;
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast("受診用テキストをコピーしました！");
+                }).catch(() => fallbackCopy(text));
+            } else {
+                fallbackCopy(text);
+            }
+        });
+
+        function fallbackCopy(text) {
+            summaryTextArea.select();
+            document.execCommand('copy');
+            showToast("受診用テキストをコピーしました！");
+        }
+
+        document.getElementById('refresh-summary-btn').addEventListener('click', () => {
+            generateDoctorSummary();
+            showToast("サマリーを更新しました");
+        });
+
+        window.setTemp = function(val) {
+            inputTemp.value = val;
+        };
+
+        // Export JSON
+        exportJsonBtn.addEventListener('click', () => {
+            const data = {
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                children: loadLocalChildren(),
+                records: loadLocalRecords()
+            };
+
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kids_health_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("バックアップファイルをダウンロードしました");
+        });
+
+        // Import JSON
+        importJsonInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    if (imported.children && imported.records) {
+                        saveLocalChildren(imported.children);
+                        saveLocalRecords(imported.records);
+                        initApp();
+                        backupModal.classList.add('hidden');
+                        showToast("データを復元しました");
+                    } else {
+                        showToast("無効なバックアップファイル形式です");
+                    }
+                } catch (err) {
+                    showToast("ファイルの読み込みに失敗しました");
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // Export CSV
+        exportCsvBtn.addEventListener('click', () => {
+            const records = loadLocalRecords();
+            if (records.length === 0) {
+                showToast("出力できる記録がありません");
+                return;
+            }
+
+            let csvContent = "\uFEFF日時,お子さまID,体温(℃),機嫌,食欲,症状,服薬,メモ\n";
+            records.forEach(r => {
+                const symptomsStr = r.symptoms ? r.symptoms.join(';') : '';
+                csvContent += `"${r.datetime}","${r.childId}",${r.temp},"${r.mood}","${r.appetite}","${symptomsStr}","${r.medication || ''}","${(r.note || '').replace(/"/g, '""')}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kids_health_records_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("CSVファイルをダウンロードしました");
+        });
+
+        function setNowDatetime() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            inputDatetime.value = now.toISOString().slice(0, 16);
+            document.getElementById('current-datetime-display').textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        // App Initialization
+        function initApp() {
+            setNowDatetime();
+            autoCleanupOldRecords();
+
+            childrenList = loadLocalChildren();
+
+            if (childrenList.length === 0) {
+                const sampleChild = {
+                    id: 'child_sample_taro',
+                    name: 'たろう（サンプル）',
+                    birthdate: '2022-05-10',
+                    allergy: ''
+                };
+                childrenList.push(sampleChild);
+                saveLocalChildren(childrenList);
+            }
+
+            activeChildId = childrenList[0].id;
+            updateChildSelectDropdown();
+            refreshRecordsForActiveChild();
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

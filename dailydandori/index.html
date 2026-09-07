@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サクッと家事段取りメーカー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=M+PLUS+Rounded+1c:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen text-slate-800 pb-16">
+
+    <header class="bg-white/80 backdrop-blur-md border-b border-indigo-100 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-md shadow-indigo-200">
+                    <i class="fa-solid fa-list-check text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl text-slate-900 leading-tight">サクッと段取りメーカー</h1>
+                    <p class="text-sm text-slate-500">ダラダラ気分をリセット！行動の道しるべ</p>
+                </div>
+            </div>
+            <div id="motivation-badge" class="bg-amber-100 text-amber-800 text-sm font-bold px-4 py-2 rounded-full flex items-center space-x-1.5 shadow-sm">
+                <i class="fa-solid fa-seedling text-amber-600 text-base"></i>
+                <span id="streak-text">今日の一歩目から！</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 mt-6">
+        <section class="bg-white rounded-3xl p-6 md:p-8 shadow-xl shadow-indigo-100/50 border border-indigo-50 transition-all duration-300">
+            <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-3 flex items-center">
+                <i class="fa-solid fa-wand-magic-sparkles text-indigo-500 mr-2 text-xl"></i>
+                やりたいこと・家事をざっくり書いてみよう
+            </h2>
+            <p class="text-sm md:text-base text-slate-600 mb-5 leading-relaxed">
+                「部屋を片付けたい」「夕飯の準備と洗濯をして、資格の勉強も少ししたい」など、思いつくままに入力してください。AI風ロジックが最適な段取りに分解します！
+            </p>
+
+            <div class="space-y-5">
+                <div>
+                    <textarea id="task-input" rows="3" class="w-full rounded-2xl border border-slate-200 p-4 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder:text-slate-400 bg-slate-50/50" placeholder="例：部屋の掃除をしたい。特にリビングが散らかっているし、洗濯物もたたまなきゃいけない。あと洗い物も残ってる。"></textarea>
+                </div>
+
+                <!-- Custom Presets Section -->
+                <div class="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-bold text-slate-700 flex items-center">
+                            <i class="fa-solid fa-bookmark text-indigo-600 mr-2"></i>よく使うルーティン（自由にカスタム可能）
+                        </span>
+                        <button onclick="openPresetModal()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl transition-all flex items-center space-x-1 shadow-sm">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>ルーティン追加・管理</span>
+                        </button>
+                    </div>
+                    <div id="presets-container" class="flex flex-wrap gap-2.5">
+                        <!-- Dynamically populated custom presets -->
+                    </div>
+                </div>
+
+                <button onclick="generatePlan()" class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-indigo-200 transition-all transform active:scale-95 flex items-center justify-center space-x-2 text-base md:text-lg">
+                    <i class="fa-solid fa-gears"></i>
+                    <span>最高の段取り（スケジュール）を組む！</span>
+                </button>
+            </div>
+        </section>
+
+        <div id="result-container" class="mt-6 hidden space-y-6 fade-in">
+            <!-- Summary Banner -->
+            <div class="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-indigo-200">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="bg-white/20 text-white text-xs md:text-sm font-bold px-3 py-1 rounded-full uppercase tracking-wider">作戦司令室</span>
+                        <h3 id="plan-title" class="text-xl md:text-2xl font-bold mt-2">今日のスマート段取りプラン</h3>
+                    </div>
+                    <div class="text-right bg-black/10 px-4 py-2.5 rounded-2xl backdrop-blur-sm">
+                        <span class="text-xs md:text-sm block text-violet-200">予想完了時間</span>
+                        <span id="total-time" class="text-xl md:text-2xl font-bold">約 45 分</span>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-sm md:text-base text-violet-100">
+                    <span id="encouragement-msg"><i class="fa-solid fa-face-smile-beam mr-1.5"></i> まずは最初の1ステップだけやってみよう！</span>
+                    <button onclick="resetAll()" class="hover:underline text-white/90 hover:text-white font-medium">やり直す</button>
+                </div>
+            </div>
+
+            <!-- Task Checklist Card -->
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-xl shadow-indigo-100/50 border border-indigo-50">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-slate-800 text-base md:text-lg flex items-center">
+                        <i class="fa-solid fa-list-check text-indigo-500 mr-2 text-lg"></i>
+                        ステップ別・実行リスト
+                    </h3>
+                    <div class="text-sm text-slate-600">
+                        完了: <span id="completed-count" class="font-bold text-indigo-600 text-base">0</span> / <span id="total-count" class="font-bold text-base">0</span>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden mb-6">
+                    <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-violet-500 h-full w-0 transition-all duration-500 rounded-full"></div>
+                </div>
+
+                <!-- Tasks List -->
+                <div id="tasks-list" class="space-y-3.5">
+                    <!-- Dynamic tasks inserted here -->
+                </div>
+
+                <!-- Complete / Next Task Action Button Area -->
+                <div id="completion-actions" class="mt-6 pt-6 border-t border-slate-100 hidden">
+                    <button onclick="resetAll()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-emerald-200 transition-all transform active:scale-95 flex items-center justify-center space-x-2 text-base md:text-lg">
+                        <i class="fa-solid fa-flag-checkered"></i>
+                        <span>全タスク完了！次のタスクを入力する</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="preset-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl fade-in max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg md:text-xl text-slate-900 flex items-center">
+                    <i class="fa-solid fa-bookmark text-indigo-600 mr-2"></i>カスタムルーティンの管理
+                </h3>
+                <button onclick="closePresetModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold px-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-sm text-slate-600 mb-5">
+                よく使うルーティンを追加・編集・削除できます（すべて削除することも可能です）。ボタンを押すと上の入力欄にセットされ、追記や編集も自由にできます！
+            </p>
+
+            <!-- Add/Edit Form -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-6 space-y-3">
+                <h4 id="form-mode-title" class="text-sm font-bold text-slate-700">新しいルーティンを追加</h4>
+                <input type="hidden" id="edit-preset-id" value="">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">ボタンのタイトル（例：🧹 朝の時短掃除）：</label>
+                    <input type="text" id="preset-title-input" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="例：朝のルーティン">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">内容（例：キッチンの片付け、ゴミまとめ、洗濯機）：</label>
+                    <textarea id="preset-content-input" rows="2" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="やりたいことをカンマや改行区切りで入力"></textarea>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="saveCustomPreset()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition-all shadow-sm">
+                        保存する
+                    </button>
+                    <button onclick="resetPresetForm()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-sm transition-all">
+                        キャンセル
+                    </button>
+                </div>
+            </div>
+
+            <!-- Existing Custom Presets List -->
+            <div>
+                <h4 class="text-sm font-bold text-slate-700 mb-3">登録済みルーティン一覧</h4>
+                <div id="modal-presets-list" class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTasks = [];
+        let planTitleText = "今日のスマート段取りプラン";
+
+        const defaultPresets = [
+            {
+                id: 'p1',
+                title: '🧹 部屋の大掃除・リセット',
+                content: 'リビングの片付け、床の掃除機がけ、散らかったものの定位置への収納、ゴミ出し'
+            },
+            {
+                id: 'p2',
+                title: '🍳 夕方の家事ダッシュ',
+                content: '洗濯物をたたむ、夕飯の献立決め＆調理、キッチンのシンク洗い'
+            },
+            {
+                id: 'p3',
+                title: '✨ 休日の充実タスク',
+                content: 'たまった洗濯、部屋の換気と掃除、作り置きおかず作成、読書か勉強30分'
+            }
+        ];
+
+        let customPresets = [];
+
+        window.onload = function() {
+            // Load custom presets
+            const savedPresets = localStorage.getItem('dandori_custom_presets');
+            if (savedPresets) {
+                customPresets = JSON.parse(savedPresets);
+            } else {
+                customPresets = defaultPresets;
+                localStorage.setItem('dandori_custom_presets', JSON.stringify(customPresets));
+            }
+            renderPresetsUI();
+
+            // Load saved task state
+            const savedTasks = localStorage.getItem('dandori_tasks');
+            const savedTitle = localStorage.getItem('dandori_title');
+
+            if (savedTasks) {
+                currentTasks = JSON.parse(savedTasks);
+                if (savedTitle) planTitleText = savedTitle;
+                document.getElementById('plan-title').innerText = planTitleText;
+                document.getElementById('result-container').classList.remove('hidden');
+                renderTasks();
+            }
+        };
+
+        function saveState() {
+            localStorage.setItem('dandori_tasks', JSON.stringify(currentTasks));
+            localStorage.setItem('dandori_title', planTitleText);
+        }
+
+        function renderPresetsUI() {
+            const container = document.getElementById('presets-container');
+            const modalList = document.getElementById('modal-presets-list');
+            
+            container.innerHTML = '';
+            modalList.innerHTML = '';
+
+            if (customPresets.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400 italic py-1">ルーティンが登録されていません。「ルーティン追加・管理」から自由に追加できます。</p>';
+                modalList.innerHTML = '<p class="text-xs text-slate-400 italic py-2 text-center">登録されているルーティンはありません</p>';
+                return;
+            }
+
+            customPresets.forEach((preset) => {
+                // Main screen button
+                const btn = document.createElement('button');
+                btn.className = 'text-sm bg-white text-indigo-700 hover:bg-indigo-100 px-4 py-2 rounded-xl font-medium transition-colors border border-indigo-200 shadow-sm flex items-center space-x-1.5';
+                btn.innerHTML = `<span>${preset.title}</span>`;
+                btn.onclick = () => selectPreset(preset.content);
+                container.appendChild(btn);
+
+                // Modal edit list item
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 gap-3';
+                item.innerHTML = `
+                    <div class="flex-1 min-w-0">
+                        <h5 class="font-bold text-sm text-slate-800 truncate">${preset.title}</h5>
+                        <p class="text-xs text-slate-500 truncate">${preset.content}</p>
+                    </div>
+                    <div class="flex items-center space-x-1.5 flex-shrink-0">
+                        <button onclick="editPreset('${preset.id}')" class="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg transition-colors" title="編集">
+                            <i class="fa-solid fa-pen text-xs"></i>
+                        </button>
+                        <button onclick="deletePreset('${preset.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition-colors" title="削除">
+                            <i class="fa-solid fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                modalList.appendChild(item);
+            });
+        }
+
+        function selectPreset(content) {
+            const textarea = document.getElementById('task-input');
+            if (textarea.value.trim() !== '') {
+                textarea.value += '、' + content;
+            } else {
+                textarea.value = content;
+            }
+            window.scrollTo({ top: 200, behavior: 'smooth' });
+            toastMessage("ルーティンをボックスに読み込みました！");
+        }
+
+        function openPresetModal() {
+            document.getElementById('preset-modal').classList.remove('hidden');
+            resetPresetForm();
+        }
+
+        function closePresetModal() {
+            document.getElementById('preset-modal').classList.add('hidden');
+        }
+
+        function resetPresetForm() {
+            document.getElementById('edit-preset-id').value = '';
+            document.getElementById('preset-title-input').value = '';
+            document.getElementById('preset-content-input').value = '';
+            document.getElementById('form-mode-title').innerText = '新しいルーティンを追加';
+        }
+
+        function saveCustomPreset() {
+            const idInput = document.getElementById('edit-preset-id').value;
+            const title = document.getElementById('preset-title-input').value.trim();
+            const content = document.getElementById('preset-content-input').value.trim();
+
+            if (!title || !content) {
+                toastMessage("タイトルと内容の両方を入力してください。");
+                return;
+            }
+
+            if (idInput) {
+                const index = customPresets.findIndex(p => p.id === idInput);
+                if (index !== -1) {
+                    customPresets[index].title = title;
+                    customPresets[index].content = content;
+                }
+            } else {
+                const newPreset = {
+                    id: 'p_' + Date.now(),
+                    title: title,
+                    content: content
+                };
+                customPresets.push(newPreset);
+            }
+
+            localStorage.setItem('dandori_custom_presets', JSON.stringify(customPresets));
+            renderPresetsUI();
+            resetPresetForm();
+            toastMessage("ルーティンを保存しました！");
+        }
+
+        function editPreset(id) {
+            const preset = customPresets.find(p => p.id === id);
+            if (!preset) return;
+
+            document.getElementById('edit-preset-id').value = preset.id;
+            document.getElementById('preset-title-input').value = preset.title;
+            document.getElementById('preset-content-input').value = preset.content;
+            document.getElementById('form-mode-title').innerText = 'ルーティンを編集';
+        }
+
+        function deletePreset(id) {
+            customPresets = customPresets.filter(p => p.id !== id);
+            localStorage.setItem('dandori_custom_presets', JSON.stringify(customPresets));
+            renderPresetsUI();
+            toastMessage("ルーティンを削除しました。");
+        }
+
+        function generatePlan() {
+            const rawText = document.getElementById('task-input').value.trim();
+            if (!rawText) {
+                toastMessage("まずはやりたいことや家事を入力してくださいね！");
+                return;
+            }
+
+            let fragments = rawText.split(/[,、。\n・\s]+/).filter(f => f.length > 0);
+            if (fragments.length === 0) {
+                fragments = [rawText];
+            }
+
+            let tasks = [];
+            tasks.push({
+                text: "【ウォームアップ】 まず座り込んだ体を起こし、水分補給をして深呼吸する",
+                time: "3分",
+                completed: false
+            });
+
+            fragments.forEach((frag) => {
+                if (frag.length > 1) {
+                    tasks.push({
+                        text: `${frag}に取りかかる（まずは形だけでもOK！）`,
+                        time: "10分",
+                        completed: false
+                    });
+                }
+            });
+
+            if (tasks.length <= 2) {
+                tasks.push({
+                    text: "細かい部分の仕上げ・整頓",
+                    time: "5分",
+                    completed: false
+                });
+            }
+
+            tasks.push({
+                text: "【ご褒美】 終わったらお気に入りの飲み物で一息ついて自分を褒める",
+                time: "3分",
+                completed: false
+            });
+
+            currentTasks = tasks;
+            planTitleText = rawText.length > 15 ? rawText.substring(0, 15) + '...' : rawText;
+            document.getElementById('plan-title').innerText = planTitleText;
+            
+            const totalMins = tasks.length * 8;
+            document.getElementById('total-time').innerText = `約 ${totalMins} 分`;
+
+            saveState();
+            renderTasks();
+
+            const container = document.getElementById('result-container');
+            container.classList.remove('hidden');
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderTasks() {
+            const listEl = document.getElementById('tasks-list');
+            listEl.innerHTML = '';
+
+            let completedCount = 0;
+
+            currentTasks.forEach((task, index) => {
+                if (task.completed) completedCount++;
+
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-4 md:p-5 rounded-2xl border transition-all gap-3 cursor-pointer ${
+                    task.completed 
+                        ? 'bg-slate-50 border-slate-200 text-slate-400 line-through' 
+                        : 'bg-white border-indigo-100 hover:border-indigo-300 shadow-sm text-slate-800'
+                }`;
+
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3.5 flex-1 w-full" onclick="toggleTask(${index})">
+                        <div class="w-7 h-7 md:w-8 md:h-8 rounded-xl flex items-center justify-center border transition-colors flex-shrink-0 ${
+                            task.completed ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300 bg-white hover:border-indigo-400'
+                        }">
+                            ${task.completed ? '<i class="fa-solid fa-check text-sm"></i>' : ''}
+                        </div>
+                        <span class="text-base md:text-lg font-medium flex-1">${task.text}</span>
+                    </div>
+                    <div class="flex items-center space-x-2.5">
+                        <span class="text-xs md:text-sm px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 font-mono">${task.time}</span>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+
+            document.getElementById('completed-count').innerText = completedCount;
+            document.getElementById('total-count').innerText = currentTasks.length;
+
+            const percentage = currentTasks.length > 0 ? (completedCount / currentTasks.length) * 100 : 0;
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+
+            const completionActions = document.getElementById('completion-actions');
+
+            if (completedCount === currentTasks.length && currentTasks.length > 0) {
+                document.getElementById('encouragement-msg').innerHTML = `<i class="fa-solid fa-trophy text-amber-300 mr-1.5"></i> すべて完了しました！お疲れ様です！素晴らしい達成感！`;
+                document.getElementById('streak-text').innerText = '全タスククリア達成！🎉';
+                completionActions.classList.remove('hidden');
+            } else {
+                completionActions.classList.add('hidden');
+            }
+        }
+
+        function toggleTask(index) {
+            currentTasks[index].completed = !currentTasks[index].completed;
+            saveState();
+            renderTasks();
+        }
+
+        function resetAll() {
+            localStorage.removeItem('dandori_tasks');
+            localStorage.removeItem('dandori_title');
+            document.getElementById('result-container').classList.add('hidden');
+            document.getElementById('task-input').value = "";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toastMessage(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white text-sm md:text-base px-5 py-3.5 rounded-2xl shadow-xl z-50 fade-in flex items-center space-x-2.5';
+            toast.innerHTML = `<i class="fa-solid fa-circle-exclamation text-amber-400 text-lg"></i><span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

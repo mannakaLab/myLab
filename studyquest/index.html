@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テキスト学習ゲームアプリ - スタディ・クエスト</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-sky-50 via-teal-50 to-emerald-50 text-slate-700 min-h-screen font-sans flex flex-col">
+
+    <!-- ヘッダー -->
+    <header class="bg-white/85 backdrop-blur-md border-b border-sky-100 p-4 shadow-sm flex justify-between items-center sticky top-0 z-40">
+        <h1 class="text-xl font-extrabold text-sky-600 flex items-center gap-2 cursor-pointer" onclick="returnToHome()">
+            🌱 <span>スタディ・クエスト</span>
+        </h1>
+        <div id="status-bar" class="hidden flex items-center gap-3 text-sm">
+            <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-bold shadow-sm border border-amber-200">
+                ⭐ スコア: <span id="score-display">0</span>
+            </span>
+            <span class="bg-sky-100 text-sky-700 px-3 py-1 rounded-full font-bold shadow-sm border border-sky-200">
+                ⚔️ クエスト進行: <span id="hp-display">0</span>%
+            </span>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-1 max-w-2xl w-full mx-auto p-4 flex flex-col justify-center">
+
+        <!-- ステップ1: テキストまたは写真の入力 ＆ 復習リスト -->
+        <section id="step-upload" class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-sky-100 space-y-6">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800">教科書を冒険に変えよう！</h2>
+                <p class="text-slate-500 text-sm">写真や文章を読み込ませて、爽快な2択クイズの冒険に出発しよう。</p>
+            </div>
+
+            <!-- タブ切り替え -->
+            <div class="flex border-b border-slate-100">
+                <button onclick="switchTab('photo')" id="tab-photo" class="flex-1 py-3 text-center font-bold border-b-2 border-sky-500 text-sky-600 transition">📸 写真で読み取り</button>
+                <button onclick="switchTab('text')" id="tab-text" class="flex-1 py-3 text-center font-bold text-slate-400 border-b-2 border-transparent transition">✍️ テキストを直貼り</button>
+            </div>
+
+            <!-- 写真タブ -->
+            <div id="content-photo" class="space-y-4">
+                <div class="border-2 border-dashed border-sky-200 bg-sky-50/50 rounded-2xl p-8 text-center hover:bg-sky-50 transition cursor-pointer relative">
+                    <input type="file" id="image-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleImageSelect(event)">
+                    <div id="image-preview-container" class="space-y-3">
+                        <div class="text-5xl">📷</div>
+                        <p class="text-sm font-bold text-sky-700">ここをタップして教科書の写真をアップロード</p>
+                        <p class="text-xs text-sky-500">（AIが自動で内容を分析して2択クイズを作ります）</p>
+                    </div>
+                </div>
+                <!-- 写真読み取りエラー時のヒント -->
+                <div id="photo-tips" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800 space-y-1">
+                    <p class="font-bold flex items-center gap-1">💡 写真がうまくいかない時のコツ</p>
+                    <ul class="list-disc list-inside text-amber-700 space-y-0.5">
+                        <li>ファイルサイズが大きい場合、縮小または明るい場所で撮影してください。</li>
+                        <li>文字がはっきり写っているか確認してください（対応フォーマット: JPG, PNG等）。</li>
+                        <li>エラーが続く場合は、テキストタブに文章をコピペして試してみてください！</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- テキストタブ -->
+            <div id="content-text" class="hidden space-y-4">
+                <textarea id="text-input" rows="6" placeholder="ここに勉強したい教科書やノートの文章を貼り付けてね..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100 resize-none"></textarea>
+            </div>
+
+            <button onclick="generateGame()" id="start-btn" class="w-full bg-gradient-to-r from-sky-400 to-emerald-400 hover:from-sky-500 hover:to-emerald-500 active:scale-95 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-sky-200 transition flex items-center justify-center gap-2 text-base">
+                ✨ 2択クエストをスタート！
+            </button>
+
+            <!-- 復習セクション（過去のクイズ履歴） -->
+            <div id="history-section" class="pt-4 border-t border-slate-100 hidden">
+                <h3 class="text-sm font-extrabold text-slate-600 mb-3 flex items-center gap-1.5">
+                    📚 <span>過去のクイズを復習する（最大3件保存）</span>
+                </h3>
+                <div id="history-list" class="space-y-2">
+                    <!-- 動的挿入 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ローディング画面 -->
+        <section id="step-loading" class="hidden bg-white p-10 rounded-3xl shadow-xl border border-sky-100 text-center space-y-4">
+            <div class="animate-bounce text-6xl inline-block">🚀</div>
+            <h3 id="loading-title" class="text-xl font-bold text-slate-800">AIが爽快なクエストを作成中...</h3>
+            <p id="loading-subtitle" class="text-slate-500 text-sm">写真や文章を解析しています。少しお待ちください。</p>
+        </section>
+
+        <!-- ステップ2: ゲーム画面 (2択クイズ & モンスター討伐) -->
+        <section id="step-game" class="hidden space-y-6">
+            <!-- モンスター表示エリア -->
+            <div class="bg-gradient-to-b from-sky-500 to-teal-600 p-6 rounded-3xl text-white text-center relative overflow-hidden shadow-lg">
+                <div id="monster-emoji" class="text-6xl mb-2 animate-bounce">🐳</div>
+                <h3 id="monster-name" class="text-lg font-extrabold drop-shadow-sm">爽やかな大空の守護者</h3>
+                <!-- モンスターHPバー -->
+                <div class="w-full bg-black/20 h-3 rounded-full mt-3 overflow-hidden border border-white/20">
+                    <div id="monster-hp-bar" class="bg-emerald-300 h-full w-full transition-all duration-300"></div>
+                </div>
+                <p class="text-xs text-sky-100 mt-1 font-medium">モンスター残り体力: <span id="monster-hp-val">100</span> / 100</p>
+            </div>
+
+            <!-- クイズ問題エリア -->
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-sky-100 space-y-5 shadow-xl">
+                <div class="flex justify-between items-center text-xs font-bold text-slate-400">
+                    <span id="question-progress" class="bg-sky-100 text-sky-600 px-3 py-1 rounded-full">問題 1 / 5</span>
+                    <span class="text-emerald-500 bg-emerald-50 px-2.5 py-1 rounded-full">2択チャレンジ</span>
+                </div>
+                <h4 id="question-text" class="text-lg font-bold text-slate-800 leading-relaxed">ここに問題文が表示されます。</h4>
+
+                <!-- 2択選択肢 -->
+                <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <!-- 動的挿入 -->
+                </div>
+            </div>
+
+            <!-- フィードバック表示エリア -->
+            <div id="feedback-box" class="hidden p-4 rounded-2xl text-center font-bold text-sm transition shadow-sm"></div>
+        </section>
+
+        <!-- ステップ3: 結果画面 -->
+        <section id="step-result" class="hidden bg-white p-8 sm:p-10 rounded-3xl shadow-xl border border-sky-100 text-center space-y-6">
+            <div class="text-7xl">🎉</div>
+            <div class="space-y-2">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800">クエストクリア！</h2>
+                <p class="text-slate-500 text-sm">すべての問題を解いてモンスターを討伐しました！</p>
+            </div>
+            <div class="bg-sky-50 p-5 rounded-2xl border border-sky-100 flex justify-around">
+                <div>
+                    <p class="text-xs font-bold text-slate-400">獲得スコア</p>
+                    <p id="final-score" class="text-3xl font-extrabold text-amber-500">0</p>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400">正解数</p>
+                    <p id="final-correct" class="text-3xl font-extrabold text-emerald-500">0 / 0</p>
+                </div>
+            </div>
+
+            <!-- アクションボタン群 -->
+            <div class="space-y-3 pt-2">
+                <button onclick="deepDiveSameContent()" class="w-full bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-teal-100 transition flex items-center justify-center gap-2">
+                    🔍 さっきのページで別の問題を作って深掘りする
+                </button>
+                <button onclick="resetApp()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3.5 rounded-2xl transition flex items-center justify-center gap-2">
+                    📸 別の写真・テキストを撮影するホームへ戻る
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- モーダル（アラート代わり） -->
+    <div id="custom-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white border border-sky-100 p-6 rounded-3xl max-w-sm w-full text-center space-y-4 shadow-2xl">
+            <p id="modal-message" class="text-slate-700 font-medium text-sm"></p>
+            <button onclick="closeModal()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-2xl shadow-md">OK</button>
+        </div>
+    </div>
+
+    <!-- オーディオ & ゲームロジック -->
+    <script>
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playCorrectSound() {
+            try {
+                initAudio();
+                if(!audioCtx) return;
+                const now = audioCtx.currentTime;
+                
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc1.type = 'sine';
+                osc2.type = 'triangle';
+
+                osc1.frequency.setValueAtTime(523.25, now);
+                osc1.frequency.setValueAtTime(659.25, now + 0.1);
+                osc1.frequency.setValueAtTime(783.99, now + 0.2);
+                osc1.frequency.setValueAtTime(1046.50, now + 0.3);
+
+                osc2.frequency.setValueAtTime(523.25, now);
+                osc2.frequency.setValueAtTime(659.25, now + 0.1);
+                osc2.frequency.setValueAtTime(783.99, now + 0.2);
+                osc2.frequency.setValueAtTime(1046.50, now + 0.3);
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 0.6);
+                osc2.stop(now + 0.6);
+            } catch(e) {
+                console.log(e);
+            }
+        }
+
+        function playWrongSound() {
+            try {
+                initAudio();
+                if(!audioCtx) return;
+                const now = audioCtx.currentTime;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(90, now + 0.3);
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } catch(e) {
+                console.log(e);
+            }
+        }
+
+        const apiKey = "";
+        let currentImageBase64 = null;
+        let lastInputText = "";
+        let isUsingPhotoLast = false;
+        let gameData = [];
+        let currentMonsterName = "";
+        let currentMonsterEmoji = "";
+        let currentIndex = 0;
+        let score = 0;
+        let monsterHp = 100;
+        let maxMonsterHp = 100;
+        let correctCount = 0;
+
+        // アプリ起動時に履歴および中断したセッションの復元チェック
+        window.onload = function() {
+            renderHistoryList();
+            checkAndRestoreOngoingSession();
+        };
+
+        // セッション保存用のキー
+        const ONGOING_SESSION_KEY = 'study_quest_ongoing_session';
+
+        function saveOngoingSession() {
+            if (!gameData || gameData.length === 0) return;
+            const sessionData = {
+                gameData,
+                currentMonsterName,
+                currentMonsterEmoji,
+                currentIndex,
+                score,
+                monsterHp,
+                maxMonsterHp,
+                correctCount,
+                isUsingPhotoLast,
+                lastInputText,
+                currentImageBase64
+            };
+            try {
+                localStorage.setItem(ONGOING_SESSION_KEY, JSON.stringify(sessionData));
+            } catch(e) {
+                console.log(e);
+            }
+        }
+
+        function clearOngoingSession() {
+            try {
+                localStorage.removeItem(ONGOING_SESSION_KEY);
+            } catch(e) {
+                console.log(e);
+            }
+        }
+
+        function checkAndRestoreOngoingSession() {
+            try {
+                const saved = localStorage.getItem(ONGOING_SESSION_KEY);
+                if (!saved) return;
+                const data = JSON.parse(saved);
+                if (data && data.gameData && data.gameData.length > 0 && data.currentIndex < data.gameData.length) {
+                    showResumeModal(data);
+                }
+            } catch(e) {
+                console.log(e);
+            }
+        }
+
+        function showResumeModal(data) {
+            const modal = document.getElementById('custom-modal');
+            const msgBox = document.getElementById('modal-message');
+            
+            msgBox.innerHTML = `中断されたクイズ（<strong>${data.currentMonsterName}</strong>との戦い、問題 ${data.currentIndex + 1}/${data.gameData.length}）が見つかりました。<br>続きから再開しますか？`;
+            
+            const btn = modal.querySelector('button');
+            btn.innerText = "続きから再開する";
+            btn.onclick = function() {
+                restoreSession(data);
+                closeModal();
+                btn.innerText = "OK";
+                btn.onclick = closeModal;
+            };
+            modal.classList.remove('hidden');
+        }
+
+        function restoreSession(data) {
+            gameData = data.gameData;
+            currentMonsterName = data.currentMonsterName;
+            currentMonsterEmoji = data.currentMonsterEmoji;
+            currentIndex = data.currentIndex;
+            score = data.score;
+            monsterHp = data.monsterHp;
+            maxMonsterHp = data.maxMonsterHp;
+            correctCount = data.correctCount;
+            isUsingPhotoLast = data.isUsingPhotoLast;
+            lastInputText = data.lastInputText;
+            currentImageBase64 = data.currentImageBase64;
+
+            document.getElementById('monster-name').innerText = currentMonsterName;
+            document.getElementById('monster-emoji').innerText = currentMonsterEmoji;
+
+            document.getElementById('step-upload').classList.add('hidden');
+            document.getElementById('step-result').classList.add('hidden');
+            document.getElementById('step-loading').classList.add('hidden');
+            document.getElementById('step-game').classList.remove('hidden');
+            document.getElementById('status-bar').classList.remove('hidden');
+
+            loadQuestion();
+        }
+
+        function getQuizHistory() {
+            try {
+                const history = localStorage.getItem('study_quest_history');
+                return history ? JSON.parse(history) : [];
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function saveQuizToHistory(title, monsterName, monsterEmoji, questions, inputType, rawContent) {
+            let history = getQuizHistory();
+            const newEntry = {
+                id: Date.now(),
+                title: title.length > 20 ? title.substring(0, 20) + '...' : title,
+                monsterName,
+                monsterEmoji,
+                questions,
+                inputType,
+                rawContent: inputType === 'photo' ? null : rawContent, // 画像データは容量削減のため履歴では保持しないか軽く扱う
+                date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+            history.unshift(newEntry);
+            if (history.length > 3) {
+                history = history.slice(0, 3);
+            }
+            try {
+                localStorage.setItem('study_quest_history', JSON.stringify(history));
+            } catch(e) {
+                console.log(e);
+            }
+            renderHistoryList();
+        }
+
+        function renderHistoryList() {
+            const history = getQuizHistory();
+            const historySection = document.getElementById('history-section');
+            const historyList = document.getElementById('history-list');
+
+            if (history.length === 0) {
+                historySection.classList.add('hidden');
+                return;
+            }
+
+            historySection.classList.remove('hidden');
+            historyList.innerHTML = '';
+
+            history.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3.5 bg-sky-50/70 border border-sky-100 rounded-2xl hover:bg-sky-100/70 transition";
+                
+                let labelName = index === 0 ? "🌟 直前のクイズ" : (index === 1 ? "📜 前々回のクイズ" : `📁 過去のクイズ ${index + 1}`);
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <span class="text-2xl">${item.monsterEmoji || '📖'}</span>
+                        <div class="truncate">
+                            <p class="text-xs font-bold text-sky-600">${labelName} (${item.date})</p>
+                            <p class="text-sm font-extrabold text-slate-800 truncate">${item.monsterName} - ${item.title}</p>
+                        </div>
+                    </div>
+                    <button onclick="loadHistoryItem(${item.id})" class="bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition flex-shrink-0">
+                        復習する
+                    </button>
+                `;
+                historyList.appendChild(div);
+            });
+        }
+
+        function loadHistoryItem(id) {
+            const history = getQuizHistory();
+            const found = history.find(h => h.id === id);
+            if (!found) return;
+
+            gameData = found.questions;
+            currentMonsterName = found.monsterName;
+            currentMonsterEmoji = found.monsterEmoji;
+            isUsingPhotoLast = found.inputType === 'photo';
+
+            document.getElementById('monster-name').innerText = currentMonsterName;
+            document.getElementById('monster-emoji').innerText = currentMonsterEmoji;
+
+            document.getElementById('step-upload').classList.add('hidden');
+            document.getElementById('step-result').classList.add('hidden');
+            document.getElementById('step-game').classList.remove('hidden');
+            document.getElementById('status-bar').classList.remove('hidden');
+
+            initGameSession();
+        }
+
+        function showModal(msg) {
+            document.getElementById('modal-message').innerText = msg;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        function switchTab(tab) {
+            const photoTab = document.getElementById('tab-photo');
+            const textTab = document.getElementById('tab-text');
+            const contentPhoto = document.getElementById('content-photo');
+            const contentText = document.getElementById('content-text');
+
+            if (tab === 'photo') {
+                photoTab.className = "flex-1 py-3 text-center font-bold border-b-2 border-sky-500 text-sky-600 transition";
+                textTab.className = "flex-1 py-3 text-center font-bold text-slate-400 border-b-2 border-transparent transition";
+                contentPhoto.classList.remove('hidden');
+                contentText.classList.add('hidden');
+            } else {
+                textTab.className = "flex-1 py-3 text-center font-bold border-b-2 border-sky-500 text-sky-600 transition";
+                photoTab.className = "flex-1 py-3 text-center font-bold text-slate-400 border-b-2 border-transparent transition";
+                contentText.classList.remove('hidden');
+                contentPhoto.classList.add('hidden');
+            }
+        }
+
+        // 画像選択時に自動で縮小処理を行い、大きな画像による容量・転送エラーを防ぐ
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_WIDTH = 1200;
+                    const MAX_HEIGHT = 1200;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // JPEG形式で適度に圧縮してBase64化
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    currentImageBase64 = dataUrl.split(',')[1];
+
+                    document.getElementById('image-preview-container').innerHTML = `
+                        <div class="flex items-center justify-center gap-2 text-sky-600 font-extrabold">
+                            <span>✨ 写真が正常に読み込まれました！</span>
+                        </div>
+                        <p class="text-xs text-slate-400 truncate max-w-xs mx-auto">${file.name} (${Math.round(file.size / 1024)}KB)</p>
+                    `;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 堅牢なリトライ機能つきAPI呼び出し
+        async function callGeminiAPIWithRetry(payload, retries = 3, delay = 1500) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error("API Error Response:", errorBody);
+                    throw new Error(`サーバーエラー (${response.status}): 写真やテキストの読み取りに失敗しました。`);
+                }
+                
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                if (retries > 0) {
+                    console.warn(`通信リトライ中... 残り回数: ${retries}`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return callGeminiAPIWithRetry(payload, retries - 1, delay * 2);
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        async function generateGame() {
+            const textContent = document.getElementById('text-input').value.trim();
+
+            if (currentImageBase64) {
+                isUsingPhotoLast = true;
+                lastInputText = "";
+            } else if (textContent) {
+                isUsingPhotoLast = false;
+                lastInputText = textContent;
+            } else {
+                showModal("写真を選ぶか、テキストを入力してください！");
+                return;
+            }
+
+            executeGeneration();
+        }
+
+        function deepDiveSameContent() {
+            executeGeneration();
+        }
+
+        async function executeGeneration() {
+            let promptText = "";
+            let payload = {};
+
+            if (isUsingPhotoLast && currentImageBase64) {
+                promptText = "この教科書やノートの写真から重要な学習ポイントを抽出し、深く学べる【2択クイズ】を5問作成してください。各問題の選択肢(options)は必ず2つだけ用意してください。JSON形式のみで出力してください。";
+                payload = {
+                    contents: [{
+                        role: "user",
+                        parts: [
+                            { text: promptText },
+                            { inlineData: { mimeType: "image/jpeg", data: currentImageBase64 } }
+                        ]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                monsterName: { type: "STRING" },
+                                monsterEmoji: { type: "STRING" },
+                                questions: {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            question: { type: "STRING" },
+                                            options: { type: "ARRAY", items: { type: "STRING" } },
+                                            answerIndex: { type: "INTEGER" },
+                                            explanation: { type: "STRING" }
+                                        },
+                                        required: ["question", "options", "answerIndex", "explanation"]
+                                    }
+                                }
+                            },
+                            required: ["monsterName", "monsterEmoji", "questions"]
+                        }
+                    }
+                };
+            } else {
+                promptText = `以下のテキストを元に、重要なポイントを深く学べる新しい【2択クイズ】を5問作成してください。各問題の選択肢は必ず2つにしてください。\n\n${lastInputText}`;
+                payload = {
+                    contents: [{
+                        parts: [{ text: promptText }]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                monsterName: { type: "STRING" },
+                                monsterEmoji: { type: "STRING" },
+                                questions: {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            question: { type: "STRING" },
+                                            options: { type: "ARRAY", items: { type: "STRING" } },
+                                            answerIndex: { type: "INTEGER" },
+                                            explanation: { type: "STRING" }
+                                        },
+                                        required: ["question", "options", "answerIndex", "explanation"]
+                                    }
+                                }
+                            },
+                            required: ["monsterName", "monsterEmoji", "questions"]
+                        }
+                    }
+                };
+            }
+
+            document.getElementById('step-upload').classList.add('hidden');
+            document.getElementById('step-result').classList.add('hidden');
+            document.getElementById('step-loading').classList.remove('hidden');
+            document.getElementById('loading-title').innerText = "AIが写真・テキストを解析中...";
+            document.getElementById('loading-subtitle').innerText = "文字や図解を読み取ってクエストを構築しています。";
+
+            try {
+                const result = await callGeminiAPIWithRetry(payload);
+                const textOutput = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!textOutput) throw new Error("AIからの応答が空でした。もう一度お試しください。");
+
+                const parsed = JSON.parse(textOutput);
+                if (!parsed.questions || parsed.questions.length === 0) {
+                    throw new Error("写真から十分な問題を作成できませんでした。別の写真を試すか、テキスト入力をご利用ください。");
+                }
+
+                gameData = parsed.questions;
+                currentMonsterName = parsed.monsterName || "テキストの守護者";
+                currentMonsterEmoji = parsed.monsterEmoji || "🐲";
+
+                document.getElementById('monster-name').innerText = currentMonsterName;
+                document.getElementById('monster-emoji').innerText = currentMonsterEmoji;
+
+                const snippetTitle = isUsingPhotoLast ? "写真学習クエスト" : lastInputText;
+                const rawSaveData = isUsingPhotoLast ? "" : lastInputText;
+                saveQuizToHistory(snippetTitle, currentMonsterName, currentMonsterEmoji, gameData, isUsingPhotoLast ? 'photo' : 'text', rawSaveData);
+
+                document.getElementById('step-loading').classList.add('hidden');
+                document.getElementById('step-game').classList.remove('hidden');
+                document.getElementById('status-bar').classList.remove('hidden');
+
+                initGameSession();
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('step-loading').classList.add('hidden');
+                document.getElementById('step-upload').classList.remove('hidden');
+                
+                let userFriendlyMsg = err.message || "予期せぬエラーが発生しました。";
+                if (userFriendlyMsg.includes("Failed to fetch") || userFriendlyMsg.includes("NetworkError")) {
+                    userFriendlyMsg = "通信エラーが発生しました。インターネット接続を確認して再度お試しください。";
+                }
+                showModal("⚠️ 読み取りエラー\n\n" + userFriendlyMsg + "\n\n💡【ヒント】写真の画像が大きすぎる場合や文字が薄い場合にエラーが起きやすくなります。その場合は「テキストを直貼り」タブに切り替えて文字を入力して試してみてください！");
+            }
+        }
+
+        function initGameSession() {
+            currentIndex = 0;
+            score = 0;
+            correctCount = 0;
+            maxMonsterHp = 100;
+            monsterHp = 100;
+
+            saveOngoingSession();
+            updateStats();
+            loadQuestion();
+        }
+
+        function updateStats() {
+            document.getElementById('score-display').innerText = score;
+            const progressPct = Math.round(((currentIndex) / gameData.length) * 100);
+            document.getElementById('hp-display').innerText = progressPct;
+        }
+
+        function loadQuestion() {
+            if (currentIndex >= gameData.length) {
+                endGame(true);
+                return;
+            }
+
+            const q = gameData[currentIndex];
+            document.getElementById('question-progress').innerText = `問題 ${currentIndex + 1} / ${gameData.length}`;
+            document.getElementById('question-text').innerText = q.question;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            q.options.slice(0, 2).forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-center bg-sky-50 hover:bg-sky-100 border-2 border-sky-200/60 p-5 rounded-2xl text-base font-bold text-slate-700 transition active:scale-95 shadow-sm flex flex-col items-center justify-center gap-1";
+                btn.innerHTML = `<span class="text-xs text-sky-400 font-extrabold">選択肢 ${idx + 1}</span> <span>${opt}</span>`;
+                btn.onclick = () => handleAnswer(idx, q.answerIndex, q.explanation);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('feedback-box').classList.add('hidden');
+            updateStats();
+        }
+
+        function handleAnswer(selectedIndex, correctIndex, explanation) {
+            const optionsContainer = document.getElementById('options-container');
+            const buttons = optionsContainer.getElementsByTagName('button');
+            
+            for (let b of buttons) b.disabled = true;
+
+            const feedbackBox = document.getElementById('feedback-box');
+            feedbackBox.classList.remove('hidden');
+
+            if (selectedIndex === correctIndex) {
+                playCorrectSound();
+                score += 20;
+                correctCount++;
+
+                feedbackBox.className = "p-4 rounded-2xl text-center font-bold text-sm bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm";
+                feedbackBox.innerHTML = `✨ 正解！ モンスターに強力なダメージを与えた！<br><span class="text-xs font-normal text-emerald-600 mt-1 block">${explanation}</span>`;
+            } else {
+                playWrongSound();
+                feedbackBox.className = "p-4 rounded-2xl text-center font-bold text-sm bg-rose-100 text-rose-700 border border-rose-200 shadow-sm";
+                feedbackBox.innerHTML = `💥 ざんねん！不正解...でも攻撃でモンスターのHPを削ったよ！次へ進みます。<br><span class="text-xs font-normal text-rose-600 mt-1 block">${explanation}</span>`;
+            }
+
+            currentIndex++;
+            updateStats();
+            saveOngoingSession();
+
+            if (currentIndex >= gameData.length) {
+                document.getElementById('monster-hp-val').innerText = 0;
+                document.getElementById('monster-hp-bar').style.width = `0%`;
+            }
+
+            setTimeout(() => {
+                if (currentIndex >= gameData.length) {
+                    endGame(true);
+                } else {
+                    loadQuestion();
+                }
+            }, 2000);
+        }
+
+        function endGame(isWin) {
+            clearOngoingSession();
+            document.getElementById('step-game').classList.add('hidden');
+            document.getElementById('status-bar').classList.add('hidden');
+            document.getElementById('step-result').classList.remove('hidden');
+
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-correct').innerText = `${correctCount} / ${gameData.length}`;
+
+            if (isWin) {
+                confetti({ particleCount: 180, spread: 100, origin: { y: 0.5 } });
+            }
+        }
+
+        function resetApp() {
+            clearOngoingSession();
+            currentImageBase64 = null;
+            lastInputText = "";
+            isUsingPhotoLast = false;
+            document.getElementById('text-input').value = '';
+            document.getElementById('image-input').value = '';
+            document.getElementById('image-preview-container').innerHTML = `
+                <div class="text-5xl">📷</div>
+                <p class="text-sm font-bold text-sky-700">ここをタップして教科書の写真をアップロード</p>
+                <p class="text-xs text-sky-500">（AIが自動で内容を分析して2択クイズを作ります）</p>
+            `;
+            document.getElementById('step-result').classList.add('hidden');
+            document.getElementById('step-upload').classList.remove('hidden');
+            renderHistoryList();
+        }
+
+        function returnToHome() {
+            resetApp();
+        }
+    </script>
+</body>
+</html>
