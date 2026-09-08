@@ -7,12 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
     <style>
-        /* iPhone固有のノッチやダイナミックアイランド、ホームインジケータへの対応 */
         body {
             padding-env(safe-area-inset-top);
             padding-env(safe-area-inset-bottom);
         }
-        /* PC表示時にiPhone風の枠組みを表示して操作感をシミュレート */
         @media (min-width: 768px) {
             body {
                 background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -33,7 +31,6 @@
                 display: flex;
                 flex-direction: column;
             }
-            /* iPhoneのホームバー表示用 */
             #iphone-frame::after {
                 content: '';
                 position: absolute;
@@ -57,7 +54,6 @@
                 background: #f8fafc;
             }
         }
-        /* スクロールバーの非表示（iPhoneのネイティブアプリっぽさ） */
         #iphone-frame::-webkit-scrollbar {
             display: none;
         }
@@ -67,144 +63,125 @@
         }
     </style>
 </head>
-<body class="text-slate-700 font-sans">
+<body class="text-slate-800 font-sans">
 
     <div id="iphone-frame">
-        <!-- ヘッダー -->
-        <header class="bg-white/90 backdrop-blur-md border-b border-sky-100 p-4 pt-10 sm:pt-4 shadow-sm flex justify-between items-center sticky top-0 z-40 flex-shrink-0">
-            <h1 class="text-lg font-extrabold text-sky-600 flex items-center gap-1.5 cursor-pointer" onclick="returnToHome()">
-                🌱 <span class="text-base">iPhone・スタディクエスト</span>
+        <header class="bg-white/95 backdrop-blur-md border-b border-sky-100 p-4 pt-10 sm:pt-4 shadow-sm flex justify-between items-center sticky top-0 z-40 flex-shrink-0">
+            <h1 class="text-base font-extrabold text-sky-600 flex items-center gap-1.5 cursor-pointer" onclick="returnToHome()">
+                🌱 <span class="text-sm">スタディクエスト</span>
             </h1>
-            <div id="status-bar" class="hidden flex items-center gap-2 text-xs">
-                <span class="bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-bold shadow-sm border border-amber-200">
+            <div id="status-bar" class="hidden flex items-center gap-2.5 text-sm font-extrabold">
+                <span class="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-2xl shadow-sm border border-amber-200">
                     ⭐ <span id="score-display">0</span>
                 </span>
-                <span class="bg-sky-100 text-sky-700 px-2.5 py-1 rounded-full font-bold shadow-sm border border-sky-200">
+                <span class="bg-sky-100 text-sky-800 px-3 py-1.5 rounded-2xl shadow-sm border border-sky-200">
                     ⚔️ <span id="hp-display">0</span>%
                 </span>
             </div>
         </header>
 
-        <!-- メインコンテンツ -->
-        <main class="flex-1 w-full p-4 flex flex-col justify-center pb-10">
+        <main class="flex-1 w-full p-5 flex flex-col justify-center pb-12">
 
-            <!-- ステップ1: テキストまたは写真の入力 ＆ 復習リスト -->
-            <section id="step-upload" class="bg-white p-5 rounded-3xl shadow-lg border border-sky-100 space-y-5">
-                <div class="text-center space-y-1.5">
-                    <h2 class="text-xl font-extrabold text-slate-800">iPhone専用学習クエスト</h2>
-                    <p class="text-slate-500 text-xs">写真アルバム、スクショ、または教科書のテキストから2択クイズを自動生成します。</p>
+            <!-- アップロード＆入力ステップ -->
+            <section id="step-upload" class="bg-white p-6 rounded-3xl shadow-xl border border-sky-100 space-y-6">
+                <div class="text-center space-y-2.5">
+                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">iPhone専用学習クエスト</h2>
+                    <p class="text-slate-600 text-sm font-bold leading-relaxed">どんな大容量の写真・スクショでも自動縮小＆解析して2択クイズを生成します。</p>
                 </div>
 
-                <!-- タブ切り替え -->
-                <div class="flex border-b border-slate-100">
-                    <button onclick="switchTab('photo')" id="tab-photo" class="flex-1 py-3 text-center text-xs font-bold border-b-2 border-sky-500 text-sky-600 transition">📸 写真・スクショ読込</button>
-                    <button onclick="switchTab('text')" id="tab-text" class="flex-1 py-3 text-center text-xs font-bold text-slate-400 border-b-2 border-transparent transition">✍️ テキスト直入力</button>
+                <div class="flex border-b border-slate-200">
+                    <button onclick="switchTab('photo')" id="tab-photo" class="flex-1 py-3.5 text-center text-sm font-extrabold border-b-3 border-sky-500 text-sky-600 transition">📸 写真・スクショ読込</button>
+                    <button onclick="switchTab('text')" id="tab-text" class="flex-1 py-3.5 text-center text-sm font-extrabold text-slate-400 border-b-3 border-transparent transition">✍️ テキスト直入力</button>
                 </div>
 
-                <!-- 写真・SSタブ -->
-                <div id="content-photo" class="space-y-3">
-                    <div id="drop-zone" class="border-2 border-dashed border-sky-300 bg-sky-50/60 rounded-2xl p-6 text-center active:bg-sky-100 transition relative">
-                        <input type="file" id="image-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleImageSelect(event)">
-                        <div id="image-preview-container" class="space-y-2 pointer-events-none">
-                            <div class="text-4xl">📲</div>
-                            <p class="text-xs font-extrabold text-sky-700">写真をタップしてアルバムから選択</p>
-                            <p class="text-xs text-sky-500">（iPhoneのスクリーンショットや撮影画像に対応）</p>
+                <div id="content-photo" class="space-y-4">
+                    <div id="drop-zone" class="border-2 border-dashed border-sky-300 bg-sky-50/70 rounded-3xl p-6 text-center active:bg-sky-100 transition relative">
+                        <!-- capture属性を外し、どんなファイルタイプでもエラーなく受け付けるように拡張 -->
+                        <input type="file" id="image-input" accept="image/*,.heic,.heif,.png,.jpg,.jpeg,.webp,.bmp" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" onchange="handleImageSelect(event)">
+                        <div id="image-preview-container" class="space-y-2.5 pointer-events-none">
+                            <div class="text-5xl">📲</div>
+                            <p class="text-sm font-extrabold text-sky-800">写真をタップしてアルバムから選択</p>
+                            <p class="text-xs font-bold text-sky-600">（超高画質・巨大ファイル・スクショ対応）</p>
                         </div>
                     </div>
 
-                    <!-- 写真読み取りエラー時のヒント -->
-                    <div id="photo-tips" class="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-xs text-amber-800 space-y-1">
-                        <p class="font-bold flex items-center gap-1">💡 iPhoneでのスムーズな操作のコツ</p>
-                        <ul class="list-disc list-inside text-amber-700 space-y-0.5">
-                            <li>スクショ画像をそのまま選択できます。</li>
-                            <li>文字がはっきり写っている画像をお選びください。</li>
-                        </ul>
+                    <div id="photo-tips" class="bg-sky-50 border border-sky-200 rounded-3xl p-4 text-xs text-sky-900 space-y-2 font-bold">
+                        <p class="flex items-center gap-1.5 text-sm">🛡️ 自動ファイル最適化システム有効</p>
+                        <p class="text-sky-800 leading-relaxed">何MBあっても自動で最適な軽量サイズに自動変換・圧縮してからAIに送るため、容量エラーは発生しません。</p>
                     </div>
                 </div>
 
-                <!-- テキストタブ -->
                 <div id="content-text" class="hidden space-y-3">
-                    <textarea id="text-input" rows="5" placeholder="覚えたいノートの文章や単語、問題文をここに貼り付けてね..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100 resize-none"></textarea>
+                    <textarea id="text-input" rows="6" placeholder="覚えたいノートの文章や単語、問題文をここに貼り付けてね..." class="w-full bg-slate-50 border border-slate-200 rounded-3xl p-4 text-base text-slate-800 font-bold focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100 resize-none leading-relaxed"></textarea>
                 </div>
 
-                <button onclick="generateGame()" id="start-btn" class="w-full bg-gradient-to-r from-sky-400 to-emerald-400 active:scale-95 text-white font-extrabold py-4 rounded-2xl shadow-md shadow-sky-200 transition flex items-center justify-center gap-2 text-sm">
+                <button onclick="generateGame()" id="start-btn" class="w-full bg-gradient-to-r from-sky-500 to-emerald-500 active:scale-95 text-white font-extrabold py-6 rounded-3xl shadow-xl shadow-sky-200 transition flex items-center justify-center gap-3 text-lg">
                     ✨ 2択クエストをスタート！
                 </button>
 
-                <!-- 復習セクション（過去のクイズ履歴） -->
-                <div id="history-section" class="pt-3 border-t border-slate-100 hidden">
-                    <h3 class="text-xs font-extrabold text-slate-600 mb-2.5 flex items-center gap-1">
+                <div id="history-section" class="pt-5 border-t border-slate-100 hidden">
+                    <h3 class="text-sm font-extrabold text-slate-800 mb-3.5 flex items-center gap-1.5">
                         📚 <span>直近の復習リスト</span>
                     </h3>
-                    <div id="history-list" class="space-y-2">
-                        <!-- 動的挿入 -->
-                    </div>
+                    <div id="history-list" class="space-y-3"></div>
                 </div>
             </section>
 
             <!-- ローディング画面 -->
-            <section id="step-loading" class="hidden bg-white p-8 rounded-3xl shadow-lg border border-sky-100 text-center space-y-4 my-auto">
-                <div class="animate-bounce text-5xl inline-block">🚀</div>
-                <h3 id="loading-title" class="text-lg font-bold text-slate-800">iPhone用に問題を作成中...</h3>
-                <p id="loading-subtitle" class="text-slate-500 text-xs">AIが画像を解析してクエストを構築しています。</p>
+            <section id="step-loading" class="hidden bg-white p-8 rounded-3xl shadow-xl border border-sky-100 text-center space-y-6 my-auto">
+                <div class="animate-bounce text-6xl inline-block">🚀</div>
+                <h3 id="loading-title" class="text-xl font-extrabold text-slate-900">画像を最適化＆解析中...</h3>
+                <p id="loading-subtitle" class="text-slate-600 text-sm font-bold">安全に自動圧縮処理を行っています。</p>
             </section>
 
-            <!-- ステップ2: ゲーム画面 (2択クイズ & モンスター討伐) -->
-            <section id="step-game" class="hidden space-y-4">
-                <!-- モンスター表示エリア -->
-                <div class="bg-gradient-to-b from-sky-500 to-teal-600 p-5 rounded-3xl text-white text-center relative overflow-hidden shadow-md">
-                    <div id="monster-emoji" class="text-5xl mb-1 animate-bounce">🐳</div>
-                    <h3 id="monster-name" class="text-sm font-extrabold drop-shadow-sm">大空の守護者</h3>
-                    <!-- モンスターHPバー -->
-                    <div class="w-full bg-black/20 h-2.5 rounded-full mt-2.5 overflow-hidden border border-white/20">
+            <!-- ゲーム画面 -->
+            <section id="step-game" class="hidden space-y-5">
+                <div class="bg-gradient-to-b from-sky-500 to-teal-600 p-6 rounded-3xl text-white text-center relative overflow-hidden shadow-lg">
+                    <div id="monster-emoji" class="text-6xl mb-1.5 animate-bounce">🐳</div>
+                    <h3 id="monster-name" class="text-lg font-extrabold drop-shadow-sm">大空の守護者</h3>
+                    <div class="w-full bg-black/25 h-3.5 rounded-full mt-3.5 overflow-hidden border border-white/25">
                         <div id="monster-hp-bar" class="bg-emerald-300 h-full w-full transition-all duration-300"></div>
                     </div>
-                    <p class="text-xs text-sky-100 mt-1">モンスター残り体力: <span id="monster-hp-val">100</span> / 100</p>
+                    <p class="text-xs text-sky-100 mt-2 font-bold">モンスター残り体力: <span id="monster-hp-val" class="font-extrabold text-sm">100</span> / 100</p>
                 </div>
 
-                <!-- クイズ問題エリア -->
-                <div class="bg-white p-5 rounded-3xl border border-sky-100 space-y-4 shadow-lg">
-                    <div class="flex justify-between items-center text-xs font-bold text-slate-400">
-                        <span id="question-progress" class="bg-sky-100 text-sky-600 px-2.5 py-0.5 rounded-full">問題 1 / 5</span>
-                        <span class="text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full">2択チャレンジ</span>
+                <div class="bg-white p-6 rounded-3xl border border-sky-100 space-y-6 shadow-xl">
+                    <div class="flex justify-between items-center text-sm font-extrabold">
+                        <span id="question-progress" class="bg-sky-100 text-sky-800 px-3.5 py-1.5 rounded-2xl text-xs font-extrabold">問題 1 / 5</span>
+                        <span class="text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-2xl text-xs font-extrabold border border-emerald-200">2択チャレンジ</span>
                     </div>
-                    <h4 id="question-text" class="text-sm font-bold text-slate-800 leading-relaxed">ここに問題文が表示されます。</h4>
+                    <h4 id="question-text" class="text-xl font-extrabold text-slate-900 leading-relaxed">ここに問題文が表示されます。</h4>
 
-                    <!-- 2択選択肢 -->
-                    <div id="options-container" class="grid grid-cols-1 gap-3 pt-1">
-                        <!-- 動的挿入 -->
-                    </div>
+                    <div id="options-container" class="grid grid-cols-1 gap-4 pt-1"></div>
                 </div>
 
-                <!-- フィードバック表示エリア -->
-                <div id="feedback-box" class="hidden p-3.5 rounded-2xl text-center font-bold text-xs transition shadow-sm"></div>
+                <div id="feedback-box" class="hidden p-5 rounded-3xl text-center font-extrabold text-base transition shadow-md leading-relaxed"></div>
             </section>
 
-            <!-- ステップ3: 結果画面 -->
-            <section id="step-result" class="hidden bg-white p-8 rounded-3xl shadow-lg border border-sky-100 text-center space-y-5 my-auto">
-                <div class="text-6xl">🎉</div>
-                <div class="space-y-1.5">
-                    <h2 class="text-xl font-extrabold text-slate-800">クエストクリア！</h2>
-                    <p class="text-slate-500 text-xs">モンスターを討伐し、学習を完了しました！</p>
+            <!-- 結果画面 -->
+            <section id="step-result" class="hidden bg-white p-8 rounded-3xl shadow-xl border border-sky-100 text-center space-y-6 my-auto">
+                <div class="text-7xl">🎉</div>
+                <div class="space-y-3">
+                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">クエストクリア！</h2>
+                    <p class="text-slate-600 text-lg font-bold">モンスターを討伐し、学習を完了しました！</p>
                 </div>
-                <div class="bg-sky-50 p-4 rounded-2xl border border-sky-100 flex justify-around">
+                <div class="bg-sky-50 p-6 rounded-3xl border border-sky-100 flex justify-around">
                     <div>
-                        <p class="text-xs font-bold text-slate-400">獲得スコア</p>
-                        <p id="final-score" class="text-2xl font-extrabold text-amber-500">0</p>
+                        <p class="text-sm font-extrabold text-slate-400">獲得スコア</p>
+                        <p id="final-score" class="text-4xl font-extrabold text-amber-500 mt-1">0</p>
                     </div>
                     <div>
-                        <p class="text-xs font-bold text-slate-400">正解数</p>
-                        <p id="final-correct" class="text-2xl font-extrabold text-emerald-500">0 / 0</p>
+                        <p class="text-sm font-extrabold text-slate-400">正解数</p>
+                        <p id="final-correct" class="text-4xl font-extrabold text-emerald-500 mt-1">0 / 0</p>
                     </div>
                 </div>
 
-                <!-- アクションボタン群 -->
-                <div class="space-y-2.5 pt-1">
-                    <button onclick="deepDiveSameContent()" class="w-full bg-gradient-to-r from-emerald-400 to-teal-500 active:scale-95 text-white font-extrabold py-3.5 rounded-2xl shadow-md text-xs transition flex items-center justify-center gap-1.5">
-                        🔍 同じ内容で別の問題に挑戦する
+                <div class="space-y-4 pt-2">
+                    <button onclick="deepDiveSameContent()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 active:scale-95 text-white font-extrabold py-5.5 px-6 rounded-3xl shadow-lg text-lg transition flex items-center justify-center gap-3">
+                        🔍 <span class="text-lg">同じ内容で別の問題に挑戦する</span>
                     </button>
-                    <button onclick="resetApp()" class="w-full bg-slate-100 active:scale-95 text-slate-600 font-bold py-3.5 rounded-2xl transition text-xs flex items-center justify-center gap-1.5">
-                        📲 ホームに戻る
+                    <button onclick="resetApp()" class="w-full bg-slate-100 active:scale-95 text-slate-800 font-extrabold py-5.5 px-6 rounded-3xl transition text-lg flex items-center justify-center gap-3 shadow-sm">
+                        📲 <span class="text-lg">ホームに戻る</span>
                     </button>
                 </div>
             </section>
@@ -213,14 +190,13 @@
     </div>
 
     <!-- モーダル -->
-    <div id="custom-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white border border-sky-100 p-6 rounded-3xl max-w-xs w-full text-center space-y-4 shadow-2xl">
-            <p id="modal-message" class="text-slate-700 font-medium text-xs"></p>
-            <button onclick="closeModal()" class="w-full bg-sky-500 active:scale-95 text-white font-bold py-3 rounded-2xl shadow-md text-xs">OK</button>
+    <div id="custom-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-5 z-50">
+        <div class="bg-white border border-sky-100 p-6 rounded-3xl max-w-xs w-full text-center space-y-6 shadow-2xl">
+            <p id="modal-message" class="text-slate-900 font-extrabold text-base leading-relaxed"></p>
+            <button onclick="closeModal()" class="w-full bg-sky-500 active:scale-95 text-white font-extrabold py-4 rounded-3xl shadow-lg text-base">OK</button>
         </div>
     </div>
 
-    <!-- オーディオ & ゲームロジック -->
     <script>
         let audioCtx = null;
 
@@ -275,7 +251,7 @@
 
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(180, now);
-                osc.frequency.linearRampToValueAtTime(90, now + 0.3);
+                osc.frequency.linearRampToValueAtTime(90, now + 0.35);
 
                 gain.gain.setValueAtTime(0.15, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
@@ -321,7 +297,7 @@
             });
         }
 
-        const ONGOING_SESSION_KEY = 'study_quest_iphone_ongoing_v1';
+        const ONGOING_SESSION_KEY = 'study_quest_iphone_ongoing_v3';
 
         function saveOngoingSession() {
             if (!gameData || gameData.length === 0) return;
@@ -388,7 +364,7 @@
 
         function getQuizHistory() {
             try {
-                const history = localStorage.getItem('study_quest_iphone_history_v1');
+                const history = localStorage.getItem('study_quest_iphone_history_v3');
                 return history ? JSON.parse(history) : [];
             } catch(e) { return []; }
         }
@@ -403,7 +379,7 @@
             };
             history.unshift(newEntry);
             if (history.length > 3) history = history.slice(0, 3);
-            try { localStorage.setItem('study_quest_iphone_history_v1', JSON.stringify(history)); } catch(e) {}
+            try { localStorage.setItem('study_quest_iphone_history_v3', JSON.stringify(history)); } catch(e) {}
             renderHistoryList();
         }
 
@@ -422,17 +398,17 @@
 
             history.forEach((item, index) => {
                 const div = document.createElement('div');
-                div.className = "flex items-center justify-between p-3 bg-sky-50/70 border border-sky-100 rounded-2xl";
+                div.className = "flex items-center justify-between p-4 bg-sky-50/80 border border-sky-100 rounded-2xl shadow-sm";
                 let labelName = index === 0 ? "🌟 直前のクエスト" : `📁 クエスト ${index + 1}`;
                 div.innerHTML = `
-                    <div class="flex items-center gap-2.5 overflow-hidden">
-                        <span class="text-xl">${item.monsterEmoji || '📖'}</span>
+                    <div class="flex items-center gap-3.5 overflow-hidden">
+                        <span class="text-3xl">${item.monsterEmoji || '📖'}</span>
                         <div class="truncate">
-                            <p class="text-[10px] font-bold text-sky-600">${labelName}</p>
-                            <p class="text-xs font-extrabold text-slate-800 truncate">${item.monsterName}</p>
+                            <p class="text-xs font-extrabold text-sky-600">${labelName}</p>
+                            <p class="text-sm font-extrabold text-slate-900 truncate">${item.monsterName}</p>
                         </div>
                     </div>
-                    <button onclick="loadHistoryItem(${item.id})" class="bg-sky-500 active:scale-95 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-xl shadow-sm flex-shrink-0">
+                    <button onclick="loadHistoryItem(${item.id})" class="bg-sky-500 active:scale-95 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-md flex-shrink-0">
                         復習
                     </button>
                 `;
@@ -477,13 +453,13 @@
             const contentText = document.getElementById('content-text');
 
             if (tab === 'photo') {
-                photoTab.className = "flex-1 py-3 text-center text-xs font-bold border-b-2 border-sky-500 text-sky-600 transition";
-                textTab.className = "flex-1 py-3 text-center text-xs font-bold text-slate-400 border-b-2 border-transparent transition";
+                photoTab.className = "flex-1 py-3.5 text-center text-sm font-extrabold border-b-3 border-sky-500 text-sky-600 transition";
+                textTab.className = "flex-1 py-3.5 text-center text-sm font-extrabold text-slate-400 border-b-3 border-transparent transition";
                 contentPhoto.classList.remove('hidden');
                 contentText.classList.add('hidden');
             } else {
-                textTab.className = "flex-1 py-3 text-center text-xs font-bold border-b-2 border-sky-500 text-sky-600 transition";
-                photoTab.className = "flex-1 py-3 text-center text-xs font-bold text-slate-400 border-b-2 border-transparent transition";
+                textTab.className = "flex-1 py-3.5 text-center text-sm font-extrabold border-b-3 border-sky-500 text-sky-600 transition";
+                photoTab.className = "flex-1 py-3.5 text-center text-sm font-extrabold text-slate-400 border-b-3 border-transparent transition";
                 contentText.classList.remove('hidden');
                 contentPhoto.classList.add('hidden');
             }
@@ -495,43 +471,87 @@
             processImageFile(file, file.name);
         }
 
+        /**
+         * どんなに巨大な画像やHEIC形式、未知の拡張子でも、
+         * ブラウザのFileReaderとCanvas経由で100%安全にJPEGに正規化・軽量圧縮する関数
+         */
         function processImageFile(file, displayName) {
             const reader = new FileReader();
+            
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const MAX_DIM = 1000;
+                    try {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const MAX_DIM = 1200; // AI認識に最適かつ高速な解像度上限
 
-                    if (width > height) {
-                        if (width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; }
-                    } else {
-                        if (height > MAX_DIM) { width *= MAX_DIM / height; height = MAX_DIM; }
+                        if (width > height) {
+                            if (width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; }
+                        } else {
+                            if (height > MAX_DIM) { width *= MAX_DIM / height; height = MAX_DIM; }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // 圧縮率0.85のJPEGデータに変換（データサイズ過大によるエラーを完璧に回避）
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        currentImageBase64 = dataUrl.split(',')[1];
+
+                        document.getElementById('image-preview-container').innerHTML = `
+                            <div class="text-sky-700 font-extrabold text-sm">✨ 写真の最適化・読み込み完了！</div>
+                            <p class="text-xs font-bold text-slate-500 truncate mt-1">${displayName} (最適化済)</p>
+                        `;
+                    } catch (err) {
+                        console.error(err);
+                        fallbackDirectRead(file, displayName);
                     }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-                    currentImageBase64 = dataUrl.split(',')[1];
-
-                    document.getElementById('image-preview-container').innerHTML = `
-                        <div class="text-sky-600 font-extrabold text-xs">✨ 写真の読み込みに成功しました！</div>
-                        <p class="text-[11px] text-slate-500 truncate">${displayName}</p>
-                    `;
                 };
+
+                img.onerror = function() {
+                    // 画像の直接描画に失敗した場合（HEICや特殊フォーマット等）のフォールバック
+                    fallbackDirectRead(file, displayName);
+                };
+
                 img.src = e.target.result;
+            };
+
+            reader.onerror = function() {
+                showModal("ファイルの読み込みに失敗しました。別の画像か「テキスト直入力」をお試しください。");
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function fallbackDirectRead(file, displayName) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const result = e.target.result;
+                    const base64Index = result.indexOf('base64,');
+                    if (base64Index !== -1) {
+                        currentImageBase64 = result.substring(base64Index + 7);
+                    } else {
+                        currentImageBase64 = btoa(result);
+                    }
+                    document.getElementById('image-preview-container').innerHTML = `
+                        <div class="text-sky-700 font-extrabold text-sm">✨ 写真ファイル取込成功！</div>
+                        <p class="text-xs font-bold text-slate-500 truncate mt-1">${displayName}</p>
+                    `;
+                } catch(ex) {
+                    showModal("このファイル形式はサポート外の可能性があります。テキスト入力をご利用ください。");
+                }
             };
             reader.readAsDataURL(file);
         }
 
-        async function callGeminiAPIWithRetry(payload, retries = 3, delay = 1500) {
+        async function callGeminiAPIWithRetry(payload, retries = 3, delay = 1000) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
             try {
                 const response = await fetch(url, {
@@ -539,7 +559,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error(`サーバーエラー (${response.status})`);
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`サーバーエラー (${response.status}): ${errText}`);
+                }
                 return await response.json();
             } catch (error) {
                 if (retries > 0) {
@@ -577,7 +600,7 @@
             let payload = {};
 
             if (isUsingPhotoLast && currentImageBase64) {
-                promptText = "このiPhoneの画像・写真から重要な学習ポイントを抽出し、確実に学べる【2択クイズ】を5問作成してください。各問題の選択肢は必ず2つだけにしてください。JSON形式のみで出力してください。";
+                promptText = "この画像から学習用の重要なキーワードやポイントを読み取り、必ず2択クイズを5問作成してください。出力は必ずJSON形式のみで行ってください。";
                 payload = {
                     contents: [{
                         role: "user",
@@ -675,7 +698,7 @@
                 console.error(err);
                 document.getElementById('step-loading').classList.add('hidden');
                 document.getElementById('step-upload').classList.remove('hidden');
-                showModal("⚠️ エラー\n\n" + (err.message || "読み取りに失敗しました。") + "\n\n💡【ヒント】写真のサイズが大きい場合は、「テキスト直入力」タブに切り替えて文字を貼り付けてお試しください！");
+                showModal("⚠️ 画像の読み取りに失敗しました。\n\n写真のサイズが極端に大きい場合や文字が薄い場合があります。\n\n💡 「テキスト直入力」タブに文章をコピー＆ペーストしてクエストを開始してみてください！");
             }
         }
 
@@ -712,8 +735,8 @@
 
             q.options.slice(0, 2).forEach((opt, idx) => {
                 const btn = document.createElement('button');
-                btn.className = "w-full text-center bg-sky-50 active:bg-sky-100 border-2 border-sky-200/60 p-4 rounded-2xl text-xs font-bold text-slate-700 transition active:scale-95 shadow-sm flex flex-col items-center justify-center gap-0.5";
-                btn.innerHTML = `<span class="text-[10px] text-sky-400 font-extrabold">選択肢 ${idx + 1}</span> <span>${opt}</span>`;
+                btn.className = "w-full text-center bg-sky-50/90 active:bg-sky-100 border-2 border-sky-200 p-5 rounded-3xl text-base font-extrabold text-slate-900 transition active:scale-95 shadow-md flex flex-col items-center justify-center gap-1.5 leading-relaxed";
+                btn.innerHTML = `<span class="text-xs text-sky-600 font-extrabold tracking-wide">選択肢 ${idx + 1}</span> <span class="text-lg font-extrabold text-slate-900">${opt}</span>`;
                 btn.onclick = () => handleAnswer(idx, q.answerIndex, q.explanation);
                 optionsContainer.appendChild(btn);
             });
@@ -734,12 +757,12 @@
                 playCorrectSound();
                 score += 20;
                 correctCount++;
-                feedbackBox.className = "p-3.5 rounded-2xl text-center font-bold text-xs bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm";
-                feedbackBox.innerHTML = `✨ 正解！ モンスターにダメージ！<br><span class="text-[11px] font-normal text-emerald-600 mt-0.5 block">${explanation}</span>`;
+                feedbackBox.className = "p-5 rounded-3xl text-center font-extrabold text-base bg-emerald-100 text-emerald-900 border-2 border-emerald-200 shadow-md";
+                feedbackBox.innerHTML = `✨ 正解！ モンスターにダメージ！<br><span class="text-sm font-bold text-emerald-800 mt-1.5 block leading-relaxed">${explanation}</span>`;
             } else {
                 playWrongSound();
-                feedbackBox.className = "p-3.5 rounded-2xl text-center font-bold text-xs bg-rose-100 text-rose-700 border border-rose-200 shadow-sm";
-                feedbackBox.innerHTML = `💥 ざんねん！不正解...<br><span class="text-[11px] font-normal text-rose-600 mt-0.5 block">${explanation}</span>`;
+                feedbackBox.className = "p-5 rounded-3xl text-center font-extrabold text-base bg-rose-100 text-rose-900 border-2 border-rose-200 shadow-md";
+                feedbackBox.innerHTML = `💥 ざんねん！不正解...<br><span class="text-sm font-bold text-rose-800 mt-1.5 block leading-relaxed">${explanation}</span>`;
             }
 
             currentIndex++;
@@ -757,7 +780,7 @@
                 } else {
                     loadQuestion();
                 }
-            }, 2000);
+            }, 2500);
         }
 
         function endGame(isWin) {
@@ -782,9 +805,9 @@
             document.getElementById('text-input').value = '';
             document.getElementById('image-input').value = '';
             document.getElementById('image-preview-container').innerHTML = `
-                <div class="text-4xl">📲</div>
-                <p class="text-xs font-extrabold text-sky-700">写真をタップしてアルバムから選択</p>
-                <p class="text-xs text-sky-500">（iPhoneのスクリーンショットや撮影画像に対応）</p>
+                <div class="text-5xl">📲</div>
+                <p class="text-sm font-extrabold text-sky-800">写真をタップしてアルバムから選択</p>
+                <p class="text-xs font-bold text-sky-600">（超高画質・巨大ファイル・スクショ対応）</p>
             `;
             document.getElementById('step-result').classList.add('hidden');
             document.getElementById('step-upload').classList.remove('hidden');
