@@ -96,7 +96,7 @@
 
                 <div id="content-photo" class="space-y-4">
                     <div id="drop-zone" class="border-2 border-dashed border-sky-300 bg-sky-50/70 rounded-3xl p-6 text-center active:bg-sky-100 transition relative">
-                        <!-- capture属性を外し、どんなファイルタイプでもエラーなく受け付けるように拡張 -->
+                        <!-- どんなファイルタイプでもエラーなく受け付けるように拡張 -->
                         <input type="file" id="image-input" accept="image/*,.heic,.heif,.png,.jpg,.jpeg,.webp,.bmp" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" onchange="handleImageSelect(event)">
                         <div id="image-preview-container" class="space-y-2.5 pointer-events-none">
                             <div class="text-5xl">📲</div>
@@ -471,10 +471,6 @@
             processImageFile(file, file.name);
         }
 
-        /**
-         * どんなに巨大な画像やHEIC形式、未知の拡張子でも、
-         * ブラウザのFileReaderとCanvas経由で100%安全にJPEGに正規化・軽量圧縮する関数
-         */
         function processImageFile(file, displayName) {
             const reader = new FileReader();
             
@@ -485,7 +481,7 @@
                         const canvas = document.createElement('canvas');
                         let width = img.width;
                         let height = img.height;
-                        const MAX_DIM = 1200; // AI認識に最適かつ高速な解像度上限
+                        const MAX_DIM = 1200;
 
                         if (width > height) {
                             if (width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; }
@@ -500,7 +496,6 @@
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        // 圧縮率0.85のJPEGデータに変換（データサイズ過大によるエラーを完璧に回避）
                         const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
                         currentImageBase64 = dataUrl.split(',')[1];
 
@@ -515,7 +510,6 @@
                 };
 
                 img.onerror = function() {
-                    // 画像の直接描画に失敗した場合（HEICや特殊フォーマット等）のフォールバック
                     fallbackDirectRead(file, displayName);
                 };
 
@@ -552,7 +546,7 @@
         }
 
         async function callGeminiAPIWithRetry(payload, retries = 3, delay = 1000) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
             try {
                 const response = await fetch(url, {
                     method: 'POST',
