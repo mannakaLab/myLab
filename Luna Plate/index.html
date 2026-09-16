@@ -9,205 +9,175 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts: Inter & Noto Sans JP -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans JP', 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-rose-50 via-orange-50 to-pink-50 min-h-screen text-gray-800 pb-16">
+<body class="bg-gradient-to-br from-rose-50 via-orange-50 to-pink-50 min-h-screen text-gray-800 pb-20">
 
-    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-rose-100 shadow-sm">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-rose-200">
-                    <i class="fa-solid fa-moon text-lg"></i>
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-rose-100 shadow-md">
+        <div class="max-w-5xl mx-auto px-6 py-5 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-3xl bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-rose-200">
+                    <i class="fa-solid fa-moon text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">Luna Plate</h1>
-                    <p class="text-[11px] text-gray-500 font-medium">37歳・デスクワーク対応 ｜ <span id="header-weight-display">62kg</span> ➔ 50kg ロードマップ</p>
+                    <h1 class="font-extrabold text-xl md:text-2xl bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">Luna Plate</h1>
+                    <p class="text-xs md:text-sm text-gray-600 font-medium"><span id="header-age-display">37</span>歳・デスクワーク対応 ｜ <span id="header-weight-display">62kg</span> ➔ <span id="header-target-badge">50.0kg</span> ロードマップ</p>
                 </div>
             </div>
-            <div class="text-right">
-                <span class="text-xs font-bold bg-rose-100 text-rose-700 px-3 py-1.5 rounded-full inline-flex items-center gap-1">
-                    <i class="fa-solid fa-fire text-rose-500"></i> 目標 50.0kg
+            <div class="flex items-center gap-3">
+                <button onclick="openSettingsModal()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-4 py-2.5 rounded-2xl text-sm flex items-center gap-2 transition shadow-sm border border-rose-200">
+                    <i class="fa-solid fa-gear"></i> 設定
+                </button>
+                <span class="text-xs md:text-sm font-bold bg-rose-100 text-rose-700 px-4 py-2.5 rounded-2xl hidden sm:inline-flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-fire text-rose-500"></i> 目標 <span id="header-target-badge-sub">50.0kg</span>
                 </span>
             </div>
         </div>
     </header>
 
-    <!-- MAIN CONTAINER -->
-    <main class="max-w-4xl mx-auto px-4 py-6 space-y-8">
-
-        <section class="bg-white rounded-3xl p-6 shadow-sm border border-rose-100 space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="font-bold text-sm text-gray-800 flex items-center gap-2">
-                    <i class="fa-solid fa-sliders text-rose-500"></i> あなたの体重・目標を設定する
-                </h3>
-                <span class="text-[11px] text-gray-400">入力した数値はブラウザに自動保存されます</span>
-            </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-100">
-                    <label class="block text-xs font-bold text-gray-700 mb-2">
-                        <i class="fa-solid fa-flag text-rose-500 mr-1"></i> スタート時の体重 (kg)
-                    </label>
-                    <input type="number" id="input-start-weight" step="0.1" value="62.0" oninput="saveUserSettings()" class="w-full text-xs bg-white border border-rose-200 rounded-xl p-2.5 font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-400">
-                </div>
-
-                <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-100">
-                    <label class="block text-xs font-bold text-gray-700 mb-2">
-                        <i class="fa-solid fa-weight-scale text-rose-500 mr-1"></i> 現在の体重 (kg)
-                    </label>
-                    <input type="number" id="input-current-weight" step="0.1" value="62.0" oninput="saveUserSettings()" class="w-full text-xs bg-white border border-rose-200 rounded-xl p-2.5 font-bold text-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-400">
-                </div>
-
-                <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-100">
-                    <label class="block text-xs font-bold text-gray-700 mb-2">
-                        <i class="fa-solid fa-bullseye text-rose-500 mr-1"></i> 目標の体重 (kg)
-                    </label>
-                    <input type="number" id="input-target-weight" step="0.1" value="50.0" oninput="saveUserSettings()" class="w-full text-xs bg-white border border-rose-200 rounded-xl p-2.5 font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-400">
-                </div>
-            </div>
-        </section>
+    <main class="max-w-5xl mx-auto px-6 py-8 space-y-10">
 
         <section>
-            <h2 class="text-xs font-bold tracking-wider text-gray-400 uppercase mb-3 px-1"><i class="fa-solid fa-calendar-days text-rose-500 mr-1"></i> 現在の生理周期を選ぶ</h2>
-            <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-                <button onclick="changeCyclePhase('post-period')" id="tab-post-period" class="phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-rose-600 text-white shadow-md transition shrink-0">
+            <h2 class="text-sm font-bold tracking-wider text-gray-500 uppercase mb-4 px-1"><i class="fa-solid fa-calendar-days text-rose-500 mr-2 text-base"></i> 現在の生理周期を選ぶ（自動保存）</h2>
+            <div class="flex gap-3 overflow-x-auto pb-3 scrollbar-none">
+                <button onclick="changeCyclePhase('post-period')" id="tab-post-period" class="phase-tab px-6 py-3.5 rounded-2xl font-bold text-base bg-rose-600 text-white shadow-lg transition shrink-0">
                     🌱 生理後 (卵胞期)
                 </button>
-                <button onclick="changeCyclePhase('ovulation')" id="tab-ovulation" class="phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-white text-gray-600 hover:bg-rose-50 border border-gray-100 transition shrink-0">
+                <button onclick="changeCyclePhase('ovulation')" id="tab-ovulation" class="phase-tab px-6 py-3.5 rounded-2xl font-bold text-base bg-white text-gray-700 hover:bg-rose-50 border border-gray-200 transition shrink-0 shadow-sm">
                     🌸 排卵期
                 </button>
-                <button onclick="changeCyclePhase('pre-period')" id="tab-pre-period" class="phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-white text-gray-600 hover:bg-rose-50 border border-gray-100 transition shrink-0">
+                <button onclick="changeCyclePhase('pre-period')" id="tab-pre-period" class="phase-tab px-6 py-3.5 rounded-2xl font-bold text-base bg-white text-gray-700 hover:bg-rose-50 border border-gray-200 transition shrink-0 shadow-sm">
                     🌙 生理前 (黄体期)
                 </button>
-                <button onclick="changeCyclePhase('period')" id="tab-period" class="phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-white text-gray-600 hover:bg-rose-50 border border-gray-100 transition shrink-0">
+                <button onclick="changeCyclePhase('period')" id="tab-period" class="phase-tab px-6 py-3.5 rounded-2xl font-bold text-base bg-white text-gray-700 hover:bg-rose-50 border border-gray-200 transition shrink-0 shadow-sm">
                     🍵 生理中 (月経期)
                 </button>
             </div>
         </section>
 
-        <section id="phase-banner" class="bg-gradient-to-r from-rose-400 to-pink-400 rounded-3xl p-6 text-white shadow-lg transition-all duration-500">
+        <section id="phase-banner" class="bg-gradient-to-r from-rose-400 to-pink-400 rounded-3xl p-8 text-white shadow-xl transition-all duration-500">
             <div class="flex items-start justify-between">
                 <div>
-                    <span id="banner-tag" class="bg-white/20 backdrop-blur-md text-xs font-bold px-3 py-1 rounded-full mb-3 inline-block">黄金期・代謝UP</span>
-                    <h3 id="banner-title" class="text-xl md:text-2xl font-extrabold mb-2">✨ 代謝が最高の黄金期！しっかり食べて燃やす</h3>
-                    <p id="banner-desc" class="text-xs md:text-sm text-white/90 leading-relaxed max-w-2xl">
+                    <span id="banner-tag" class="bg-white/25 backdrop-blur-md text-sm font-bold px-4 py-1.5 rounded-full mb-4 inline-block shadow-sm">黄金期・代謝UP</span>
+                    <h3 id="banner-title" class="text-2xl md:text-3xl font-black mb-3">✨ 代謝が最高の黄金期！しっかり食べて燃やす</h3>
+                    <p id="banner-desc" class="text-sm md:text-base text-white/95 leading-relaxed max-w-3xl font-medium">
                         エストロゲンの分泌が増え、心身ともに絶好調で脂肪が最も燃えやすい時期です。良質なタンパク質を毎食しっかり摂り、筋肉量を維持しながらスルスル落としましょう！
                     </p>
                 </div>
-                <div class="hidden sm:flex w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md items-center justify-center shrink-0">
-                    <i id="banner-icon" class="fa-solid fa-seedling text-2xl"></i>
+                <div class="hidden sm:flex w-16 h-16 rounded-3xl bg-white/25 backdrop-blur-md items-center justify-center shrink-0 shadow-md">
+                    <i id="banner-icon" class="fa-solid fa-seedling text-3xl"></i>
                 </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-white/20 flex flex-wrap gap-4 text-xs font-medium">
-                <span id="banner-calories"><i class="fa-solid fa-fire mr-1"></i>目標目安: 約 1,350 kcal</span>
-                <span id="banner-tcm-advice"><i class="fa-solid fa-spa mr-1"></i>東洋医学体質ケア連動中</span>
+            <div class="mt-6 pt-5 border-t border-white/25 flex flex-wrap gap-6 text-sm font-semibold">
+                <span id="banner-calories"><i class="fa-solid fa-fire mr-1.5 text-base"></i>目標目安: 約 1,350 kcal</span>
+                <span id="banner-tcm-advice"><i class="fa-solid fa-spa mr-1.5 text-base"></i>東洋医学体質ケア連動中</span>
             </div>
         </section>
 
-        <section class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-6 border border-amber-200 shadow-sm">
-            <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm shadow">
+        <section class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-8 border border-amber-200 shadow-md">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-base shadow-md">
                         <i class="fa-solid fa-leaf"></i>
                     </div>
-                    <h3 id="tcm-box-title" class="font-bold text-sm text-amber-900">東洋医学・体質別サポート（現在のタイプ: 水太り・むくみタイプ）</h3>
+                    <h3 id="tcm-box-title" class="font-bold text-base md:text-lg text-amber-950">東洋医学・体質別サポート（現在のタイプ: 水太り・むくみタイプ）</h3>
                 </div>
-                <button onclick="openTcmModal()" class="text-xs bg-white text-amber-800 font-bold px-3 py-1.5 rounded-xl border border-amber-300 hover:bg-amber-100 transition shadow-sm">
+                <button onclick="openSettingsModal()" class="text-xs md:text-sm bg-white text-amber-900 font-bold px-4 py-2 rounded-2xl border border-amber-300 hover:bg-amber-100 transition shadow-sm">
                     体質を変更する
                 </button>
             </div>
-            <p id="tcm-box-desc" class="text-xs text-amber-800/90 leading-relaxed mb-4">
+            <p id="tcm-box-desc" class="text-sm md:text-base text-amber-900/90 leading-relaxed mb-6 font-medium">
                 水分代謝が滞りやすく、夕方になると脚や顔がむくみやすいタイプです。この時期は「利水作用（余分な水分を排出する食材）」を意識して巡りの良い身体をつくりましょう。
             </p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="tcm-recommendations">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="tcm-recommendations">
                 <!-- 動的挿入 -->
             </div>
         </section>
 
-        <section class="bg-white rounded-3xl p-6 shadow-sm border border-rose-100">
-            <div class="flex justify-between items-center mb-4">
+        <section class="bg-white rounded-3xl p-8 shadow-md border border-rose-100">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
                 <div>
-                    <h3 class="font-bold text-base text-gray-800 flex items-center gap-2">
-                        <i class="fa-solid fa-basket-shopping text-rose-500"></i> この時期に買っておくべき食材リスト（体質カスタム対応）
+                    <h3 class="font-bold text-lg md:text-xl text-gray-800 flex items-center gap-2.5">
+                        <i class="fa-solid fa-basket-shopping text-rose-500 text-xl"></i> この時期に買っておくべき食材リスト（体質カスタム対応）
                     </h3>
-                    <p class="text-xs text-gray-500 mt-0.5">ホルモンバランス ＋ 東洋医学の知恵を取り入れたまとめ買いリストです</p>
+                    <p class="text-xs md:text-sm text-gray-600 mt-1">ホルモンバランス ＋ 東洋医学の知恵を取り入れたまとめ買いリストです</p>
                 </div>
-                <button onclick="showAlertModal('まとめ買いのコツ', 'スーパーに行く前にこのリストを確認！体質に合った食材を取り入れることで、デスクワーク中のむくみや冷えを根本からケアできます。')" class="text-xs bg-rose-50 text-rose-600 font-bold px-3 py-1.5 rounded-xl hover:bg-rose-100 transition">
-                    <i class="fa-solid fa-circle-info"></i> アドバイス
+                <button onclick="showAlertModal('まとめ買いのコツ', 'スーパーに行く前にこのリストを確認！体質に合った食材を取り入れることで、デスクワーク中のむくみや冷えを根本からケアできます。')" class="text-xs md:text-sm bg-rose-50 text-rose-700 font-bold px-4 py-2 rounded-2xl hover:bg-rose-100 transition shadow-sm border border-rose-200">
+                    <i class="fa-solid fa-circle-info mr-1"></i> アドバイス
                 </button>
             </div>
-            <div id="shopping-categories-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div id="shopping-categories-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- JavaScriptにより動的挿入 -->
             </div>
         </section>
 
-        <section id="content-meals" class="bg-white rounded-3xl p-6 shadow-sm border border-rose-100">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-2">
+        <section id="content-meals" class="bg-white rounded-3xl p-8 shadow-md border border-rose-100">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
                 <div>
-                    <h3 class="font-bold text-base text-gray-800 flex items-center gap-2">
-                        <i class="fa-solid fa-utensils text-rose-500"></i> オススメ朝昼晩の献立プラン
+                    <h3 class="font-bold text-lg md:text-xl text-gray-800 flex items-center gap-2.5">
+                        <i class="fa-solid fa-utensils text-rose-500 text-xl"></i> オススメ朝昼晩の献立プラン
                     </h3>
-                    <p class="text-xs text-gray-500 mt-0.5">デスクワークでも太りにくい、しっかり満足できる献立バリエーション</p>
+                    <p class="text-xs md:text-sm text-gray-600 mt-1">デスクワークでも太りにくい、しっかり満足できる献立バリエーション</p>
                 </div>
             </div>
 
             <!-- メニューバリエーション切り替えタブがJSでここに挿入されます -->
 
-            <div id="daily-meal-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div id="daily-meal-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- JavaScriptにより動的挿入 -->
             </div>
 
             <!-- 満腹＆代謝アップTips -->
-            <div class="mt-6 bg-gradient-to-r from-rose-50 to-orange-50 rounded-2xl p-4 border border-rose-100">
-                <h4 class="font-bold text-xs text-rose-800 mb-2 flex items-center gap-1.5">
-                    <i class="fa-solid fa-lightbulb text-amber-500"></i> この時期のデスクワーク＆食事の極意
+            <div class="mt-8 bg-gradient-to-r from-rose-50 to-orange-50 rounded-3xl p-6 border border-rose-100">
+                <h4 class="font-bold text-sm md:text-base text-rose-900 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-500 text-lg"></i> この時期のデスクワーク＆食事の極意
                 </h4>
-                <ul id="meal-tips-list" class="text-xs text-gray-600 space-y-1.5 pl-4 list-disc">
+                <ul id="meal-tips-list" class="text-xs md:text-sm text-gray-700 space-y-2 pl-5 list-disc font-medium">
                     <!-- JavaScriptにより動的挿入 -->
                 </ul>
             </div>
         </section>
 
-        <section class="bg-white rounded-3xl p-6 shadow-sm border border-rose-100">
-            <div class="flex justify-between items-center mb-4">
+        <section class="bg-white rounded-3xl p-8 shadow-md border border-rose-100">
+            <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h3 class="font-bold text-base text-gray-800 flex items-center gap-2">
-                        <i class="fa-solid fa-route text-rose-500"></i> <span id="roadmap-title-start">62.0kg</span> ➔ <span id="roadmap-title-target">50.0kg</span> 階段式ロードマップ
+                    <h3 class="font-bold text-lg md:text-xl text-gray-800 flex items-center gap-2.5">
+                        <i class="fa-solid fa-route text-rose-500 text-xl"></i> <span id="roadmap-title-start">62.0kg</span> ➔ <span id="roadmap-title-target">50.0kg</span> 階段式ロードマップ
                     </h3>
-                    <p class="text-xs text-gray-500 mt-0.5">焦らず生理周期の波に乗せて、リバウンドなくスルスル落とす</p>
+                    <p class="text-xs md:text-sm text-gray-600 mt-1">焦らず生理周期の波に乗せて、リバウンドなくスルスル落とす</p>
                 </div>
-                <span id="roadmap-diff-badge" class="text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200">残り -12.0 kg</span>
+                <span id="roadmap-diff-badge" class="text-sm font-bold text-rose-700 bg-rose-50 px-4 py-2 rounded-2xl border border-rose-200 shadow-sm">残り -12.0 kg</span>
             </div>
             
-            <div class="space-y-3">
+            <div class="space-y-4">
                 <div>
-                    <div class="flex justify-between text-xs font-bold mb-1">
-                        <span class="text-gray-700">現在の位置: <span id="current-weight-label" class="text-rose-600">62.0 kg</span></span>
-                        <span class="text-gray-400">目標: <span id="target-weight-label">50.0 kg</span></span>
+                    <div class="flex justify-between text-xs md:text-sm font-bold mb-2">
+                        <span class="text-gray-800">現在の位置: <span id="current-weight-label" class="text-rose-600 text-base">62.0 kg</span></span>
+                        <span class="text-gray-500">目標: <span id="target-weight-label" class="text-base text-gray-800">50.0 kg</span></span>
                     </div>
-                    <div class="w-full bg-gray-100 h-3 rounded-full overflow-hidden p-0.5">
+                    <div class="w-full bg-gray-100 h-4 rounded-full overflow-hidden p-0.5 shadow-inner">
                         <div id="roadmap-progress-bar" class="bg-gradient-to-r from-rose-400 to-pink-500 h-full rounded-full transition-all duration-1000" style="width: 0%;"></div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                    <div id="step-box-1" class="bg-rose-50/60 p-3 rounded-2xl border border-rose-100 text-center transition">
-                        <span class="text-[10px] text-gray-400 block font-bold">STEP 1</span>
-                        <span id="step-1-text" class="text-xs font-bold text-gray-800">62.0kg ➔ 58.0kg</span>
-                        <span class="text-[10px] text-rose-600 block mt-0.5">むくみ解消＆代謝アップ</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3">
+                    <div id="step-box-1" class="bg-rose-50/60 p-4 rounded-2xl border border-rose-100 text-center transition">
+                        <span class="text-xs text-gray-500 block font-bold mb-1">STEP 1</span>
+                        <span id="step-1-text" class="text-sm md:text-base font-bold text-gray-900">62.0kg ➔ 58.0kg</span>
+                        <span class="text-xs text-rose-700 block mt-1 font-semibold">むくみ解消＆代謝アップ</span>
                     </div>
-                    <div id="step-box-2" class="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center transition">
-                        <span class="text-[10px] text-gray-400 block font-bold">STEP 2</span>
-                        <span id="step-2-text" class="text-xs font-bold text-gray-800">58.0kg ➔ 54.0kg</span>
-                        <span class="text-[10px] text-gray-500 block mt-0.5">黄金期の高タンパク燃焼</span>
+                    <div id="step-box-2" class="bg-gray-50 p-4 rounded-2xl border border-gray-200 text-center transition">
+                        <span class="text-xs text-gray-500 block font-bold mb-1">STEP 2</span>
+                        <span id="step-2-text" class="text-sm md:text-base font-bold text-gray-900">58.0kg ➔ 54.0kg</span>
+                        <span class="text-xs text-gray-600 block mt-1 font-semibold">黄金期の高タンパク燃焼</span>
                     </div>
-                    <div id="step-box-3" class="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center transition">
-                        <span class="text-[10px] text-gray-400 block font-bold">STEP 3</span>
-                        <span id="step-3-text" class="text-xs font-bold text-gray-800">54.0kg ➔ 50.0kg</span>
-                        <span class="text-[10px] text-gray-500 block mt-0.5">理想の美ボディ定着</span>
+                    <div id="step-box-3" class="bg-gray-50 p-4 rounded-2xl border border-gray-200 text-center transition">
+                        <span class="text-xs text-gray-500 block font-bold mb-1">STEP 3</span>
+                        <span id="step-3-text" class="text-sm md:text-base font-bold text-gray-900">54.0kg ➔ 50.0kg</span>
+                        <span class="text-xs text-gray-600 block mt-1 font-semibold">理想の美ボディ定着</span>
                     </div>
                 </div>
             </div>
@@ -215,73 +185,149 @@
 
     </main>
 
-    <div id="tcm-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-stethoscope"></i>
+    <div id="settings-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-8 shadow-2xl max-h-[90vh] overflow-y-auto space-y-8">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl shadow-sm">
+                        <i class="fa-solid fa-sliders"></i>
                     </div>
-                    <h3 class="font-bold text-gray-800 text-base">東洋医学・体質セルフチェック</h3>
+                    <h3 class="font-black text-gray-900 text-lg md:text-xl">年齢・体重・体質の設定</h3>
                 </div>
-                <button onclick="closeTcmModal()" class="text-gray-400 hover:text-gray-600 font-bold text-lg px-2">×</button>
-            </div>
-            <p class="text-xs text-gray-500 mb-4">今の自分に最も当てはまる項目を選んでください。体質に合わせた食事＆ケアの提案が変化します。</p>
-
-            <div class="space-y-3 mb-6" id="tcm-options-container">
-                <label onclick="selectConstitution('water')" id="card-water" class="tcm-option-card block p-4 rounded-2xl border-2 border-amber-400 bg-amber-50/50 cursor-pointer transition">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="font-bold text-xs text-amber-900"><i class="fa-solid fa-droplet text-blue-500 mr-1"></i> 水太り・むくみタイプ（痰湿 / たんしつ）</span>
-                        <span id="badge-water" class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">選択中</span>
-                    </div>
-                    <p class="text-[11px] text-gray-600">夕方になると足がパンパンになる、ぽっちゃりしていて筋肉が柔らかい、雨の日に体が重だるい。</p>
-                </label>
-
-                <label onclick="selectConstitution('stress')" id="card-stress" class="tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="font-bold text-xs text-gray-800"><i class="fa-solid fa-wind text-teal-500 mr-1"></i> ストレス太りタイプ（気滞 / きたい）</span>
-                        <span id="badge-stress" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold hidden">選択中</span>
-                    </div>
-                    <p class="text-[11px] text-gray-600">イライラするとドカ食いしたくなる、お腹や脇腹が張りやすい、生理前に胸や張りが強い。</p>
-                </label>
-
-                <label onclick="selectConstitution('cold')" id="card-cold" class="tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="font-bold text-xs text-gray-800"><i class="fa-solid fa-fire text-orange-500 mr-1"></i> 冷え・ぽっちゃりタイプ（陽虚 / ようきょ）</span>
-                        <span id="badge-cold" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold hidden">選択中</span>
-                    </div>
-                    <p class="text-[11px] text-gray-600">手足がいつも冷たい、下半身太りが気になる、代謝が悪く痩せにくい、トイレが近いまたはむくみやすい。</p>
-                </label>
-
-                <label onclick="selectConstitution('blood')" id="card-blood" class="tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="font-bold text-xs text-gray-800"><i class="fa-solid fa-heart-pulse text-rose-500 mr-1"></i> 血流滞り・どんよりタイプ（瘀血 / おけつ）</span>
-                        <span id="badge-blood" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold hidden">選択中</span>
-                    </div>
-                    <p class="text-[11px] text-gray-600">生理痛が重い、経血に塊が混じる、目の下にクマができやすい、肩こりや頭痛持ち。</p>
-                </label>
+                <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-gray-700 font-bold text-2xl px-2">×</button>
             </div>
 
-            <button onclick="closeTcmModal()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-2xl shadow-lg text-xs transition">
-                この体質でプランを更新する
+            <!-- Age & Weight inputs section -->
+            <div class="space-y-4">
+                <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-weight-scale text-rose-500 text-base"></i> 数値目標・年齢の設定
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-100">
+                        <label class="block text-xs md:text-sm font-bold text-gray-800 mb-2">
+                            <i class="fa-solid fa-cake-candles text-rose-500 mr-1.5"></i> 年齢 (歳)
+                        </label>
+                        <input type="number" id="input-age" step="1" value="37" oninput="saveUserSettings()" class="w-full text-sm md:text-base bg-white border border-rose-200 rounded-xl p-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm">
+                    </div>
+
+                    <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-100">
+                        <label class="block text-xs md:text-sm font-bold text-gray-800 mb-2">
+                            <i class="fa-solid fa-flag text-rose-500 mr-1.5"></i> スタート体重 (kg)
+                        </label>
+                        <input type="number" id="input-start-weight" step="0.1" value="62.0" oninput="saveUserSettings()" class="w-full text-sm md:text-base bg-white border border-rose-200 rounded-xl p-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm">
+                    </div>
+
+                    <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-100">
+                        <label class="block text-xs md:text-sm font-bold text-gray-800 mb-2">
+                            <i class="fa-solid fa-weight-scale text-rose-500 mr-1.5"></i> 現在の体重 (kg)
+                        </label>
+                        <input type="number" id="input-current-weight" step="0.1" value="62.0" oninput="saveUserSettings()" class="w-full text-sm md:text-base bg-white border border-rose-200 rounded-xl p-3 font-bold text-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm">
+                    </div>
+
+                    <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-100">
+                        <label class="block text-xs md:text-sm font-bold text-gray-800 mb-2">
+                            <i class="fa-solid fa-bullseye text-rose-500 mr-1.5"></i> 目標の体重 (kg)
+                        </label>
+                        <input type="number" id="input-target-weight" step="0.1" value="50.0" oninput="saveUserSettings()" class="w-full text-sm md:text-base bg-white border border-rose-200 rounded-xl p-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-rose-400 shadow-sm">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TCM Constitution selection section -->
+            <div class="space-y-4">
+                <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-stethoscope text-amber-500 text-base"></i> 東洋医学・体質セルフチェック
+                </h4>
+                <div class="space-y-3.5" id="tcm-options-container">
+                    <label onclick="selectConstitution('water')" id="card-water" class="tcm-option-card block p-4 rounded-2xl border-2 border-amber-400 bg-amber-50/60 cursor-pointer transition shadow-sm">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="font-bold text-sm md:text-base text-amber-950"><i class="fa-solid fa-droplet text-blue-500 mr-1.5"></i> 水太り・むくみタイプ（痰湿）</span>
+                            <span id="badge-water" class="text-xs bg-amber-200 text-amber-950 px-3 py-0.5 rounded-full font-bold">選択中</span>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-700">夕方になると足がパンパンになる、ぽっちゃりしていて筋肉が柔らかい。</p>
+                    </label>
+
+                    <label onclick="selectConstitution('stress')" id="card-stress" class="tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition shadow-sm">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="font-bold text-sm md:text-base text-gray-900"><i class="fa-solid fa-wind text-teal-500 mr-1.5"></i> ストレス太りタイプ（気滞）</span>
+                            <span id="badge-stress" class="text-xs bg-gray-100 text-gray-600 px-3 py-0.5 rounded-full font-bold hidden">選択中</span>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-700">イライラするとドカ食いしたくなる、お腹や脇腹が張りやすい。</p>
+                    </label>
+
+                    <label onclick="selectConstitution('cold')" id="card-cold" class="tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition shadow-sm">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="font-bold text-sm md:text-base text-gray-900"><i class="fa-solid fa-fire text-orange-500 mr-1.5"></i> 冷え・ぽっちゃりタイプ（陽虚）</span>
+                            <span id="badge-cold" class="text-xs bg-gray-100 text-gray-600 px-3 py-0.5 rounded-full font-bold hidden">選択中</span>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-700">手足がいつも冷たい、下半身太りが気になる、代謝が悪く痩せにくい。</p>
+                    </label>
+
+                    <label onclick="selectConstitution('blood')" id="card-blood" class="tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition shadow-sm">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="font-bold text-sm md:text-base text-gray-900"><i class="fa-solid fa-heart-pulse text-rose-500 mr-1.5"></i> 血流滞り・どんよりタイプ（瘀血）</span>
+                            <span id="badge-blood" class="text-xs bg-gray-100 text-gray-600 px-3 py-0.5 rounded-full font-bold hidden">選択中</span>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-700">生理痛が重い、経血に塊が混じる、目の下にクマができやすい。</p>
+                    </label>
+                </div>
+            </div>
+
+            <button onclick="closeSettingsModal()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-rose-200 text-sm md:text-base transition">
+                設定を保存して閉じる
             </button>
         </div>
     </div>
 
-    <div id="custom-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl transform transition-all">
-            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mb-4 text-xl">
+    <div id="custom-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl transform transition-all space-y-4">
+            <div class="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl shadow-sm">
                 <i class="fa-solid fa-heart-pulse"></i>
             </div>
-            <h4 id="modal-title" class="font-bold text-gray-800 text-base mb-2">タイトル</h4>
-            <p id="modal-desc" class="text-xs text-gray-600 leading-relaxed mb-6">詳細説明文</p>
-            <button onclick="closeModal()" class="w-full bg-rose-600 text-white font-bold py-3 rounded-2xl shadow-lg shadow-rose-200 text-xs hover:bg-rose-700 transition">
+            <h4 id="modal-title" class="font-bold text-gray-900 text-lg">タイトル</h4>
+            <p id="modal-desc" class="text-sm text-gray-700 leading-relaxed">詳細説明文</p>
+            <button onclick="closeModal()" class="w-full bg-rose-600 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-rose-200 text-sm hover:bg-rose-700 transition">
                 閉じる
             </button>
         </div>
     </div>
 
     <script>
+        const tcmData = {
+            'water': {
+                name: '水太り・むくみタイプ（痰湿）',
+                desc: '水分代謝が滞りやすく、夕方になると脚や顔がむくみやすいタイプです。この時期は「利水作用（余分な水分を排出する食材）」を意識して巡りの良い身体をつくりましょう。',
+                recommendations: [
+                    { title: '利水食材の活用', text: 'きゅうり、とうもろこしのひげ茶、海藻類（わかめ・昆布）、冬瓜などを積極的に。' },
+                    { title: 'デスクワーク対策', text: '1時間に1回足首を回し、カリウム豊富なルイボスティーで水分代謝をUP。' }
+                ]
+            },
+            'stress': {
+                name: 'ストレス太りタイプ（気滞）',
+                desc: '気の巡りが滞り、イライラするとドカ食いしたくなるタイプです。香りの良い食材で気の巡りを良くし、自律神経を整えましょう。',
+                recommendations: [
+                    { title: '香りの良い食材', text: 'シソ、ミント、春菊、柑橘類の皮、ジャスミンティーで気を巡らせる。' },
+                    { title: 'デスクワーク対策', text: '深呼吸やアロマ、リラックスストレッチでストレス食いをブロック。' }
+                ]
+            },
+            'cold': {
+                name: '冷え・ぽっちゃりタイプ（陽虚）',
+                desc: 'エネルギー（陽気）が不足し、代謝が冷えて落ちやすいタイプです。身体を芯から温める温活食材で代謝のスイッチを入れましょう。',
+                recommendations: [
+                    { title: '温活食材', text: '生姜、シナモン、ネギ、根菜類、羊肉や鶏肉など温性食品をチョイス。' },
+                    { title: 'デスクワーク対策', text: '白湯や生姜紅茶を常飲し、ひざ掛けやカイロで下半身の冷えを防ぐ。' }
+                ]
+            },
+            'blood': {
+                name: '血流滞り・どんよりタイプ（瘀血）',
+                desc: '血流が滞りがちで、生理痛や肩こり、くすみが出やすいタイプです。血の巡りを良くする食材でスムーズな代謝を促しましょう。',
+                recommendations: [
+                    { title: '活血食材', text: '黒豆、青魚（サバ・サンマ）、玉ねぎ、酢の物、紅花茶など。' },
+                    { title: 'デスクワーク対策', text: '肩甲骨を大きく動かすストレッチや入浴で骨盤周りの血行を促進。' }
+                ]
+            }
+        };
+
         const phaseData = {
             'post-period': {
                 name: '生理後（卵胞期・最大の痩せ期）',
@@ -402,7 +448,7 @@
                 ],
                 tips: [
                     '塩分を控えめにし、カリウム（ほうれん草、アボカド、海藻類）を摂ってむくみを徹底ブロック。',
-                    '甘いものが欲しくなったときは、カカオ70%以上的チョコレートや、焼き芋で代用。',
+                    '甘いものが欲しくなったときは、カカオ70%以上のチョコレートや、焼き芋で代用。',
                     '「いっぱい食べた感」を出すために、白菜、キャベツ、キノコをスープや鍋でクタクタにして食べましょう。'
                 ]
             },
@@ -450,16 +496,141 @@
         };
 
         let appState = {
-            currentPhase: 'post-period'
+            currentPhase: 'post-period',
+            constitution: 'water',
+            age: 37,
+            startWeight: 62.0,
+            currentWeight: 62.0,
+            targetWeight: 50.0
         };
 
         let currentMealVariation = 0;
 
-        function loadCyclePhase() {
-            const savedPhase = localStorage.getItem('luna_plate_selected_phase');
+        function loadSavedState() {
+            const savedPhase = localStorage.getItem('luna_plate_phase');
             if (savedPhase && phaseData[savedPhase]) {
                 appState.currentPhase = savedPhase;
             }
+            const savedTcm = localStorage.getItem('luna_plate_tcm');
+            if (savedTcm && tcmData[savedTcm]) {
+                appState.constitution = savedTcm;
+            }
+            const savedAge = localStorage.getItem('luna_plate_age');
+            const sWeight = localStorage.getItem('luna_plate_start_w');
+            const cWeight = localStorage.getItem('luna_plate_curr_w');
+            const tWeight = localStorage.getItem('luna_plate_target_w');
+            
+            if (savedAge) appState.age = parseInt(savedAge, 10) || 37;
+            if (sWeight) appState.startWeight = parseFloat(sWeight);
+            if (cWeight) appState.currentWeight = parseFloat(cWeight);
+            if (tWeight) appState.targetWeight = parseFloat(tWeight);
+
+            document.getElementById('input-age').value = appState.age;
+            document.getElementById('input-start-weight').value = appState.startWeight;
+            document.getElementById('input-current-weight').value = appState.currentWeight;
+            document.getElementById('input-target-weight').value = appState.targetWeight;
+
+            updateConstitutionUI();
+            updateRoadmap();
+        }
+
+        function saveUserSettings() {
+            const ageVal = parseInt(document.getElementById('input-age').value, 10) || 37;
+            const s = parseFloat(document.getElementById('input-start-weight').value) || 62.0;
+            const c = parseFloat(document.getElementById('input-current-weight').value) || 62.0;
+            const t = parseFloat(document.getElementById('input-target-weight').value) || 50.0;
+
+            appState.age = ageVal;
+            appState.startWeight = s;
+            appState.currentWeight = c;
+            appState.targetWeight = t;
+
+            localStorage.setItem('luna_plate_age', ageVal);
+            localStorage.setItem('luna_plate_start_w', s);
+            localStorage.setItem('luna_plate_curr_w', c);
+            localStorage.setItem('luna_plate_target_w', t);
+
+            updateRoadmap();
+        }
+
+        function updateRoadmap() {
+            const age = appState.age;
+            const s = appState.startWeight;
+            const c = appState.currentWeight;
+            const t = appState.targetWeight;
+
+            document.getElementById('header-age-display').textContent = age;
+            document.getElementById('header-weight-display').textContent = c + 'kg';
+            document.getElementById('header-target-badge').textContent = t.toFixed(1) + 'kg';
+            document.getElementById('header-target-badge-sub').textContent = t.toFixed(1) + 'kg';
+            document.getElementById('roadmap-title-start').textContent = s.toFixed(1) + 'kg';
+            document.getElementById('roadmap-title-target').textContent = t.toFixed(1) + 'kg';
+            document.getElementById('current-weight-label').textContent = c.toFixed(1) + ' kg';
+            document.getElementById('target-weight-label').textContent = t.toFixed(1) + ' kg';
+
+            const totalDiff = Math.max(0.1, s - t);
+            const lost = Math.max(0, s - c);
+            let progressPercent = Math.min(100, Math.max(0, (lost / totalDiff) * 100));
+            document.getElementById('roadmap-progress-bar').style.width = progressPercent + '%';
+            document.getElementById('roadmap-diff-badge').textContent = `残り -${Math.max(0, c - t).toFixed(1)} kg`;
+
+            const step1End = s - (totalDiff * 0.33);
+            const step2End = s - (totalDiff * 0.66);
+
+            document.getElementById('step-1-text').textContent = `${s.toFixed(1)}kg ➔ ${step1End.toFixed(1)}kg`;
+            document.getElementById('step-2-text').textContent = `${step1End.toFixed(1)}kg ➔ ${step2End.toFixed(1)}kg`;
+            document.getElementById('step-3-text').textContent = `${step2End.toFixed(1)}kg ➔ ${t.toFixed(1)}kg`;
+
+            const box1 = document.getElementById('step-box-1');
+            const box2 = document.getElementById('step-box-2');
+            const box3 = document.getElementById('step-box-3');
+
+            box1.className = c <= step1End ? 'bg-rose-600 text-white p-4 rounded-2xl text-center transition shadow-md' : 'bg-rose-50/60 p-4 rounded-2xl border border-rose-100 text-center transition';
+            box2.className = c <= step2End && c > step1End ? 'bg-rose-600 text-white p-4 rounded-2xl text-center transition shadow-md' : (c <= step2End ? 'bg-rose-600 text-white p-4 rounded-2xl text-center transition shadow-md' : 'bg-gray-50 p-4 rounded-2xl border border-gray-200 text-center transition');
+            box3.className = c <= t ? 'bg-rose-600 text-white p-4 rounded-2xl text-center transition shadow-md' : 'bg-gray-50 p-4 rounded-2xl border border-gray-200 text-center transition';
+        }
+
+        function selectConstitution(type) {
+            appState.constitution = type;
+            localStorage.setItem('luna_plate_tcm', type);
+            updateConstitutionUI();
+            renderShoppingList();
+            renderMealPlans();
+        }
+
+        function updateConstitutionUI() {
+            const tcm = tcmData[appState.constitution];
+            document.getElementById('tcm-box-title').textContent = `東洋医学・体質別サポート（現在のタイプ: ${tcm.name.split('（')[0]}）`;
+            document.getElementById('tcm-box-desc').textContent = tcm.desc;
+
+            const recContainer = document.getElementById('tcm-recommendations');
+            recContainer.innerHTML = tcm.recommendations.map(r => `
+                <div class="bg-white/80 p-4 rounded-2xl border border-amber-200 shadow-sm">
+                    <span class="text-xs font-bold text-amber-800 block mb-1"><i class="fa-solid fa-check mr-1.5"></i>${r.title}</span>
+                    <span class="text-xs md:text-sm text-gray-800 font-medium">${r.text}</span>
+                </div>
+            `).join('');
+
+            ['water', 'stress', 'cold', 'blood'].forEach(key => {
+                const card = document.getElementById(`card-${key}`);
+                const badge = document.getElementById(`badge-${key}`);
+                if (key === appState.constitution) {
+                    card.className = "tcm-option-card block p-4 rounded-2xl border-2 border-amber-400 bg-amber-50/60 cursor-pointer transition shadow-sm";
+                    badge.classList.remove('hidden');
+                    badge.className = "text-xs bg-amber-200 text-amber-950 px-3 py-0.5 rounded-full font-bold";
+                } else {
+                    card.className = "tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition shadow-sm";
+                    badge.classList.add('hidden');
+                }
+            });
+        }
+
+        function openSettingsModal() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').classList.add('hidden');
         }
 
         function renderShoppingList() {
@@ -468,38 +639,38 @@
             const container = document.getElementById('shopping-categories-grid');
             
             let tcmExtraItem = 'キュウリ または 海藻類（むくみ対策）';
-            if(appState.constitution === 'stress') tcmExtraItem = 'ミント または シソ（気の巡り）';
+            if(appState.constitution === 'stress') tcmExtraItem = 'シソ または ミント（気の巡り）';
             if(appState.constitution === 'cold') tcmExtraItem = '生姜多め または シナモンパウダー';
             if(appState.constitution === 'blood') tcmExtraItem = '黒豆 または 青魚の切り身';
 
             container.innerHTML = `
-                <div class="bg-amber-50/70 rounded-2xl p-4 border border-amber-200 flex flex-col justify-between">
+                <div class="bg-amber-50/70 rounded-3xl p-6 border border-amber-200 shadow-sm flex flex-col justify-between">
                     <div>
-                        <h4 class="font-bold text-xs text-amber-900 mb-2 flex items-center gap-1.5">
-                            <i class="fa-solid fa-leaf text-amber-600"></i> ${tcm.name.split('（')[0]}特選食材
+                        <h4 class="font-bold text-sm md:text-base text-amber-950 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-leaf text-amber-600 text-base"></i> ${tcm.name.split('（')[0]}特選
                         </h4>
-                        <ul class="space-y-1.5 pl-1">
-                            <li class="text-xs text-gray-700 flex items-start gap-2">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                        <ul class="space-y-2.5 pl-1">
+                            <li class="text-xs md:text-sm text-gray-800 flex items-start gap-2.5 font-medium">
+                                <span class="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
                                 <span>${tcmExtraItem}</span>
                             </li>
-                            <li class="text-xs text-gray-700 flex items-start gap-2">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
-                                <span>温かいルイボスティーまたはハーブティー</span>
+                            <li class="text-xs md:text-sm text-gray-800 flex items-start gap-2.5 font-medium">
+                                <span class="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                                <span>温かいルイボスティー</span>
                             </li>
                         </ul>
                     </div>
                 </div>
             ` + data.shoppingCategories.map(cat => `
-                <div class="bg-rose-50/50 rounded-2xl p-4 border border-rose-100 flex flex-col justify-between">
+                <div class="bg-rose-50/50 rounded-3xl p-6 border border-rose-100 shadow-sm flex flex-col justify-between">
                     <div>
-                        <h4 class="font-bold text-xs text-rose-800 mb-2 flex items-center gap-1.5">
-                            <i class="fa-solid fa-check text-rose-500"></i> ${cat.category}
+                        <h4 class="font-bold text-sm md:text-base text-rose-900 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-check text-rose-500 text-base"></i> ${cat.category}
                         </h4>
-                        <ul class="space-y-1.5 pl-1">
+                        <ul class="space-y-2.5 pl-1">
                             ${cat.items.map(item => `
-                                <li class="text-xs text-gray-700 flex items-start gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0"></span>
+                                <li class="text-xs md:text-sm text-gray-800 flex items-start gap-2.5 font-medium">
+                                    <span class="w-2 h-2 rounded-full bg-rose-400 mt-1.5 shrink-0"></span>
                                     <span>${item}</span>
                                 </li>
                             `).join('')}
@@ -520,14 +691,14 @@
             if (!varHeader) {
                 varHeader = document.createElement('div');
                 varHeader.id = 'meal-variation-header';
-                varHeader.className = 'flex items-center gap-2 mb-4 overflow-x-auto pb-1';
+                varHeader.className = 'flex items-center gap-2.5 mb-6 overflow-x-auto pb-2';
                 grid.parentNode.insertBefore(varHeader, grid);
             }
 
             varHeader.innerHTML = `
-                <span class="text-xs font-bold text-gray-500 shrink-0"><i class="fa-solid fa-shuffle text-rose-500"></i> メニュー選択:</span>
+                <span class="text-xs md:text-sm font-bold text-gray-600 shrink-0"><i class="fa-solid fa-shuffle text-rose-500 mr-1"></i> メニュー選択:</span>
                 ${variations.map((v, idx) => `
-                    <button onclick="switchMealVariation(${idx})" class="text-xs px-3.5 py-1.5 rounded-xl font-bold transition shrink-0 ${currentMealVariation === idx ? 'bg-rose-600 text-white shadow' : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'}">
+                    <button onclick="switchMealVariation(${idx})" class="text-xs md:text-sm px-4 py-2 rounded-2xl font-bold transition shrink-0 shadow-sm ${currentMealVariation === idx ? 'bg-rose-600 text-white shadow-md' : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'}">
                         ${v.category}
                     </button>
                 `).join('')}
@@ -540,27 +711,27 @@
             ];
 
             grid.innerHTML = mealList.map(m => `
-                <div class="bg-rose-50/40 rounded-2xl p-5 border border-rose-100 flex flex-col justify-between hover:shadow-md transition">
+                <div class="bg-rose-50/40 rounded-3xl p-6 border border-rose-100 shadow-sm flex flex-col justify-between hover:shadow-md transition">
                     <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-[10px] bg-rose-200 text-rose-800 font-bold px-2.5 py-0.5 rounded-full">${m.data.tag}</span>
-                            <span class="text-[11px] text-gray-400 font-medium">${m.data.calorie}</span>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs bg-rose-200 text-rose-900 font-bold px-3 py-1 rounded-full">${m.data.tag}</span>
+                            <span class="text-xs md:text-sm text-gray-500 font-bold">${m.data.calorie}</span>
                         </div>
-                        <h4 class="font-bold text-gray-800 text-sm mb-1 flex items-center gap-1.5">
-                            <i class="fa-solid ${m.icon} ${m.color}"></i> ${m.data.title}
+                        <h4 class="font-bold text-gray-900 text-base md:text-lg mb-2 flex items-center gap-2">
+                            <i class="fa-solid ${m.icon} ${m.color} text-lg"></i> ${m.data.title}
                         </h4>
-                        <p class="text-xs text-gray-600 leading-relaxed mt-2">${m.data.desc}</p>
+                        <p class="text-xs md:text-sm text-gray-700 leading-relaxed mt-2 font-medium">${m.data.desc}</p>
                     </div>
-                    <div class="mt-4 pt-3 border-t border-rose-100 flex justify-between items-center text-[10px] text-gray-400">
+                    <div class="mt-6 pt-4 border-t border-rose-100 flex justify-between items-center text-xs text-gray-500 font-semibold">
                         <span>${m.time}</span>
-                        <button onclick="showAlertModal('${m.data.title}', 'このメニューは、デスクワークの活動量と${phaseData[appState.currentPhase].name.split('（')[0]}のホルモンバランス、さらに東洋医学の体質ケアを組み合わせて最適化しています✨')" class="text-rose-600 font-bold hover:underline">ポイントを見る</button>
+                        <button onclick="showAlertModal('${m.data.title}', 'このメニューは、デスクワークの活動量と${phaseData[appState.currentPhase].name.split('（')[0]}のホルモンバランス、さらに東洋医学の体質ケアを組み合わせて最適化しています✨')" class="text-rose-600 font-bold hover:underline text-xs md:text-sm">ポイントを見る</button>
                     </div>
                 </div>
             `).join('');
 
             const tipsContainer = document.getElementById('meal-tips-list');
             const tcm = tcmData[appState.constitution];
-            tipsContainer.innerHTML = data.tips.map(tip => `<li>${tip}</li>`).join('') + `<li><strong class="text-amber-800">[東洋医学(${tcm.name.split('（')[0]})のケア]:</strong> ${tcm.recommendations[1].text}</li>`;
+            tipsContainer.innerHTML = data.tips.map(tip => `<li>${tip}</li>`).join('') + `<li><strong class="text-amber-900">[東洋医学(${tcm.name.split('（')[0]})のケア]:</strong> ${tcm.recommendations[1].text}</li>`;
         }
 
         function switchMealVariation(idx) {
@@ -571,22 +742,22 @@
         function changeCyclePhase(phaseKey) {
             appState.currentPhase = phaseKey;
             currentMealVariation = 0;
-            localStorage.setItem('luna_plate_selected_phase', phaseKey);
+            localStorage.setItem('luna_plate_phase', phaseKey);
             const data = phaseData[phaseKey];
 
             const banner = document.getElementById('phase-banner');
-            banner.className = `bg-gradient-to-r ${data.bgColor} rounded-3xl p-6 text-white shadow-lg mb-8 transition-all duration-500`;
+            banner.className = `bg-gradient-to-r ${data.bgColor} rounded-3xl p-8 text-white shadow-xl mb-8 transition-all duration-500`;
             
             document.getElementById('banner-title').textContent = data.bannerTitle;
             document.getElementById('banner-desc').textContent = data.bannerDesc;
-            document.getElementById('banner-calories').innerHTML = `<i class="fa-solid fa-fire mr-1"></i>目標目安: ${data.calories}`;
-            document.getElementById('banner-icon').className = `fa-solid ${data.icon} text-2xl`;
+            document.getElementById('banner-calories').innerHTML = `<i class="fa-solid fa-fire mr-1.5 text-base"></i>目標目安: ${data.calories}`;
+            document.getElementById('banner-icon').className = `fa-solid ${data.icon} text-3xl`;
 
             document.querySelectorAll('.phase-tab').forEach(tab => {
                 if(tab.id === `tab-${phaseKey}`) {
-                    tab.className = 'phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-rose-600 text-white shadow-md transition shrink-0';
+                    tab.className = 'phase-tab px-6 py-3.5 rounded-2xl font-bold text-base bg-rose-600 text-white shadow-lg transition shrink-0';
                 } else {
-                    tab.className = 'phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-white text-gray-600 hover:bg-rose-50 border border-gray-100 transition shrink-0';
+                    tab.className = 'phase-tab px-6 py-3.5 rounded-2xl font-bold text-base bg-white text-gray-700 hover:bg-rose-50 border border-gray-200 transition shrink-0 shadow-sm';
                 }
             });
 
@@ -605,7 +776,7 @@
         }
 
         window.onload = () => {
-            loadCyclePhase();
+            loadSavedState();
             changeCyclePhase(appState.currentPhase);
         };
     </script>
