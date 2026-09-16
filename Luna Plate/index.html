@@ -449,174 +449,17 @@
             }
         };
 
-        const tcmData = {
-            'water': {
-                name: '水太り・むくみタイプ（痰湿 / たんしつ）',
-                desc: '水分代謝が滞りやすく、夕方になると脚や顔がむくみやすいタイプです。この時期は「利水作用（余分な水分を排出する食材）」を意識して、巡りの良い身体をつくりましょう。',
-                recommendations: [
-                    { title: 'おすすめ食材', text: 'きゅうり、冬瓜、海藻類（わかめ・昆布）、小豆、ハトムギ茶' },
-                    { title: 'デスクワークケア', text: '1時間に1回ふくらはぎをマッサージし、水分は常温や温かいお茶でこまめに摂る。' }
-                ]
-            },
-            'stress': {
-                name: 'ストレス太りタイプ（気滞 / きたい）',
-                desc: '気の巡りが悪く、イライラやプレッシャーでドカ食いしたくなったりお腹が張りやすいタイプです。香りの良い食材で気を巡らせましょう。',
-                recommendations: [
-                    { title: 'おすすめ食材', text: 'シソ、ミント、春菊、柑橘類（レモン・オレンジ）、ジャスミン茶' },
-                    { title: 'デスクワークケア', text: '仕事の合間に深呼吸を5回行い、香りの良いアロマやハーブティーでリフレッシュ。' }
-                ]
-            },
-            'cold': {
-                name: '冷え・ぽっちゃりタイプ（陽虚 / ようきょ）',
-                desc: 'エネルギー不足で体が冷えやすく、代謝が落ちて脂肪が溜まりやすいタイプです。温活食材で内臓からしっかり温めましょう。',
-                recommendations: [
-                    { title: 'おすすめ食材', text: '生姜、シナモン、ニラ、羊肉、根菜類（ごぼう・人参）、鶏肉' },
-                    { title: 'デスクワークケア', text: 'ひざ掛けやカイロを活用し、冷たい飲み物は避けて白湯や生姜湯を選ぶ。' }
-                ]
-            },
-            'blood': {
-                name: '血流滞り・どんよりタイプ（瘀血 / おけつ）',
-                desc: '血流が悪く、生理痛が重かったり肩こり・目の下のクマが出やすいタイプです。血の巡りを良くする食材で代謝をサポート。',
-                recommendations: [
-                    { title: 'おすすめ食材', text: '黒豆、青魚（サバ・アジ）、玉ねぎ、黒酢、サフラン' },
-                    { title: 'デスクワークケア', text: '同じ姿勢を続けず、肩甲骨を回すストレッチや軽いウォーキングを取り入れる。' }
-                ]
-            }
-        };
-
         let appState = {
-            currentPhase: 'post-period',
-            constitution: 'water',
-            startWeight: 62.0,
-            currentWeight: 62.0,
-            targetWeight: 50.0
+            currentPhase: 'post-period'
         };
 
         let currentMealVariation = 0;
 
-        function loadUserSettings() {
-            const saved = localStorage.getItem('luna_plate_weights');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    appState.startWeight = data.startWeight ?? 62.0;
-                    appState.currentWeight = data.currentWeight ?? 62.0;
-                    appState.targetWeight = data.targetWeight ?? 50.0;
-                } catch(e) {}
+        function loadCyclePhase() {
+            const savedPhase = localStorage.getItem('luna_plate_selected_phase');
+            if (savedPhase && phaseData[savedPhase]) {
+                appState.currentPhase = savedPhase;
             }
-
-            const savedTcm = localStorage.getItem('luna_plate_constitution');
-            if (savedTcm && tcmData[savedTcm]) {
-                appState.constitution = savedTcm;
-            }
-
-            document.getElementById('input-start-weight').value = appState.startWeight;
-            document.getElementById('input-current-weight').value = appState.currentWeight;
-            document.getElementById('input-target-weight').value = appState.targetWeight;
-
-            updateRoadmapDisplay();
-            renderTcmInfo();
-        }
-
-        function saveUserSettings() {
-            const sw = parseFloat(document.getElementById('input-start-weight').value);
-            const cw = parseFloat(document.getElementById('input-current-weight').value);
-            const tw = parseFloat(document.getElementById('input-target-weight').value);
-
-            if (!isNaN(sw)) appState.startWeight = sw;
-            if (!isNaN(cw)) appState.currentWeight = cw;
-            if (!isNaN(tw)) appState.targetWeight = tw;
-
-            localStorage.setItem('luna_plate_weights', JSON.stringify({
-                startWeight: appState.startWeight,
-                currentWeight: appState.currentWeight,
-                targetWeight: appState.targetWeight
-            }));
-
-            updateRoadmapDisplay();
-        }
-
-        function updateRoadmapDisplay() {
-            const sw = appState.startWeight;
-            const cw = appState.currentWeight;
-            const tw = appState.targetWeight;
-
-            document.getElementById('roadmap-title-start').textContent = sw.toFixed(1) + 'kg';
-            document.getElementById('roadmap-title-target').textContent = tw.toFixed(1) + 'kg';
-            document.getElementById('current-weight-label').textContent = cw.toFixed(1) + ' kg';
-            document.getElementById('target-weight-label').textContent = tw.toFixed(1) + ' kg';
-            document.getElementById('header-weight-display').textContent = cw.toFixed(1) + 'kg';
-
-            const totalDiff = sw - tw;
-            const lostSoFar = sw - cw;
-            let percent = totalDiff !== 0 ? (lostSoFar / totalDiff) * 100 : 0;
-            if (percent < 0) percent = 0;
-            if (percent > 100) percent = 100;
-
-            document.getElementById('roadmap-progress-bar').style.width = percent + '%';
-            
-            const remaining = cw - tw;
-            document.getElementById('roadmap-diff-badge').textContent = remaining >= 0 ? `残り -${remaining.toFixed(1)} kg` : `目標達成 🎉`;
-
-            const stepSize = totalDiff / 3;
-            const s1End = sw - stepSize;
-            const s2End = sw - (stepSize * 2);
-
-            document.getElementById('step-1-text').textContent = `${sw.toFixed(1)}kg ➔ ${s1End.toFixed(1)}kg`;
-            document.getElementById('step-2-text').textContent = `${s1End.toFixed(1)}kg ➔ ${s2End.toFixed(1)}kg`;
-            document.getElementById('step-3-text').textContent = `${s2End.toFixed(1)}kg ➔ ${tw.toFixed(1)}kg`;
-
-            const b1 = document.getElementById('step-box-1');
-            const b2 = document.getElementById('step-box-2');
-            const b3 = document.getElementById('step-box-3');
-
-            b1.className = "p-3 rounded-2xl border text-center transition " + (cw <= s1End ? "bg-rose-100/70 border-rose-300 text-rose-900 font-bold" : (cw < sw ? "bg-rose-50/60 border-rose-100" : "bg-gray-50 border-gray-100"));
-            b2.className = "p-3 rounded-2xl border text-center transition " + (cw <= s2End ? "bg-rose-100/70 border-rose-300 text-rose-900 font-bold" : (cw <= s1End ? "bg-rose-50/60 border-rose-100" : "bg-gray-50 border-gray-100"));
-            b3.className = "p-3 rounded-2xl border text-center transition " + (cw <= tw ? "bg-rose-100/70 border-rose-300 text-rose-900 font-bold" : (cw <= s2End ? "bg-rose-50/60 border-rose-100" : "bg-gray-50 border-gray-100"));
-        }
-
-        function openTcmModal() {
-            document.getElementById('tcm-modal').classList.remove('hidden');
-        }
-
-        function closeTcmModal() {
-            document.getElementById('tcm-modal').classList.add('hidden');
-        }
-
-        function selectConstitution(type) {
-            appState.constitution = type;
-            localStorage.setItem('luna_plate_constitution', type);
-
-            ['water', 'stress', 'cold', 'blood'].forEach(t => {
-                const card = document.getElementById(`card-${t}`);
-                const badge = document.getElementById(`badge-${t}`);
-                if (t === type) {
-                    card.className = "tcm-option-card block p-4 rounded-2xl border-2 border-amber-400 bg-amber-50/50 cursor-pointer transition";
-                    badge.classList.remove('hidden');
-                    badge.className = "text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold";
-                } else {
-                    card.className = "tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition";
-                    badge.classList.add('hidden');
-                }
-            });
-
-            renderTcmInfo();
-            renderShoppingList();
-            renderMealPlans();
-        }
-
-        function renderTcmInfo() {
-            const tcm = tcmData[appState.constitution];
-            document.getElementById('tcm-box-title').textContent = `東洋医学・体質別サポート（現在のタイプ: ${tcm.name.split('（')[0]}）`;
-            document.getElementById('tcm-box-desc').textContent = tcm.desc;
-
-            const recContainer = document.getElementById('tcm-recommendations');
-            recContainer.innerHTML = tcm.recommendations.map(r => `
-                <div class="bg-white/70 p-3 rounded-xl border border-amber-100">
-                    <span class="text-[10px] font-bold text-amber-700 block mb-0.5"><i class="fa-solid fa-check mr-1"></i>${r.title}</span>
-                    <span class="text-xs text-gray-700">${r.text}</span>
-                </div>
-            `).join('');
         }
 
         function renderShoppingList() {
@@ -728,6 +571,7 @@
         function changeCyclePhase(phaseKey) {
             appState.currentPhase = phaseKey;
             currentMealVariation = 0;
+            localStorage.setItem('luna_plate_selected_phase', phaseKey);
             const data = phaseData[phaseKey];
 
             const banner = document.getElementById('phase-banner');
@@ -746,7 +590,6 @@
                 }
             });
 
-            renderTcmInfo();
             renderShoppingList();
             renderMealPlans();
         }
@@ -762,10 +605,8 @@
         }
 
         window.onload = () => {
-            loadUserSettings();
-            renderTcmInfo();
-            renderShoppingList();
-            renderMealPlans();
+            loadCyclePhase();
+            changeCyclePhase(appState.currentPhase);
         };
     </script>
 </body>
