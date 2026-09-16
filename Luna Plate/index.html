@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luna Plate - ホルモン周期×東洋医学で寄り添う満腹ダイエット</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans JP', 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-rose-50 via-orange-50 to-pink-50 min-h-screen text-gray-800 pb-16">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-rose-100 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-rose-200">
+                    <i class="fa-solid fa-moon text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">Luna Plate</h1>
+                    <p class="text-[11px] text-gray-500 font-medium">37歳・デスクワーク対応 ｜ <span id="header-weight-display">62kg</span> ➔ 50kg ロードマップ</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <span class="text-xs font-bold bg-rose-100 text-rose-700 px-3 py-1.5 rounded-full inline-flex items-center gap-1">
+                    <i class="fa-solid fa-fire text-rose-500"></i> 目標 50.0kg
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-4xl mx-auto px-4 py-6 space-y-8">
+
+        <section class="bg-white rounded-3xl p-6 shadow-sm border border-rose-100 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-rose-500"></i> あなたの体重・目標を設定する
+                </h3>
+                <span class="text-[11px] text-gray-400">入力した数値はブラウザに自動保存されます</span>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-100">
+                    <label class="block text-xs font-bold text-gray-700 mb-2">
+                        <i class="fa-solid fa-flag text-rose-500 mr-1"></i> スタート時の体重 (kg)
+                    </label>
+                    <input type="number" id="input-start-weight" step="0.1" value="62.0" oninput="saveUserSettings()" class="w-full text-xs bg-white border border-rose-200 rounded-xl p-2.5 font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-400">
+                </div>
+
+                <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-100">
+                    <label class="block text-xs font-bold text-gray-700 mb-2">
+                        <i class="fa-solid fa-weight-scale text-rose-500 mr-1"></i> 現在の体重 (kg)
+                    </label>
+                    <input type="number" id="input-current-weight" step="0.1" value="62.0" oninput="saveUserSettings()" class="w-full text-xs bg-white border border-rose-200 rounded-xl p-2.5 font-bold text-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-400">
+                </div>
+
+                <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-100">
+                    <label class="block text-xs font-bold text-gray-700 mb-2">
+                        <i class="fa-solid fa-bullseye text-rose-500 mr-1"></i> 目標の体重 (kg)
+                    </label>
+                    <input type="number" id="input-target-weight" step="0.1" value="50.0" oninput="saveUserSettings()" class="w-full text-xs bg-white border border-rose-200 rounded-xl p-2.5 font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-400">
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-xs font-bold tracking-wider text-gray-400 uppercase mb-3 px-1"><i class="fa-solid fa-calendar-days text-rose-500 mr-1"></i> 現在の生理周期を選ぶ</h2>
+            <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                <button onclick="changeCyclePhase('post-period')" id="tab-post-period" class="phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-rose-600 text-white shadow-md transition shrink-0">
+                    🌱 生理後 (卵胞期)
+                </button>
+                <button onclick="changeCyclePhase('ovulation')" id="tab-ovulation" class="phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-white text-gray-600 hover:bg-rose-50 border border-gray-100 transition shrink-0">
+                    🌸 排卵期
+                </button>
+                <button onclick="changeCyclePhase('pre-period')" id="tab-pre-period" class="phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-white text-gray-600 hover:bg-rose-50 border border-gray-100 transition shrink-0">
+                    🌙 生理前 (黄体期)
+                </button>
+                <button onclick="changeCyclePhase('period')" id="tab-period" class="phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-white text-gray-600 hover:bg-rose-50 border border-gray-100 transition shrink-0">
+                    🍵 生理中 (月経期)
+                </button>
+            </div>
+        </section>
+
+        <section id="phase-banner" class="bg-gradient-to-r from-rose-400 to-pink-400 rounded-3xl p-6 text-white shadow-lg transition-all duration-500">
+            <div class="flex items-start justify-between">
+                <div>
+                    <span id="banner-tag" class="bg-white/20 backdrop-blur-md text-xs font-bold px-3 py-1 rounded-full mb-3 inline-block">黄金期・代謝UP</span>
+                    <h3 id="banner-title" class="text-xl md:text-2xl font-extrabold mb-2">✨ 代謝が最高の黄金期！しっかり食べて燃やす</h3>
+                    <p id="banner-desc" class="text-xs md:text-sm text-white/90 leading-relaxed max-w-2xl">
+                        エストロゲンの分泌が増え、心身ともに絶好調で脂肪が最も燃えやすい時期です。良質なタンパク質を毎食しっかり摂り、筋肉量を維持しながらスルスル落としましょう！
+                    </p>
+                </div>
+                <div class="hidden sm:flex w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md items-center justify-center shrink-0">
+                    <i id="banner-icon" class="fa-solid fa-seedling text-2xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white/20 flex flex-wrap gap-4 text-xs font-medium">
+                <span id="banner-calories"><i class="fa-solid fa-fire mr-1"></i>目標目安: 約 1,350 kcal</span>
+                <span id="banner-tcm-advice"><i class="fa-solid fa-spa mr-1"></i>東洋医学体質ケア連動中</span>
+            </div>
+        </section>
+
+        <section class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-6 border border-amber-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm shadow">
+                        <i class="fa-solid fa-leaf"></i>
+                    </div>
+                    <h3 id="tcm-box-title" class="font-bold text-sm text-amber-900">東洋医学・体質別サポート（現在のタイプ: 水太り・むくみタイプ）</h3>
+                </div>
+                <button onclick="openTcmModal()" class="text-xs bg-white text-amber-800 font-bold px-3 py-1.5 rounded-xl border border-amber-300 hover:bg-amber-100 transition shadow-sm">
+                    体質を変更する
+                </button>
+            </div>
+            <p id="tcm-box-desc" class="text-xs text-amber-800/90 leading-relaxed mb-4">
+                水分代謝が滞りやすく、夕方になると脚や顔がむくみやすいタイプです。この時期は「利水作用（余分な水分を排出する食材）」を意識して巡りの良い身体をつくりましょう。
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="tcm-recommendations">
+                <!-- 動的挿入 -->
+            </div>
+        </section>
+
+        <section class="bg-white rounded-3xl p-6 shadow-sm border border-rose-100">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="font-bold text-base text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-basket-shopping text-rose-500"></i> この時期に買っておくべき食材リスト（体質カスタム対応）
+                    </h3>
+                    <p class="text-xs text-gray-500 mt-0.5">ホルモンバランス ＋ 東洋医学の知恵を取り入れたまとめ買いリストです</p>
+                </div>
+                <button onclick="showAlertModal('まとめ買いのコツ', 'スーパーに行く前にこのリストを確認！体質に合った食材を取り入れることで、デスクワーク中のむくみや冷えを根本からケアできます。')" class="text-xs bg-rose-50 text-rose-600 font-bold px-3 py-1.5 rounded-xl hover:bg-rose-100 transition">
+                    <i class="fa-solid fa-circle-info"></i> アドバイス
+                </button>
+            </div>
+            <div id="shopping-categories-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- JavaScriptにより動的挿入 -->
+            </div>
+        </section>
+
+        <section id="content-meals" class="bg-white rounded-3xl p-6 shadow-sm border border-rose-100">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-2">
+                <div>
+                    <h3 class="font-bold text-base text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-utensils text-rose-500"></i> オススメ朝昼晩の献立プラン
+                    </h3>
+                    <p class="text-xs text-gray-500 mt-0.5">デスクワークでも太りにくい、しっかり満足できる献立バリエーション</p>
+                </div>
+            </div>
+
+            <!-- メニューバリエーション切り替えタブがJSでここに挿入されます -->
+
+            <div id="daily-meal-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- JavaScriptにより動的挿入 -->
+            </div>
+
+            <!-- 満腹＆代謝アップTips -->
+            <div class="mt-6 bg-gradient-to-r from-rose-50 to-orange-50 rounded-2xl p-4 border border-rose-100">
+                <h4 class="font-bold text-xs text-rose-800 mb-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-lightbulb text-amber-500"></i> この時期のデスクワーク＆食事の極意
+                </h4>
+                <ul id="meal-tips-list" class="text-xs text-gray-600 space-y-1.5 pl-4 list-disc">
+                    <!-- JavaScriptにより動的挿入 -->
+                </ul>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-3xl p-6 shadow-sm border border-rose-100">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="font-bold text-base text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-route text-rose-500"></i> <span id="roadmap-title-start">62.0kg</span> ➔ <span id="roadmap-title-target">50.0kg</span> 階段式ロードマップ
+                    </h3>
+                    <p class="text-xs text-gray-500 mt-0.5">焦らず生理周期の波に乗せて、リバウンドなくスルスル落とす</p>
+                </div>
+                <span id="roadmap-diff-badge" class="text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200">残り -12.0 kg</span>
+            </div>
+            
+            <div class="space-y-3">
+                <div>
+                    <div class="flex justify-between text-xs font-bold mb-1">
+                        <span class="text-gray-700">現在の位置: <span id="current-weight-label" class="text-rose-600">62.0 kg</span></span>
+                        <span class="text-gray-400">目標: <span id="target-weight-label">50.0 kg</span></span>
+                    </div>
+                    <div class="w-full bg-gray-100 h-3 rounded-full overflow-hidden p-0.5">
+                        <div id="roadmap-progress-bar" class="bg-gradient-to-r from-rose-400 to-pink-500 h-full rounded-full transition-all duration-1000" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div id="step-box-1" class="bg-rose-50/60 p-3 rounded-2xl border border-rose-100 text-center transition">
+                        <span class="text-[10px] text-gray-400 block font-bold">STEP 1</span>
+                        <span id="step-1-text" class="text-xs font-bold text-gray-800">62.0kg ➔ 58.0kg</span>
+                        <span class="text-[10px] text-rose-600 block mt-0.5">むくみ解消＆代謝アップ</span>
+                    </div>
+                    <div id="step-box-2" class="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center transition">
+                        <span class="text-[10px] text-gray-400 block font-bold">STEP 2</span>
+                        <span id="step-2-text" class="text-xs font-bold text-gray-800">58.0kg ➔ 54.0kg</span>
+                        <span class="text-[10px] text-gray-500 block mt-0.5">黄金期の高タンパク燃焼</span>
+                    </div>
+                    <div id="step-box-3" class="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center transition">
+                        <span class="text-[10px] text-gray-400 block font-bold">STEP 3</span>
+                        <span id="step-3-text" class="text-xs font-bold text-gray-800">54.0kg ➔ 50.0kg</span>
+                        <span class="text-[10px] text-gray-500 block mt-0.5">理想の美ボディ定着</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="tcm-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-stethoscope"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800 text-base">東洋医学・体質セルフチェック</h3>
+                </div>
+                <button onclick="closeTcmModal()" class="text-gray-400 hover:text-gray-600 font-bold text-lg px-2">×</button>
+            </div>
+            <p class="text-xs text-gray-500 mb-4">今の自分に最も当てはまる項目を選んでください。体質に合わせた食事＆ケアの提案が変化します。</p>
+
+            <div class="space-y-3 mb-6" id="tcm-options-container">
+                <label onclick="selectConstitution('water')" id="card-water" class="tcm-option-card block p-4 rounded-2xl border-2 border-amber-400 bg-amber-50/50 cursor-pointer transition">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-bold text-xs text-amber-900"><i class="fa-solid fa-droplet text-blue-500 mr-1"></i> 水太り・むくみタイプ（痰湿 / たんしつ）</span>
+                        <span id="badge-water" class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">選択中</span>
+                    </div>
+                    <p class="text-[11px] text-gray-600">夕方になると足がパンパンになる、ぽっちゃりしていて筋肉が柔らかい、雨の日に体が重だるい。</p>
+                </label>
+
+                <label onclick="selectConstitution('stress')" id="card-stress" class="tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-bold text-xs text-gray-800"><i class="fa-solid fa-wind text-teal-500 mr-1"></i> ストレス太りタイプ（気滞 / きたい）</span>
+                        <span id="badge-stress" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold hidden">選択中</span>
+                    </div>
+                    <p class="text-[11px] text-gray-600">イライラするとドカ食いしたくなる、お腹や脇腹が張りやすい、生理前に胸や張りが強い。</p>
+                </label>
+
+                <label onclick="selectConstitution('cold')" id="card-cold" class="tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-bold text-xs text-gray-800"><i class="fa-solid fa-fire text-orange-500 mr-1"></i> 冷え・ぽっちゃりタイプ（陽虚 / ようきょ）</span>
+                        <span id="badge-cold" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold hidden">選択中</span>
+                    </div>
+                    <p class="text-[11px] text-gray-600">手足がいつも冷たい、下半身太りが気になる、代謝が悪く痩せにくい、トイレが近いまたはむくみやすい。</p>
+                </label>
+
+                <label onclick="selectConstitution('blood')" id="card-blood" class="tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-bold text-xs text-gray-800"><i class="fa-solid fa-heart-pulse text-rose-500 mr-1"></i> 血流滞り・どんよりタイプ（瘀血 / おけつ）</span>
+                        <span id="badge-blood" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold hidden">選択中</span>
+                    </div>
+                    <p class="text-[11px] text-gray-600">生理痛が重い、経血に塊が混じる、目の下にクマができやすい、肩こりや頭痛持ち。</p>
+                </label>
+            </div>
+
+            <button onclick="closeTcmModal()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-2xl shadow-lg text-xs transition">
+                この体質でプランを更新する
+            </button>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl transform transition-all">
+            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mb-4 text-xl">
+                <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+            <h4 id="modal-title" class="font-bold text-gray-800 text-base mb-2">タイトル</h4>
+            <p id="modal-desc" class="text-xs text-gray-600 leading-relaxed mb-6">詳細説明文</p>
+            <button onclick="closeModal()" class="w-full bg-rose-600 text-white font-bold py-3 rounded-2xl shadow-lg shadow-rose-200 text-xs hover:bg-rose-700 transition">
+                閉じる
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const phaseData = {
+            'post-period': {
+                name: '生理後（卵胞期・最大の痩せ期）',
+                bannerTitle: '✨ 代謝が最高の黄金期！しっかり食べて燃やす',
+                bannerDesc: 'エストロゲンの分泌が増え、心身ともに絶好調で脂肪が最も燃えやすい時期です。良質なタンパク質を毎食しっかり摂り、筋肉量を維持しながらスルスル落としましょう！',
+                icon: 'fa-seedling',
+                bgColor: 'from-rose-400 to-pink-400',
+                calories: '約 1,350 kcal',
+                shoppingCategories: [
+                    {
+                        category: '高タンパク食材（筋肉維持・代謝UP）',
+                        items: ['鶏むね肉（またはささみ）', '豚ヒレ肉 または 豚もも肉', '白身魚（タラ・鮭）', '卵（2パック）', '納豆（3パック入り×2）']
+                    },
+                    {
+                        category: 'かさ増し＆代謝サポート野菜',
+                        items: ['キャベツ（1玉）', 'もやし（2〜3袋）', 'キノコ類（エリンギ・しめじ）', 'ほうれん草 または 小松菜', 'ブロッコリー']
+                    },
+                    {
+                        category: '炭水化物・その他',
+                        items: ['玄米 または 雑穀米（主食用）', '豆腐（3連パック×2）', '生姜（チューブでも可）', 'レモン（またはレモン果汁）']
+                    }
+                ],
+                meals: [
+                    {
+                        category: 'バリエーション 1（定番王道・和食）',
+                        breakfast: { title: '玄米おにぎり＆納豆卵', desc: '玄米おにぎり（小さめ）、納豆（卵入り）、わかめと豆腐の味噌汁', calorie: '約 360 kcal', tag: '朝のエネルギー源' },
+                        lunch: { title: '鶏むね肉とキャベツのレモン蒸し', desc: '鶏むね肉とキャベツのレモン蒸し弁当、ゆで卵、ルイボスティー', calorie: '約 450 kcal', tag: '高タンパク質' },
+                        dinner: { title: '鮭とキノコのホイル焼き', desc: '鮭とたっぷりキノコ・ブロッコリーのホイル焼き、もやしスープ', calorie: '約 420 kcal', tag: '低糖質＆満足感' }
+                    },
+                    {
+                        category: 'バリエーション 2（洋風・満足カフェ風）',
+                        breakfast: { title: '全粒粉トースト＆スクランブルエッグ', desc: '全粒粉パン（1枚）、スクランブルエッグ（卵2個）、ミニトマト', calorie: '約 370 kcal', tag: '洋風朝食' },
+                        lunch: { title: '豚ヒレ肉のポークソテー定食', desc: '豚ヒレ肉のソテー（おろしポン酢）、雑穀米（小）、きのことワカメのスープ', calorie: '約 460 kcal', tag: 'ジューシー赤身肉' },
+                        dinner: { title: '白身魚とブロッコリーのトマト煮', desc: 'タラとブロッコリーのトマト煮込み、豆腐の和風サラダ', calorie: '約 390 kcal', tag: 'ヘルシーディナー' }
+                    }
+                ],
+                tips: [
+                    '「食べないダイエット」は厳禁！代謝が良いこの時期こそ、主食（玄米や雑穀米）を適量しっかり食べて消費カロリーを高めましょう。',
+                    '鶏むね肉や赤身魚、大豆製品などの高タンパク食材を毎食のベースに。',
+                    'デスクワーク中でも姿勢を正し、肩甲骨を大きく動かすストレッチで脂肪燃焼効果をアップ。'
+                ]
+            },
+            'ovulation': {
+                name: '排卵期（安定期）',
+                bannerTitle: '🌸 心穏やかな安定期・代謝キープ',
+                bannerDesc: '代謝はまだ高めですが、ホルモンのバランスが変わり始める時期。水分代謝を意識しつつ、バランスの良い食事を心がけましょう。',
+                icon: 'fa-spa',
+                bgColor: 'from-teal-400 to-emerald-400',
+                calories: '約 1,300 kcal',
+                shoppingCategories: [
+                    {
+                        category: 'タンパク質＆大豆パワー',
+                        items: ['鶏むね肉（皮なし）', '赤身の牛肉 または 豚ヒレ肉', '木綿豆腐（2丁）', '厚揚げ（油抜き用）', '豆乳（無調整）']
+                    },
+                    {
+                        category: '抗酸化・ビタミン野菜',
+                        items: ['トマト（またはカットトマト缶）', 'パプリカ（赤・黄）', 'アボカド（1〜2個）', '根菜類（にんじん・れんこん）', '長ねぎ']
+                    },
+                    {
+                        category: 'スープ・おやつストック',
+                        items: ['わかめ・海藻ミックス', 'オートミール', 'ハイカカオチョコレート（カカオ70%以上）', 'ルイボスティー茶葉']
+                    }
+                ],
+                meals: [
+                    {
+                        category: 'バリエーション 1（腸活・豆乳オートミール）',
+                        breakfast: { title: '豆乳オートミール粥', desc: '豆乳オートミール（きな粉・シナモンプラス）、ゆで卵', calorie: '約 340 kcal', tag: '腸活＆温活' },
+                        lunch: { title: '根菜と鶏肉のトマト煮込み', desc: '鶏肉と根菜のトマト煮込みスープ、全粒粉パン（1枚）', calorie: '約 430 kcal', tag: '抗酸化作用' },
+                        dinner: { title: 'アボカドと豆腐の和風サラダ', desc: '豚ヒレ肉のソテー（おろしポン酢）、アボカド豆腐サラダ、わかめスープ', calorie: '約 400 kcal', tag: '良質な脂質' }
+                    },
+                    {
+                        category: 'バリエーション 2（さっぱり和食・パワーチャージ）',
+                        breakfast: { title: '焼き鮭と和風スープ', desc: '焼き鮭（小さめ）、雑穀米（小）、豆腐とネギの味噌汁', calorie: '約 350 kcal', tag: '和朝食' },
+                        lunch: { title: '赤身牛のローストビーフ風サラダ弁当', desc: '牛もも肉の薄切りサラダ仕立て、玄米おにぎり', calorie: '約 440 kcal', tag: '鉄分＆タンパク質' },
+                        dinner: { title: '厚揚げとたっぷり野菜の旨煮', desc: '厚揚げと小松菜・人参の旨煮、蒸し鶏のほぐし和え', calorie: '約 380 kcal', tag: '大豆イソフラボン' }
+                    }
+                ],
+                tips: [
+                    '水分をしっかり摂り、老廃物の排出をスムーズに。',
+                    '根菜類やトマトなどの抗酸化野菜を取り入れると肌も体調も安定します。',
+                    'デスクワークの間も水分補給をこまめに行い、むくみを予防しましょう。'
+                ]
+            },
+            'pre-period': {
+                name: '生理前（黄体期・溜め込み期）',
+                bannerTitle: '🌙 無理な制限はNG！むくみ対策＆満腹ごはん',
+                bannerDesc: '水分や栄養を溜め込みやすく、食欲が乱れやすいデリケートな時期。我慢せず、カロリーを抑えつつ「かさ（ボリューム）」が高い食材で心を満たしましょう！',
+                icon: 'fa-moon',
+                bgColor: 'from-purple-400 to-indigo-400',
+                calories: '約 1,280 kcal',
+                shoppingCategories: [
+                    {
+                        category: 'むくみ撃退（カリウム豊富）',
+                        items: ['ほうれん草 または 小松菜', 'アボカド', 'きゅうり', 'サツマイモ（少量：おやつ・主食代わり）', 'めかぶ または もずくパック']
+                    },
+                    {
+                        category: '爆食い防止のかさ増し食材',
+                        items: ['白菜（1/4カット）', 'キャベツ（1玉）', 'もやし（3袋）', 'エノキ・しめじ（各2パック）', '豆腐（絹ごし・木綿）']
+                    },
+                    {
+                        category: 'イライラ鎮静・満足おやつ',
+                        items: ['カカオ70%以上のチョコレート', '焼き芋（冷凍または市販のもの）', '昆布茶 または 生姜湯', '無塩ナッツ（少量）']
+                    }
+                ],
+                meals: [
+                    {
+                        category: 'バリエーション 1（ほっこり温活・満足鍋）',
+                        breakfast: { title: '温まるさつまいも朝食', desc: 'ふかし芋（約70g）、ゆで卵、わかめの生姜スープ', calorie: '約 310 kcal', tag: '低GI＆満足感' },
+                        lunch: { title: '白菜と豚肉のミルフィーユスープ', desc: '白菜と豚肉の旨塩ミルフィーユスープ、玄米おにぎり（小）', calorie: '約 410 kcal', tag: '塩分控えめ' },
+                        dinner: { title: '爆食い欲を抑える満腹キノコ鍋', desc: 'キャベツ・キノコ・豆腐・鶏肉のたっぷりポン酢鍋（炭水化物なし）', calorie: '約 380 kcal', tag: 'カロリーオフ＆お腹一杯' }
+                    },
+                    {
+                        category: 'バリエーション 2（とろ〜り満足・ヘルシー洋風）',
+                        breakfast: { title: 'オートミール豆乳リゾット', desc: 'オートミールとキノコの豆乳チーズ風リゾット（ピザ用チーズ少々）', calorie: '約 330 kcal', tag: '心満たされる味' },
+                        lunch: { title: '大根と鶏むね肉のポトフ風', desc: '大根・人参・鶏むね肉のゴロゴロコンソメスープ、全粒粉パン', calorie: '約 400 kcal', tag: '根菜でデトックス' },
+                        dinner: { title: 'もやしと豆腐の担々風ピリ辛スープ', desc: 'ひき肉少なめ＋すりゴマと豆乳のピリ辛担々スープ（キャベツかさ増し）', calorie: '約 360 kcal', tag: 'ピリ辛で満足感' }
+                    }
+                ],
+                tips: [
+                    '塩分を控えめにし、カリウム（ほうれん草、アボカド、海藻類）を摂ってむくみを徹底ブロック。',
+                    '甘いものが欲しくなったときは、カカオ70%以上的チョコレートや、焼き芋で代用。',
+                    '「いっぱい食べた感」を出すために、白菜、キャベツ、キノコをスープや鍋でクタクタにして食べましょう。'
+                ]
+            },
+            'period': {
+                name: '生理中（月経期・労り期）',
+                bannerTitle: '🍵 心身を最優先に・鉄分＆温活チャージ',
+                bannerDesc: '出血により鉄分やエネルギーが失われる時期です。無理な運動や食事制限はせず、温かくて栄養のある食事で自分を優しく労りましょう。',
+                icon: 'fa-mug-hot',
+                bgColor: 'from-amber-400 to-orange-400',
+                calories: '約 1,250 kcal',
+                shoppingCategories: [
+                    {
+                        category: '鉄分・貧血予防食材',
+                        items: ['赤身牛肉 または 豚レバー（好きな方）', 'カツオ または マグロの切り身', '小松菜（2袋）', '卵（2パック）', 'ひじき（乾燥）']
+                    },
+                    {
+                        category: '内臓を冷やさない温活食材',
+                        items: ['生姜（多め）', 'ネギ（白ねぎ・万能ねぎ）', '根菜類（大根・ごぼう）', '長芋', 'みそ（発酵食品）']
+                    },
+                    {
+                        category: '労り・リラックスアイテム',
+                        items: ['甘酒（米麹のノンアルコールタイプ）', 'ココアパウダー（純ココア）', 'ハーブティー（カモミール等）', 'お餅 または うどん（消化に良いもの）']
+                    }
+                ],
+                meals: [
+                    {
+                        category: 'バリエーション 1（胃腸に優しい和風お粥）',
+                        breakfast: { title: '卵と小松菜の優しい雑炊', desc: '卵と小松菜の雑炊、米麹甘酒（少量）', calorie: '約 300 kcal', tag: '消化吸収抜群' },
+                        lunch: { title: 'マグロの漬け丼ランチ', desc: 'マグロの漬け丼（ご飯は少なめ）、わかめと豆腐の生姜スープ', calorie: '約 400 kcal', tag: '鉄分補給' },
+                        dinner: { title: '赤身肉と根菜の味噌煮込み', desc: '赤身肉と根菜の味噌煮込みスープ、蒸しブロッコリーと鶏肉', calorie: '約 390 kcal', tag: '体を芯から温める' }
+                    },
+                    {
+                        category: 'バリエーション 2（とろろ＆ほっこりうどん）',
+                        breakfast: { title: '長芋のとろろ温かスープ', desc: 'すりおろし長芋とワカメの生姜スープ、小さめおにぎり', calorie: '約 310 kcal', tag: '胃に優しい' },
+                        lunch: { title: 'カツオのたたき香味ポン酢定食', desc: 'カツオのたたき（たっぷりの生姜・ネギ薬味）、雑穀米（小）', calorie: '約 390 kcal', tag: '鉄分＆ビタミンB' },
+                        dinner: { title: '鶏と卵のふわふわ卵とじうどん', desc: '消化の良いうどん（半玉）に鶏ささみと卵をたっぷり入れた温かいうどん', calorie: '約 370 kcal', tag: '心も温まる夜ご飯' }
+                    }
+                ],
+                tips: [
+                    '赤身肉、カツオ、マグロ、小松菜、卵などから鉄分を積極的に補給。',
+                    '冷たい飲み物や生野菜は控えめにし、スープや温野菜で内臓を冷やさない工夫を。',
+                    'デスクワーク中は無理をせず、ストレッチや深呼吸でリラックスを最優先に。'
+                ]
+            }
+        };
+
+        const tcmData = {
+            'water': {
+                name: '水太り・むくみタイプ（痰湿 / たんしつ）',
+                desc: '水分代謝が滞りやすく、夕方になると脚や顔がむくみやすいタイプです。この時期は「利水作用（余分な水分を排出する食材）」を意識して、巡りの良い身体をつくりましょう。',
+                recommendations: [
+                    { title: 'おすすめ食材', text: 'きゅうり、冬瓜、海藻類（わかめ・昆布）、小豆、ハトムギ茶' },
+                    { title: 'デスクワークケア', text: '1時間に1回ふくらはぎをマッサージし、水分は常温や温かいお茶でこまめに摂る。' }
+                ]
+            },
+            'stress': {
+                name: 'ストレス太りタイプ（気滞 / きたい）',
+                desc: '気の巡りが悪く、イライラやプレッシャーでドカ食いしたくなったりお腹が張りやすいタイプです。香りの良い食材で気を巡らせましょう。',
+                recommendations: [
+                    { title: 'おすすめ食材', text: 'シソ、ミント、春菊、柑橘類（レモン・オレンジ）、ジャスミン茶' },
+                    { title: 'デスクワークケア', text: '仕事の合間に深呼吸を5回行い、香りの良いアロマやハーブティーでリフレッシュ。' }
+                ]
+            },
+            'cold': {
+                name: '冷え・ぽっちゃりタイプ（陽虚 / ようきょ）',
+                desc: 'エネルギー不足で体が冷えやすく、代謝が落ちて脂肪が溜まりやすいタイプです。温活食材で内臓からしっかり温めましょう。',
+                recommendations: [
+                    { title: 'おすすめ食材', text: '生姜、シナモン、ニラ、羊肉、根菜類（ごぼう・人参）、鶏肉' },
+                    { title: 'デスクワークケア', text: 'ひざ掛けやカイロを活用し、冷たい飲み物は避けて白湯や生姜湯を選ぶ。' }
+                ]
+            },
+            'blood': {
+                name: '血流滞り・どんよりタイプ（瘀血 / おけつ）',
+                desc: '血流が悪く、生理痛が重かったり肩こり・目の下のクマが出やすいタイプです。血の巡りを良くする食材で代謝をサポート。',
+                recommendations: [
+                    { title: 'おすすめ食材', text: '黒豆、青魚（サバ・アジ）、玉ねぎ、黒酢、サフラン' },
+                    { title: 'デスクワークケア', text: '同じ姿勢を続けず、肩甲骨を回すストレッチや軽いウォーキングを取り入れる。' }
+                ]
+            }
+        };
+
+        let appState = {
+            currentPhase: 'post-period',
+            constitution: 'water',
+            startWeight: 62.0,
+            currentWeight: 62.0,
+            targetWeight: 50.0
+        };
+
+        let currentMealVariation = 0;
+
+        function loadUserSettings() {
+            const saved = localStorage.getItem('luna_plate_weights');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    appState.startWeight = data.startWeight ?? 62.0;
+                    appState.currentWeight = data.currentWeight ?? 62.0;
+                    appState.targetWeight = data.targetWeight ?? 50.0;
+                } catch(e) {}
+            }
+
+            const savedTcm = localStorage.getItem('luna_plate_constitution');
+            if (savedTcm && tcmData[savedTcm]) {
+                appState.constitution = savedTcm;
+            }
+
+            document.getElementById('input-start-weight').value = appState.startWeight;
+            document.getElementById('input-current-weight').value = appState.currentWeight;
+            document.getElementById('input-target-weight').value = appState.targetWeight;
+
+            updateRoadmapDisplay();
+            renderTcmInfo();
+        }
+
+        function saveUserSettings() {
+            const sw = parseFloat(document.getElementById('input-start-weight').value);
+            const cw = parseFloat(document.getElementById('input-current-weight').value);
+            const tw = parseFloat(document.getElementById('input-target-weight').value);
+
+            if (!isNaN(sw)) appState.startWeight = sw;
+            if (!isNaN(cw)) appState.currentWeight = cw;
+            if (!isNaN(tw)) appState.targetWeight = tw;
+
+            localStorage.setItem('luna_plate_weights', JSON.stringify({
+                startWeight: appState.startWeight,
+                currentWeight: appState.currentWeight,
+                targetWeight: appState.targetWeight
+            }));
+
+            updateRoadmapDisplay();
+        }
+
+        function updateRoadmapDisplay() {
+            const sw = appState.startWeight;
+            const cw = appState.currentWeight;
+            const tw = appState.targetWeight;
+
+            document.getElementById('roadmap-title-start').textContent = sw.toFixed(1) + 'kg';
+            document.getElementById('roadmap-title-target').textContent = tw.toFixed(1) + 'kg';
+            document.getElementById('current-weight-label').textContent = cw.toFixed(1) + ' kg';
+            document.getElementById('target-weight-label').textContent = tw.toFixed(1) + ' kg';
+            document.getElementById('header-weight-display').textContent = cw.toFixed(1) + 'kg';
+
+            const totalDiff = sw - tw;
+            const lostSoFar = sw - cw;
+            let percent = totalDiff !== 0 ? (lostSoFar / totalDiff) * 100 : 0;
+            if (percent < 0) percent = 0;
+            if (percent > 100) percent = 100;
+
+            document.getElementById('roadmap-progress-bar').style.width = percent + '%';
+            
+            const remaining = cw - tw;
+            document.getElementById('roadmap-diff-badge').textContent = remaining >= 0 ? `残り -${remaining.toFixed(1)} kg` : `目標達成 🎉`;
+
+            const stepSize = totalDiff / 3;
+            const s1End = sw - stepSize;
+            const s2End = sw - (stepSize * 2);
+
+            document.getElementById('step-1-text').textContent = `${sw.toFixed(1)}kg ➔ ${s1End.toFixed(1)}kg`;
+            document.getElementById('step-2-text').textContent = `${s1End.toFixed(1)}kg ➔ ${s2End.toFixed(1)}kg`;
+            document.getElementById('step-3-text').textContent = `${s2End.toFixed(1)}kg ➔ ${tw.toFixed(1)}kg`;
+
+            const b1 = document.getElementById('step-box-1');
+            const b2 = document.getElementById('step-box-2');
+            const b3 = document.getElementById('step-box-3');
+
+            b1.className = "p-3 rounded-2xl border text-center transition " + (cw <= s1End ? "bg-rose-100/70 border-rose-300 text-rose-900 font-bold" : (cw < sw ? "bg-rose-50/60 border-rose-100" : "bg-gray-50 border-gray-100"));
+            b2.className = "p-3 rounded-2xl border text-center transition " + (cw <= s2End ? "bg-rose-100/70 border-rose-300 text-rose-900 font-bold" : (cw <= s1End ? "bg-rose-50/60 border-rose-100" : "bg-gray-50 border-gray-100"));
+            b3.className = "p-3 rounded-2xl border text-center transition " + (cw <= tw ? "bg-rose-100/70 border-rose-300 text-rose-900 font-bold" : (cw <= s2End ? "bg-rose-50/60 border-rose-100" : "bg-gray-50 border-gray-100"));
+        }
+
+        function openTcmModal() {
+            document.getElementById('tcm-modal').classList.remove('hidden');
+        }
+
+        function closeTcmModal() {
+            document.getElementById('tcm-modal').classList.add('hidden');
+        }
+
+        function selectConstitution(type) {
+            appState.constitution = type;
+            localStorage.setItem('luna_plate_constitution', type);
+
+            ['water', 'stress', 'cold', 'blood'].forEach(t => {
+                const card = document.getElementById(`card-${t}`);
+                const badge = document.getElementById(`badge-${t}`);
+                if (t === type) {
+                    card.className = "tcm-option-card block p-4 rounded-2xl border-2 border-amber-400 bg-amber-50/50 cursor-pointer transition";
+                    badge.classList.remove('hidden');
+                    badge.className = "text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold";
+                } else {
+                    card.className = "tcm-option-card block p-4 rounded-2xl border-2 border-gray-200 bg-white cursor-pointer transition";
+                    badge.classList.add('hidden');
+                }
+            });
+
+            renderTcmInfo();
+            renderShoppingList();
+            renderMealPlans();
+        }
+
+        function renderTcmInfo() {
+            const tcm = tcmData[appState.constitution];
+            document.getElementById('tcm-box-title').textContent = `東洋医学・体質別サポート（現在のタイプ: ${tcm.name.split('（')[0]}）`;
+            document.getElementById('tcm-box-desc').textContent = tcm.desc;
+
+            const recContainer = document.getElementById('tcm-recommendations');
+            recContainer.innerHTML = tcm.recommendations.map(r => `
+                <div class="bg-white/70 p-3 rounded-xl border border-amber-100">
+                    <span class="text-[10px] font-bold text-amber-700 block mb-0.5"><i class="fa-solid fa-check mr-1"></i>${r.title}</span>
+                    <span class="text-xs text-gray-700">${r.text}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderShoppingList() {
+            const data = phaseData[appState.currentPhase];
+            const tcm = tcmData[appState.constitution];
+            const container = document.getElementById('shopping-categories-grid');
+            
+            let tcmExtraItem = 'キュウリ または 海藻類（むくみ対策）';
+            if(appState.constitution === 'stress') tcmExtraItem = 'ミント または シソ（気の巡り）';
+            if(appState.constitution === 'cold') tcmExtraItem = '生姜多め または シナモンパウダー';
+            if(appState.constitution === 'blood') tcmExtraItem = '黒豆 または 青魚の切り身';
+
+            container.innerHTML = `
+                <div class="bg-amber-50/70 rounded-2xl p-4 border border-amber-200 flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-xs text-amber-900 mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-leaf text-amber-600"></i> ${tcm.name.split('（')[0]}特選食材
+                        </h4>
+                        <ul class="space-y-1.5 pl-1">
+                            <li class="text-xs text-gray-700 flex items-start gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                                <span>${tcmExtraItem}</span>
+                            </li>
+                            <li class="text-xs text-gray-700 flex items-start gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                                <span>温かいルイボスティーまたはハーブティー</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            ` + data.shoppingCategories.map(cat => `
+                <div class="bg-rose-50/50 rounded-2xl p-4 border border-rose-100 flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-xs text-rose-800 mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-check text-rose-500"></i> ${cat.category}
+                        </h4>
+                        <ul class="space-y-1.5 pl-1">
+                            ${cat.items.map(item => `
+                                <li class="text-xs text-gray-700 flex items-start gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0"></span>
+                                    <span>${item}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderMealPlans() {
+            const data = phaseData[appState.currentPhase];
+            const grid = document.getElementById('daily-meal-grid');
+            
+            const variations = data.meals;
+            const currentVar = variations[currentMealVariation] || variations[0];
+
+            let varHeader = document.getElementById('meal-variation-header');
+            if (!varHeader) {
+                varHeader = document.createElement('div');
+                varHeader.id = 'meal-variation-header';
+                varHeader.className = 'flex items-center gap-2 mb-4 overflow-x-auto pb-1';
+                grid.parentNode.insertBefore(varHeader, grid);
+            }
+
+            varHeader.innerHTML = `
+                <span class="text-xs font-bold text-gray-500 shrink-0"><i class="fa-solid fa-shuffle text-rose-500"></i> メニュー選択:</span>
+                ${variations.map((v, idx) => `
+                    <button onclick="switchMealVariation(${idx})" class="text-xs px-3.5 py-1.5 rounded-xl font-bold transition shrink-0 ${currentMealVariation === idx ? 'bg-rose-600 text-white shadow' : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'}">
+                        ${v.category}
+                    </button>
+                `).join('')}
+            `;
+
+            const mealList = [
+                { time: '朝食 (Breakfast)', data: currentVar.breakfast, icon: 'fa-sun', color: 'text-amber-500' },
+                { time: '昼食 (Lunch)', data: currentVar.lunch, icon: 'fa-cloud-sun', color: 'text-orange-500' },
+                { time: '夕食 (Dinner)', data: currentVar.dinner, icon: 'fa-moon', color: 'text-indigo-500' }
+            ];
+
+            grid.innerHTML = mealList.map(m => `
+                <div class="bg-rose-50/40 rounded-2xl p-5 border border-rose-100 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[10px] bg-rose-200 text-rose-800 font-bold px-2.5 py-0.5 rounded-full">${m.data.tag}</span>
+                            <span class="text-[11px] text-gray-400 font-medium">${m.data.calorie}</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800 text-sm mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid ${m.icon} ${m.color}"></i> ${m.data.title}
+                        </h4>
+                        <p class="text-xs text-gray-600 leading-relaxed mt-2">${m.data.desc}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-rose-100 flex justify-between items-center text-[10px] text-gray-400">
+                        <span>${m.time}</span>
+                        <button onclick="showAlertModal('${m.data.title}', 'このメニューは、デスクワークの活動量と${phaseData[appState.currentPhase].name.split('（')[0]}のホルモンバランス、さらに東洋医学の体質ケアを組み合わせて最適化しています✨')" class="text-rose-600 font-bold hover:underline">ポイントを見る</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const tipsContainer = document.getElementById('meal-tips-list');
+            const tcm = tcmData[appState.constitution];
+            tipsContainer.innerHTML = data.tips.map(tip => `<li>${tip}</li>`).join('') + `<li><strong class="text-amber-800">[東洋医学(${tcm.name.split('（')[0]})のケア]:</strong> ${tcm.recommendations[1].text}</li>`;
+        }
+
+        function switchMealVariation(idx) {
+            currentMealVariation = idx;
+            renderMealPlans();
+        }
+
+        function changeCyclePhase(phaseKey) {
+            appState.currentPhase = phaseKey;
+            currentMealVariation = 0;
+            const data = phaseData[phaseKey];
+
+            const banner = document.getElementById('phase-banner');
+            banner.className = `bg-gradient-to-r ${data.bgColor} rounded-3xl p-6 text-white shadow-lg mb-8 transition-all duration-500`;
+            
+            document.getElementById('banner-title').textContent = data.bannerTitle;
+            document.getElementById('banner-desc').textContent = data.bannerDesc;
+            document.getElementById('banner-calories').innerHTML = `<i class="fa-solid fa-fire mr-1"></i>目標目安: ${data.calories}`;
+            document.getElementById('banner-icon').className = `fa-solid ${data.icon} text-2xl`;
+
+            document.querySelectorAll('.phase-tab').forEach(tab => {
+                if(tab.id === `tab-${phaseKey}`) {
+                    tab.className = 'phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-rose-600 text-white shadow-md transition shrink-0';
+                } else {
+                    tab.className = 'phase-tab px-4 py-2.5 rounded-2xl font-bold text-sm bg-white text-gray-600 hover:bg-rose-50 border border-gray-100 transition shrink-0';
+                }
+            });
+
+            renderTcmInfo();
+            renderShoppingList();
+            renderMealPlans();
+        }
+
+        function showAlertModal(title, desc) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-desc').textContent = desc;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        window.onload = () => {
+            loadUserSettings();
+            renderTcmInfo();
+            renderShoppingList();
+            renderMealPlans();
+        };
+    </script>
+</body>
+</html>
