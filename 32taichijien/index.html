@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>32式太極剣トレーニングアプリ</title>
+   <script src="https://cdn.tailwindcss.com"></script>
+   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+   <style>
+       body { font-family: 'Noto Sans JP', sans-serif; }
+   </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col text-lg">
+
+   <!-- Header -->
+   <header class="bg-blue-900 text-white shadow-md">
+       <div class="max-w-4xl mx-auto px-4 py-5 flex justify-between items-center">
+           <h1 class="text-2xl font-bold flex items-center gap-2">
+               <span>⚔️</span> 32式太極剣ナビ
+           </h1>
+           <div class="text-sm bg-blue-800 px-3 py-1.5 rounded-full text-blue-100 font-medium">
+               剣術・全套路対応
+           </div>
+       </div>
+   </header>
+
+   <!-- Navigation Tabs -->
+   <nav class="bg-white border-b border-slate-300 shadow-sm sticky top-0 z-10">
+       <div class="max-w-4xl mx-auto flex overflow-x-auto py-1">
+           <button onclick="switchTab('intro')" id="tab-intro" class="py-4 px-5 text-center font-bold text-base text-blue-900 border-b-4 border-blue-900 whitespace-nowrap transition">
+               準備・基礎
+           </button>
+           <button onclick="switchTab('part1')" id="tab-part1" class="py-4 px-5 text-center font-bold text-base text-slate-600 hover:text-blue-900 whitespace-nowrap transition">
+               第1〜8式 (起勢〜)
+           </button>
+           <button onclick="switchTab('part2')" id="tab-part2" class="py-4 px-5 text-center font-bold text-base text-slate-600 hover:text-blue-900 whitespace-nowrap transition">
+               第9〜16式
+           </button>
+           <button onclick="switchTab('part3')" id="tab-part3" class="py-4 px-5 text-center font-bold text-base text-slate-600 hover:text-blue-900 whitespace-nowrap transition">
+               第17〜24式
+           </button>
+           <button onclick="switchTab('part4')" id="tab-part4" class="py-4 px-5 text-center font-bold text-base text-slate-600 hover:text-blue-900 whitespace-nowrap transition">
+               第25〜32式・収勢
+           </button>
+       </div>
+   </nav>
+
+   <!-- Main Content -->
+   <main class="max-w-4xl mx-auto p-4 md:p-6 flex-grow w-full mb-16 space-y-6">
+
+       <!-- Tab 0: Intro & Basics -->
+       <section id="section-intro" class="space-y-6">
+           <div class="bg-white p-6 md:p-8 rounded-2xl shadow-md border border-slate-200">
+               <h2 class="text-xl font-bold text-blue-950 mb-4 flex items-center gap-2">
+                   <span>⚔️</span> 32式太極剣について
+               </h2>
+               <p class="text-base text-slate-700 leading-relaxed mb-4">
+                   太極剣は、剣の軽快さと太極拳の柔らかな身法を融合させた武術です。身体と剣が一体となり、気血を巡らせて優雅に演舞します。
+               </p>
+               <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                   <h3 class="font-bold text-base text-blue-900 mb-1">💡 剣の基本マナー・注意点</h3>
+                   <p class="text-sm text-slate-700">剣先や剣身の扱いに注意し、手首の柔軟性と全身の連動（腰の回転）を意識して練習しましょう。</p>
+               </div>
+           </div>
+       </section>
+
+       <!-- Part 1: 第1〜8式 -->
+       <section id="section-part1" class="hidden space-y-4">
+           <div class="bg-white p-6 md:p-8 rounded-2xl shadow-md border border-slate-200">
+               <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                   <div>
+                       <span class="bg-blue-100 text-blue-900 text-sm font-bold px-3 py-1 rounded-full">前半・起動</span>
+                       <h2 class="text-xl font-bold text-blue-950 mt-2">📋 第1〜8式</h2>
+                   </div>
+                   <div class="text-sm bg-slate-100 px-4 py-2 rounded-xl text-slate-700 font-bold">
+                       完了: <span id="count-part1" class="text-blue-800 font-extrabold text-lg">0</span> / 9 式 (準備式含む)
+                   </div>
+               </div>
+               <div id="list-part1" class="space-y-4"></div>
+           </div>
+       </section>
+
+       <!-- Part 2: 第9〜16式 -->
+       <section id="section-part2" class="hidden space-y-4">
+           <div class="bg-white p-6 md:p-8 rounded-2xl shadow-md border border-slate-200">
+               <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                   <div>
+                       <span class="bg-blue-100 text-blue-900 text-sm font-bold px-3 py-1 rounded-full">中盤・攻防</span>
+                       <h2 class="text-xl font-bold text-blue-950 mt-2">📋 第9〜16式</h2>
+                   </div>
+                   <div class="text-sm bg-slate-100 px-4 py-2 rounded-xl text-slate-700 font-bold">
+                       完了: <span id="count-part2" class="text-blue-800 font-extrabold text-lg">0</span> / 8 式
+                   </div>
+               </div>
+               <div id="list-part2" class="space-y-4"></div>
+           </div>
+       </section>
+
+       <!-- Part 3: 第17〜24式 -->
+       <section id="section-part3" class="hidden space-y-4">
+           <div class="bg-white p-6 md:p-8 rounded-2xl shadow-md border border-slate-200">
+               <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                   <div>
+                       <span class="bg-blue-100 text-blue-900 text-sm font-bold px-3 py-1 rounded-full">中盤・転換</span>
+                       <h2 class="text-xl font-bold text-blue-950 mt-2">📋 第17〜24式</h2>
+                   </div>
+                   <div class="text-sm bg-slate-100 px-4 py-2 rounded-xl text-slate-700 font-bold">
+                       完了: <span id="count-part3" class="text-blue-800 font-extrabold text-lg">0</span> / 8 式
+                   </div>
+               </div>
+               <div id="list-part3" class="space-y-4"></div>
+           </div>
+       </section>
+
+       <!-- Part 4: 第25〜32式・収勢 -->
+       <section id="section-part4" class="hidden space-y-4">
+           <div class="bg-white p-6 md:p-8 rounded-2xl shadow-md border border-slate-200">
+               <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                   <div>
+                       <span class="bg-blue-100 text-blue-900 text-sm font-bold px-3 py-1 rounded-full">終盤・結び</span>
+                       <h2 class="text-xl font-bold text-blue-950 mt-2">🏆 第25〜32式・収勢</h2>
+                   </div>
+                   <div class="text-sm bg-slate-100 px-4 py-2 rounded-xl text-slate-700 font-bold">
+                       完了: <span id="count-part4" class="text-blue-800 font-extrabold text-lg">0</span> / 9 式
+                   </div>
+               </div>
+               <div id="list-part4" class="space-y-4"></div>
+           </div>
+       </section>
+
+   </main>
+
+   <!-- Detail Modal -->
+   <div id="detail-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
+       <div class="bg-white w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl p-6 md:p-8 shadow-2xl relative animate-fadeIn">
+           <button onclick="closeModal()" class="absolute top-5 right-5 bg-slate-100 hover:bg-slate-200 text-slate-600 w-10 h-10 rounded-full font-bold text-xl flex items-center justify-center transition">✕</button>
+           <div id="modal-content" class="space-y-5"></div>
+       </div>
+   </div>
+
+   <!-- Image Crop Modal -->
+   <div id="crop-modal" class="fixed inset-0 bg-black/80 hidden z-50 flex flex-col items-center justify-center p-4">
+       <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-4 text-center">
+           <h3 class="text-lg font-bold text-slate-900">📷 写真の拡大・縮小と切り取り</h3>
+           <p class="text-xs text-slate-500">スライダーで大きさを調整し、写真を動かして位置を合わせてください。</p>
+           <div class="relative w-full max-h-[45vh] overflow-hidden bg-black rounded-2xl flex items-center justify-center">
+               <canvas id="crop-canvas" class="cursor-crosshair max-w-full"></canvas>
+           </div>
+           <!-- Zoom Slider -->
+           <div class="flex items-center gap-3 px-2">
+               <span class="text-xs font-bold text-slate-600">小</span>
+               <input type="range" id="zoom-slider" min="0.1" max="3" step="0.05" value="1" class="w-full accent-blue-800 cursor-pointer" oninput="onZoomSlider(this.value)">
+               <span class="text-xs font-bold text-slate-600">大</span>
+           </div>
+           <div class="flex gap-3 pt-2">
+               <button onclick="cancelCrop()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold">キャンセル</button>
+               <button onclick="confirmCrop()" class="flex-1 bg-blue-900 hover:bg-blue-950 text-white py-3 rounded-xl font-bold shadow">切り取って保存</button>
+           </div>
+       </div>
+   </div>
+
+   <!-- Fullscreen Image Zoom Modal -->
+   <div id="zoom-modal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-4" onclick="closeZoom()">
+       <button onclick="closeZoom()" class="absolute top-5 right-5 bg-white/20 hover:bg-white/40 text-white w-12 h-12 rounded-full font-bold text-2xl flex items-center justify-center transition">✕</button>
+       <img id="zoomed-img" class="max-w-full max-h-full object-contain rounded-xl shadow-2xl" onclick="event.stopPropagation()">
+   </div>
+
+   <!-- Footer -->
+   <footer class="bg-white border-t border-slate-200 py-6 text-center text-sm text-slate-500 mt-auto">
+       32式太極剣トレーニングアプリ &copy; 2026
+   </footer>
+
+   <script>
+       const swordFormsPart1 = [
+           { id: "s0", name: "準備式", pinyin: "zhǔnbèi shì", meaning: "準備の姿勢", desc: "準備の姿勢を整えます。" },
+           { id: "s1", name: "並歩点剣", pinyin: "bǐng bù diǎn jiàn", meaning: "並歩点剣", desc: "両踵が着き、点（手首折る形）で相手の膝を刺す。" },
+           { id: "s2", name: "独立反刺", pinyin: "dú lì fǎn cì", meaning: "独立反刺", desc: "片足立ちで反手で上から喉喉を刺す。" },
+           { id: "s3", name: "僕歩横掃", pinyin: "pú bù héng sǎo", meaning: "僕歩横掃", desc: "プーブー（伏せる歩形）で横切りを行います。" },
+           { id: "s4", name: "向右平帯", pinyin: "xiàng yòu píng dài", meaning: "向右平帯", desc: "斜め右前に相手腹を引き切る。" },
+           { id: "s5", name: "向左平帯", pinyin: "xiàng zuǒ píng dài", meaning: "向左平帯", desc: "斜め左前に相手腹を引き切る。" },
+           { id: "s6", name: "独立掄劈", pinyin: "dú lì lūn pī", meaning: "独立掄劈", desc: "左膝を上げ斜め下を切りつける。" },
+           { id: "s7", name: "退歩回抽", pinyin: "tuì bù huí chōu", meaning: "退歩回抽", desc: "一歩さがり縦に切り上げます。" },
+           { id: "s8", name: "独立上刺", pinyin: "dú lì shàng cì", meaning: "独立上刺", desc: "片膝を上げ斜め上を刺す。" }
+       ];
+
+       const swordFormsPart2 = [
+           { id: "s9", name: "虚歩下截", pinyin: "xū bù xià jié", meaning: "虚歩下截", desc: "虚歩で相手剣を抑える、右膝を守る。" },
+           { id: "s10", name: "左弓歩刺", pinyin: "zuǒ gōng bù cì", meaning: "左弓歩刺", desc: "相手剣に接し巻き込むように刺す。" },
+           { id: "s11", name: "転身斜帯", pinyin: "zhuǎn shēn xié dài", meaning: "转身斜带", desc: "回転しながら引き切る。" },
+           { id: "s12", name: "縮身斜帯", pinyin: "suō shēn xié dài", meaning: "缩身斜带", desc: "下がりながら引き切る。" },
+           { id: "s13", name: "提膝捧剣", pinyin: "tí xī pěng jiàn", meaning: "提膝捧剑", desc: "片足立ちで捧げもつ形。" },
+           { id: "s14", name: "跳歩平刺", pinyin: "tiào bù píng cì", meaning: "跳步平刺", desc: "一歩前に追いかけ刺す。" },
+           { id: "s15", name: "左虚歩撩", pinyin: "zuǒ xū bù liáo", meaning: "左虚步撩", desc: "虚歩で相手を下から切りあげる。" },
+           { id: "s16", name: "右弓歩撩", pinyin: "yòu gōng bù liáo", meaning: "右弓歩撩", desc: "弓歩になりながら下から切りあげる。" }
+       ];
+
+       const swordFormsPart3 = [
+           { id: "s17", name: "転身回抽", pinyin: "zhuǎn shēn huí chōu", meaning: "转身回抽", desc: "回転し虚歩になりつつ縦に引き切り。" },
+           { id: "s18", name: "並歩平刺", pinyin: "bìng bù píng cì", meaning: "并步平刺", desc: "両踵を着き相手の胸を刺す。" },
+           { id: "s19", name: "左弓歩攔", pinyin: "zuǒ gōng bù lán", meaning: "左弓步拦", desc: "左弓歩になりながらよけかわす。" },
+           { id: "s20", name: "右弓歩攔", pinyin: "yòu gōng bù lán", meaning: "右弓步拦", desc: "右弓歩になりながらよけかわす。" },
+           { id: "s21", name: "左弓歩攔", pinyin: "zuǒ gōng bù lán", meaning: "左弓步拦", desc: "左弓歩になりながらよけかわす。" },
+           { id: "s22", name: "進歩反刺", pinyin: "jìn bù fǎn cì", meaning: "进步反刺", desc: "一歩進み上から刺す。" },
+           { id: "s23", name: "反身回劈", pinyin: "fǎn shēn huí pī", meaning: "反身回劈", desc: "向きを変え斜め後ろを切る。" },
+           { id: "s24", name: "虚歩点剣", pinyin: "xū bù diǎn jiàn", meaning: "虚步点剑", desc: "虚歩で点（剣先端で刺す）する。" }
+       ];
+
+       const swordFormsPart4 = [
+           { id: "s25", name: "独立平托", pinyin: "dú lì píng tuō", meaning: "独立平托", desc: "片足になり剣で相手剣を持ち上げる。" },
+           { id: "s26", name: "弓歩掛劈", pinyin: "gōng bù guà pī", meaning: "弓步挂劈", desc: "剣で相手剣をひっかけます。" },
+           { id: "s27", name: "虚歩掄劈", pinyin: "xū bù lūn pī", meaning: "虚步抡劈", desc: "斜め後ろを振り向き切り、正面も切りつける。" },
+           { id: "s28", name: "撤歩反撃", pinyin: "chè bù fǎn jī", meaning: "撤步反击", desc: "斜め後ろからの攻撃をかわす。" },
+           { id: "s29", name: "進歩平刺", pinyin: "jìn bù píng cì", meaning: "进步平刺", desc: "一歩進みながら刺す。" },
+           { id: "s30", name: "丁歩回抽", pinyin: "dīng bù huí chōu", meaning: "丁步回抽", desc: "足を寄せ縦円で引き切り。" },
+           { id: "s31", name: "旋転平抹", pinyin: "xuán zhuǎn píng mǒ", meaning: "旋转平抹", desc: "時計の針のように回転しながらまわりを切る。" },
+           { id: "s32", name: "弓歩直刺", pinyin: "gōng bù zhí cì", meaning: "弓步直刺", desc: "縦の剣にして刺す。" },
+           { id: "s33", name: "収勢", pinyin: "shōu shì", meaning: "收势", desc: "左手に剣を持ち替え動作を終える。" }
+       ];
+
+       let completedItems = JSON.parse(localStorage.getItem('sword_completed') || '{}');
+       let formImages = JSON.parse(localStorage.getItem('sword_images') || '{}');
+       let formMemos = JSON.parse(localStorage.getItem('sword_memos') || '{}');
+
+       // Crop state
+       let currentUploadUniqueId = '';
+       let currentUploadPartKey = '';
+       let currentUploadItem = null;
+       let cropImageObj = null;
+       let cropOffset = { x: 0, y: 0 };
+       let cropScale = 1;
+       let isDragging = false;
+       let startDrag = { x: 0, y: 0 };
+
+       function switchTab(tabId) {
+           ['intro', 'part1', 'part2', 'part3', 'part4'].forEach(id => {
+               const el = document.getElementById(`section-${id}`);
+               const btn = document.getElementById(`tab-${id}`);
+               if (id === tabId) {
+                   el.classList.remove('hidden');
+                   btn.className = "py-4 px-5 text-center font-bold text-base text-blue-900 border-b-4 border-blue-900 whitespace-nowrap transition";
+               } else {
+                   el.classList.add('hidden');
+                   btn.className = "py-4 px-5 text-center font-bold text-base text-slate-600 hover:text-blue-900 whitespace-nowrap transition";
+               }
+           });
+           renderAllLists();
+       }
+
+       function speakChinese(text, lang = 'zh-CN') {
+           if (!('speechSynthesis' in window)) {
+               alert('お使いのブラウザは音声合成に対応していません。');
+               return;
+           }
+           window.speechSynthesis.cancel();
+           const utterance = new SpeechSynthesisUtterance(text);
+           utterance.lang = lang;
+           utterance.rate = 0.8;
+           window.speechSynthesis.speak(utterance);
+       }
+
+       function renderAllLists() {
+           renderList('part1', swordFormsPart1, 'p1');
+           renderList('part2', swordFormsPart2, 'p2');
+           renderList('part3', swordFormsPart3, 'p3');
+           renderList('part4', swordFormsPart4, 'p4');
+       }
+
+       function renderList(partKey, dataArray, prefix) {
+           const listEl = document.getElementById(`list-${partKey}`);
+           if (!listEl) return;
+           listEl.innerHTML = "";
+
+           let completedCount = 0;
+
+           dataArray.forEach((item, index) => {
+               const uniqueId = `${prefix}_${item.id}`;
+               const isChecked = completedItems[uniqueId] ? 'checked' : '';
+               if(isChecked) completedCount++;
+
+               const bgClass = completedItems[uniqueId] ? 'bg-blue-50/70 border-blue-300' : 'bg-white border-slate-200';
+               const hasImg = formImages[uniqueId] && formImages[uniqueId].length > 0;
+               const hasMemo = formMemos[uniqueId] && formMemos[uniqueId].trim().length > 0;
+               const displayNum = item.name === '準備式' ? '準' : item.name === '収勢' ? '収' : (partKey === 'part1' ? index : (partKey === 'part2' ? index + 9 : (partKey === 'part3' ? index + 17 : index + 25)));
+
+               const card = document.createElement('div');
+               card.className = `p-4 md:p-5 rounded-2xl border ${bgClass} flex items-center justify-between gap-4 transition shadow-sm`;
+               card.innerHTML = `
+                   <div class="flex items-center gap-4 flex-grow cursor-pointer" onclick="openDetail('${uniqueId}', '${partKey}', ${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                       <span class="w-10 h-10 flex-shrink-0 bg-blue-100 text-blue-950 font-extrabold text-sm rounded-full flex items-center justify-center shadow-sm">${displayNum}</span>
+                       <div>
+                           <div class="flex items-center gap-2.5 flex-wrap">
+                               <h3 class="font-bold text-lg text-slate-900">${item.name}</h3>
+                               <span class="text-sm text-blue-800 font-bold">(${item.pinyin})</span>
+                               ${hasMemo ? '<span class="text-xs bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">📝メモ有</span>' : ''}
+                               ${hasImg ? '<span class="text-xs bg-blue-100 text-blue-900 px-2 py-0.5 rounded-full font-bold">📷写真有</span>' : ''}
+                           </div>
+                           <p class="text-sm text-slate-600 mt-1">${item.meaning}</p>
+                       </div>
+                   </div>
+                   <div class="flex items-center gap-3">
+                       <button onclick="event.stopPropagation(); speakChinese('${item.name}')" class="p-3 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-xl text-sm font-bold flex items-center gap-1 transition shadow-sm" title="中国語の発音を聞く">
+                           🔊 発音
+                       </button>
+                       <input type="checkbox" ${isChecked} onchange="toggleComplete('${uniqueId}', this.checked, '${partKey}')" class="w-6 h-6 text-blue-800 rounded-md border-slate-300 focus:ring-blue-700 cursor-pointer">
+                   </div>
+               `;
+               listEl.appendChild(card);
+           });
+           const countEl = document.getElementById(`count-${partKey}`);
+           if(countEl) countEl.innerText = completedCount;
+       }
+
+       function toggleComplete(uniqueId, status, partKey) {
+           completedItems[uniqueId] = status;
+           localStorage.setItem('sword_completed', JSON.stringify(completedItems));
+           renderAllLists();
+       }
+
+       function openDetail(uniqueId, partKey, item) {
+           const images = formImages[uniqueId] || [];
+           const memoText = formMemos[uniqueId] || '';
+
+           const modalContent = document.getElementById('modal-content');
+           modalContent.innerHTML = `
+               <div class="flex justify-between items-start">
+                   <span class="bg-blue-100 text-blue-900 text-xs font-bold px-3 py-1.5 rounded-full">${item.name}</span>
+               </div>
+               <div>
+                   <h3 class="text-2xl font-bold text-slate-900 mt-2">${item.name}</h3>
+                   <p class="text-base text-blue-800 font-bold mt-1">${item.pinyin || ''}</p>
+                   <p class="text-sm text-slate-600 mt-1">${item.meaning ? '意味：' + item.meaning : ''}</p>
+               </div>
+               <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 text-base text-slate-800 leading-relaxed">
+                   <strong class="block text-blue-950 font-bold mb-2 text-lg">💡 ポイント・解説：</strong>
+                   ${item.desc}
+               </div>
+
+               <!-- Memo Section -->
+               <div class="space-y-2">
+                   <label class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                       <span>📝</span> 先生に教わったこと・注意点メモ
+                   </label>
+                   <textarea id="memo-textarea" rows="3" oninput="saveMemo('${uniqueId}', this.value)" placeholder="例：剣先をしっかりと安定させる。腰の回転を意識する。" class="w-full text-base p-3.5 rounded-2xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-800 bg-amber-50/30">${memoText}</textarea>
+               </div>
+
+               <div class="space-y-3">
+                   <div class="flex justify-between items-center">
+                       <label class="text-sm font-bold text-slate-800">📷 練習写真・参考画像 (${images.length}枚)</label>
+                       <label class="cursor-pointer bg-blue-900 hover:bg-blue-950 text-white text-sm px-4 py-2.5 rounded-xl transition shadow font-bold">
+                           + 写真を追加する
+                           <input type="file" accept="image/*" class="hidden" onchange="initCrop(event, '${uniqueId}', '${partKey}', ${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                       </label>
+                   </div>
+                   <div id="image-gallery" class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+                       ${images.map((img, idx) => `
+                           <div class="relative group aspect-square bg-slate-100 rounded-2xl overflow-hidden border border-slate-300 shadow-sm cursor-pointer" onclick="openZoom('${img}')">
+                               <img src="${img}" class="w-full h-full object-cover">
+                               <button onclick="event.stopPropagation(); deleteImage('${uniqueId}', ${idx}, '${partKey}', ${JSON.stringify(item).replace(/"/g, '&quot;')})" class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full text-sm font-bold flex items-center justify-center shadow transition">✕</button>
+                           </div>
+                       `).join('')}
+                       ${images.length === 0 ? '<div class="col-span-full text-center py-6 text-sm text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-300 font-medium">写真がまだ登録されていません</div>' : ''}
+                   </div>
+               </div>
+
+               <div class="pt-3 flex gap-3">
+                   <button onclick="speakChinese('${item.name}')" class="flex-1 bg-blue-900 hover:bg-blue-950 text-white text-base font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition shadow">
+                       🔊 技名を聞く (${item.name})
+                   </button>
+               </div>
+           `;
+           document.getElementById('detail-modal').classList.remove('hidden');
+       }
+
+       function saveMemo(uniqueId, text) {
+           formMemos[uniqueId] = text;
+           localStorage.setItem('sword_memos', JSON.stringify(formMemos));
+           renderAllLists();
+       }
+
+       // --- Crop Functionality with Zoom Slider ---
+       function initCrop(event, uniqueId, partKey, item) {
+           const file = event.target.files[0];
+           if (!file) return;
+
+           currentUploadUniqueId = uniqueId;
+           currentUploadPartKey = partKey;
+           currentUploadItem = item;
+
+           const reader = new FileReader();
+           reader.onload = function(e) {
+               cropImageObj = new Image();
+               cropImageObj.onload = function() {
+                   const canvas = document.getElementById('crop-canvas');
+                   canvas.width = 300;
+                   canvas.height = 300;
+
+                   cropScale = Math.max(300 / cropImageObj.width, 300 / cropImageObj.height);
+                   document.getElementById('zoom-slider').value = cropScale;
+
+                   cropOffset.x = (300 - cropImageObj.width * cropScale) / 2;
+                   cropOffset.y = (300 - cropImageObj.height * cropScale) / 2;
+
+                   drawCropCanvas();
+                   document.getElementById('crop-modal').classList.remove('hidden');
+               };
+               cropImageObj.src = e.target.result;
+           };
+           reader.readAsDataURL(file);
+           event.target.value = '';
+       }
+
+       function onZoomSlider(val) {
+           if (!cropImageObj) return;
+           const oldScale = cropScale;
+           cropScale = parseFloat(val);
+
+           cropOffset.x = 150 - (150 - cropOffset.x) * (cropScale / oldScale);
+           cropOffset.y = 150 - (150 - cropOffset.y) * (cropScale / oldScale);
+
+           drawCropCanvas();
+       }
+
+       const canvas = document.getElementById('crop-canvas');
+       if(canvas) {
+           canvas.onmousedown = (e) => { isDragging = true; startDrag = { x: e.clientX - cropOffset.x, y: e.clientY - cropOffset.y }; };
+           window.onmousemove = (e) => {
+               if (!isDragging) return;
+               cropOffset.x = e.clientX - startDrag.x;
+               cropOffset.y = e.clientY - startDrag.y;
+               drawCropCanvas();
+           };
+           window.onmouseup = () => { isDragging = false; };
+
+           canvas.ontouchstart = (e) => {
+               if(e.touches.length === 1) {
+                   isDragging = true;
+                   startDrag = { x: e.touches[0].clientX - cropOffset.x, y: e.touches[0].clientY - cropOffset.y };
+               }
+           };
+           canvas.ontouchmove = (e) => {
+               if (!isDragging || e.touches.length !== 1) return;
+               cropOffset.x = e.touches[0].clientX - startDrag.x;
+               cropOffset.y = e.touches[0].clientY - startDrag.y;
+               drawCropCanvas();
+           };
+           canvas.ontouchend = () => { isDragging = false; };
+       }
+
+       function drawCropCanvas() {
+           const canvas = document.getElementById('crop-canvas');
+           const ctx = canvas.getContext('2d');
+           ctx.clearRect(0, 0, canvas.width, canvas.height);
+           ctx.drawImage(cropImageObj, cropOffset.x, cropOffset.y, cropImageObj.width * cropScale, cropImageObj.height * cropScale);
+       }
+
+       function confirmCrop() {
+           const canvas = document.getElementById('crop-canvas');
+           const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+           if (!formImages[currentUploadUniqueId]) {
+               formImages[currentUploadUniqueId] = [];
+           }
+           formImages[currentUploadUniqueId].push(croppedDataUrl);
+           localStorage.setItem('sword_images', JSON.stringify(formImages));
+
+           document.getElementById('crop-modal').classList.add('hidden');
+           openDetail(currentUploadUniqueId, currentUploadPartKey, currentUploadItem);
+           renderAllLists();
+       }
+
+       function cancelCrop() {
+           document.getElementById('crop-modal').classList.add('hidden');
+       }
+
+       function openZoom(imgSrc) {
+           document.getElementById('zoomed-img').src = imgSrc;
+           document.getElementById('zoom-modal').classList.remove('hidden');
+       }
+
+       function closeZoom() {
+           document.getElementById('zoom-modal').classList.add('hidden');
+       }
+
+       function deleteImage(uniqueId, imgIndex, partKey, item) {
+           if (formImages[uniqueId]) {
+               formImages[uniqueId].splice(imgIndex, 1);
+               localStorage.setItem('sword_images', JSON.stringify(formImages));
+               openDetail(uniqueId, partKey, item);
+               renderAllLists();
+           }
+       }
+
+       function closeModal() {
+           document.getElementById('detail-modal').classList.add('hidden');
+       }
+
+       window.onclick = function(event) {
+           const detailModal = document.getElementById('detail-modal');
+           const cropModal = document.getElementById('crop-modal');
+           if (event.target === detailModal) {
+               closeModal();
+           }
+       }
+
+       renderAllLists();
+   </script>
+</body>
+</html>
