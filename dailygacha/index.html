@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日の刺激ガチャ</title>
+<style>
+   * {
+       box-sizing: border-box;
+   }
+
+   body {
+       margin: 0;
+       font-family:
+           -apple-system,
+           BlinkMacSystemFont,
+           "Hiragino Kaku Gothic ProN",
+           "Yu Gothic",
+           sans-serif;
+       background: linear-gradient(160deg, #fff8f2, #f8f5ff);
+       color: #4a4141;
+       min-height: 100vh;
+   }
+
+   .app {
+       max-width: 480px;
+       margin: 0 auto;
+       padding: 24px 18px 40px;
+   }
+
+   header {
+       text-align: center;
+       margin-bottom: 20px;
+   }
+
+   .small-title {
+       font-size: 13px;
+       letter-spacing: 2px;
+       color: #9b8d8d;
+       margin-bottom: 8px;
+   }
+
+   h1 {
+       font-size: 28px;
+       margin: 0;
+       color: #594d50;
+   }
+
+   .subtitle {
+       font-size: 14px;
+       color: #8d8181;
+       margin-top: 8px;
+   }
+
+   .auto-save-badge {
+       display: inline-flex;
+       align-items: center;
+       gap: 5px;
+       background: #eef5ed;
+       color: #588055;
+       font-size: 11px;
+       padding: 4px 10px;
+       border-radius: 12px;
+       margin-top: 10px;
+       font-weight: bold;
+   }
+
+   .gacha-card {
+       margin-top: 15px;
+       background: rgba(255,255,255,0.9);
+       border-radius: 28px;
+       padding: 28px 20px;
+       text-align: center;
+       box-shadow: 0 8px 30px rgba(100,80,80,0.10);
+   }
+
+   .gacha-icon {
+       font-size: 55px;
+       margin-bottom: 12px;
+   }
+
+   .challenge {
+       font-size: 22px;
+       line-height: 1.6;
+       font-weight: bold;
+       min-height: 100px;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+   }
+
+   .hint {
+       font-size: 13px;
+       color: #9a9090;
+       line-height: 1.6;
+       margin-top: 5px;
+   }
+
+   button {
+       font-family: inherit;
+   }
+
+   .main-button {
+       width: 100%;
+       border: none;
+       border-radius: 18px;
+       padding: 16px;
+       font-size: 17px;
+       font-weight: bold;
+       cursor: pointer;
+       margin-top: 15px;
+       transition: 0.2s;
+   }
+
+   .main-button:active {
+       transform: scale(0.97);
+   }
+
+   .gacha-button {
+       background: #d99ab2;
+       color: white;
+       box-shadow: 0 5px 15px rgba(190,120,150,0.25);
+   }
+
+   .retry-button {
+       background: #f5eeee;
+       color: #725f63;
+   }
+
+   .result-section {
+       margin-top: 20px;
+       background: white;
+       border-radius: 22px;
+       padding: 20px;
+       display: none;
+       box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+   }
+
+   .result-title {
+       font-size: 14px;
+       font-weight: bold;
+       margin-bottom: 12px;
+       color: #725f63;
+   }
+
+   .result-buttons {
+       display: grid;
+       grid-template-columns: 1fr 1fr;
+       gap: 10px;
+   }
+
+   .result-buttons button {
+       border: none;
+       background: #faf6f2;
+       padding: 12px 8px;
+       border-radius: 14px;
+       font-size: 13px;
+       font-weight: bold;
+       color: #554a4a;
+       cursor: pointer;
+       box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+   }
+
+   .section-box {
+       margin-top: 22px;
+       background: white;
+       border-radius: 22px;
+       padding: 20px;
+       box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+   }
+
+   .section-title {
+       font-size: 14px;
+       font-weight: bold;
+       margin-bottom: 12px;
+       color: #725f63;
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+   }
+
+   .custom-input {
+       width: 100%;
+       padding: 12px 14px;
+       border: 1px solid #e8dede;
+       border-radius: 12px;
+       font-size: 14px;
+       background: #faf7f7;
+       outline: none;
+       margin-bottom: 10px;
+   }
+
+   .custom-input:focus {
+       border-color: #d99ab2;
+       background: #fff;
+   }
+
+   .add-custom-btn {
+       background: #9ab2d9;
+       color: white;
+       border: none;
+       border-radius: 14px;
+       padding: 12px;
+       font-size: 14px;
+       font-weight: bold;
+       width: 100%;
+       cursor: pointer;
+   }
+
+   .list-box {
+       margin-top: 15px;
+       max-height: 180px;
+       overflow-y: auto;
+   }
+
+   .item-row {
+       display: flex;
+       align-items: center;
+       justify-content: space-between;
+       font-size: 13px;
+       padding: 9px 0;
+       border-bottom: 1px solid #eee6e6;
+       color: #5c5252;
+   }
+
+   .item-row:last-child {
+       border-bottom: none;
+   }
+
+   .delete-btn {
+       background: #f5eeee;
+       color: #b56d6d;
+       border: none;
+       padding: 5px 10px;
+       border-radius: 8px;
+       font-size: 11px;
+       cursor: pointer;
+       flex-shrink: 0;
+       margin-left: 8px;
+   }
+
+   .text-action-btn {
+       background: none;
+       border: none;
+       font-size: 12px;
+       color: #8d8181;
+       cursor: pointer;
+       padding: 0;
+   }
+
+   .text-action-btn:hover {
+       color: #594d50;
+       text-decoration: underline;
+   }
+
+   .history {
+       margin-top: 22px;
+       background: rgba(255,255,255,0.75);
+       border-radius: 20px;
+       padding: 18px;
+   }
+
+   .history-item {
+       font-size: 13px;
+       padding: 8px 0;
+       border-bottom: 1px solid #eee6e6;
+       color: #5c5252;
+   }
+
+   .history-item:last-child {
+       border-bottom: none;
+   }
+
+   .empty {
+       color: #aaa;
+       font-size: 13px;
+   }
+
+   .footer-note {
+       text-align: center;
+       font-size: 12px;
+       color: #aaa;
+       margin-top: 25px;
+       line-height: 1.7;
+   }
+
+   .modal-overlay {
+       position: fixed;
+       top: 0; left: 0; width: 100%; height: 100%;
+       background: rgba(0,0,0,0.35);
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       z-index: 100;
+       opacity: 0;
+       pointer-events: none;
+       transition: 0.25s;
+   }
+
+   .modal-overlay.show {
+       opacity: 1;
+       pointer-events: auto;
+   }
+
+   .modal-box {
+       background: white;
+       border-radius: 24px;
+       padding: 24px;
+       width: 85%;
+       max-width: 300px;
+       text-align: center;
+       box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+       transform: scale(0.95);
+       transition: 0.25s;
+   }
+
+   .modal-overlay.show .modal-box {
+       transform: scale(1);
+   }
+
+   .modal-text {
+       font-size: 15px;
+       font-weight: bold;
+       margin-bottom: 18px;
+       line-height: 1.6;
+       white-space: pre-wrap;
+       color: #4a4141;
+   }
+
+   .modal-buttons {
+       display: flex;
+       gap: 10px;
+   }
+
+   .modal-btn {
+       background: #d99ab2;
+       color: white;
+       border: none;
+       border-radius: 14px;
+       padding: 10px 20px;
+       font-size: 14px;
+       font-weight: bold;
+       cursor: pointer;
+       width: 100%;
+   }
+
+   .modal-btn.secondary {
+       background: #f5eeee;
+       color: #725f63;
+   }
+
+   .shake {
+       animation: shake 0.45s;
+   }
+
+   @keyframes shake {
+       0% { transform: rotate(0deg); }
+       25% { transform: rotate(-5deg); }
+       50% { transform: rotate(5deg); }
+       75% { transform: rotate(-3deg); }
+       100% { transform: rotate(0deg); }
+   }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+   <header>
+       <div class="small-title">DAILY STIMULUS</div>
+       <h1>🎲 今日の刺激ガチャ</h1>
+       <div class="subtitle">
+           ボタンを押すだけ、毎日に小さなワクワクを。
+       </div>
+       <div class="auto-save-badge">
+           💾 自動保存機能ON
+       </div>
+   </header>
+
+   <div class="gacha-card" id="gachaCard">
+       <div class="gacha-icon" id="gachaIcon">
+           🎁
+       </div>
+       <div class="challenge" id="challenge">
+           ボタンを押して<br>
+           今日の刺激を引こう！
+       </div>
+       <div class="hint" id="hint">
+           大きなことをする必要はありません。<br>
+           「ちょっと面白い」で十分。
+       </div>
+
+       <button class="main-button gacha-button" onclick="drawChallenge()">
+           🎲 ガチャを引く
+       </button>
+
+       <button class="main-button retry-button" onclick="drawChallenge()" id="retryButton" style="display:none;">
+           🔄 もう一回引く
+       </button>
+
+       <!-- 結果エリア -->
+       <div class="result-section" id="resultSection">
+           <div class="result-title">やってみた？</div>
+           <div class="result-buttons">
+               <button onclick="finishChallenge('✨ 面白かった！')">✨ 面白かった！</button>
+               <button onclick="finishChallenge('👍 まあまあ')">👍 まあまあ</button>
+           </div>
+       </div>
+   </div>
+
+   <div class="section-box">
+       <div class="section-title">
+           <span>✍️ 刺激の追加・管理</span>
+           <button class="text-action-btn" onclick="resetDefaults()">初期リストを復元</button>
+       </div>
+       <div class="custom-form-group">
+           <input type="text" id="customText" class="custom-input" placeholder="例: 新しいお菓子を試してみる">
+       </div>
+       <button class="add-custom-btn" onclick="addCustomChallenge()">➕ ガチャリストに登録する</button>
+
+       <div class="list-box" id="allChallengesListBox">
+           <div class="empty">登録されている刺激はありません。</div>
+       </div>
+   </div>
+
+   <div class="history">
+       <div class="history-title" style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #725f63;">
+           <span>📖 最近の記録</span>
+           <button class="text-action-btn" onclick="clearHistory()">履歴クリア</button>
+       </div>
+       <div id="historyList">
+           <div class="empty">まだ記録はありません。</div>
+       </div>
+   </div>
+
+   <div class="footer-note">
+       完成しなくてもOK。<br>
+       やってみただけで今日の刺激は成功です。
+   </div>
+
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+   <div class="modal-box">
+       <div class="modal-text" id="modalText">通知メッセージ</div>
+       <div class="modal-buttons" id="modalButtons">
+           <button class="modal-btn" onclick="closeModal()">OK</button>
+       </div>
+   </div>
+</div>
+
+<script>
+const initialDefaults = [
+   { icon: "🔎", text: "知らない言葉を1つ調べてみよう" },
+   { icon: "🍳", text: "家にある材料で、いつもと違う料理を作ってみよう" },
+   { icon: "✨", text: "部屋の中の一か所だけ模様替えしてみよう" },
+   { icon: "🎨", text: "紙に思いついたことを自由に1分だけ描いてみよう" },
+   { icon: "👟", text: "いつもと違う道を10分だけ歩いてみよう" },
+   { icon: "🎵", text: "お気に入りの曲を1曲じっくり聴いてみよう" },
+   { icon: "🌞", text: "外に出て、空を1分だけ眺めてみよう" },
+   { icon: "📸", text: "今日「いいな」と思ったものを1枚写真に撮ろう" },
+   { icon: "☁️", text: "今日の空の色をじっくり観察してみよう" },
+   { icon: "💬", text: "誰かに「今日こんなことあった」と連絡してみよう" },
+   { icon: "☕", text: "普段行かないお店に入ってみよう" },
+   { icon: "🛍️", text: "気になるお店に行ってウィンドウショッピングしてみよう" }
+];
+
+let currentChallenge = null;
+
+function getActiveChallenges() {
+   let list = JSON.parse(localStorage.getItem("activeChallengesSimple"));
+   if (!list) {
+       list = [...initialDefaults];
+       localStorage.setItem("activeChallengesSimple", JSON.stringify(list));
+   }
+   return list;
+}
+
+function saveActiveChallenges(list) {
+   localStorage.setItem("activeChallengesSimple", JSON.stringify(list));
+}
+
+function drawChallenge() {
+   const card = document.getElementById("gachaCard");
+   card.classList.remove("shake");
+   void card.offsetWidth;
+   card.classList.add("shake");
+
+   const challenges = getActiveChallenges();
+   if (challenges.length === 0) {
+       showAlertModal("ガチャリストが空です！\n新しい刺激を追加してください。");
+       return;
+   }
+
+   currentChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+
+   document.getElementById("gachaIcon").textContent = currentChallenge.icon;
+   document.getElementById("challenge").textContent = currentChallenge.text;
+   document.getElementById("hint").textContent = "気楽にやってみよう！";
+
+   document.querySelector(".gacha-button").style.display = "none";
+   document.getElementById("retryButton").style.display = "block";
+   document.getElementById("resultSection").style.display = "block";
+}
+
+function addCustomChallenge() {
+   const text = document.getElementById("customText").value.trim();
+   if (!text) {
+       showAlertModal("内容を入力してください！");
+       return;
+   }
+
+   const icons = ["✨", "🌟", "🛍️", "💡", "🎯", "🍀", "🚀", "☕", "🎨", "🎵"];
+   const icon = icons[Math.floor(Math.random() * icons.length)];
+
+   const newChallenge = { icon, text };
+   let challenges = getActiveChallenges();
+   challenges.unshift(newChallenge);
+   saveActiveChallenges(challenges);
+
+   document.getElementById("customText").value = "";
+   showChallengesList();
+   showAlertModal(`✨ 自動保存されました！\n「${text}」を登録しました。`);
+}
+
+function showChallengesList() {
+   const listBox = document.getElementById("allChallengesListBox");
+   const challenges = getActiveChallenges();
+
+   if (challenges.length === 0) {
+       listBox.innerHTML = '<div class="empty">登録されている刺激はありません。</div>';
+       return;
+   }
+
+   listBox.innerHTML = "";
+   challenges.forEach((item, index) => {
+       const div = document.createElement("div");
+       div.className = "item-row";
+       div.innerHTML = `
+           <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 8px;">${item.icon} ${item.text}</span>
+           <button class="delete-btn" onclick="confirmDeleteChallenge(${index})">削除</button>
+       `;
+       listBox.appendChild(div);
+   });
+}
+
+function confirmDeleteChallenge(index) {
+   let challenges = getActiveChallenges();
+   const item = challenges[index];
+   if (!item) return;
+
+   showConfirmModal(
+       `この刺激を削除しますか？\n\n「${item.text}」`,
+       () => {
+           challenges.splice(index, 1);
+           saveActiveChallenges(challenges);
+           showChallengesList();
+           showAlertModal(`削除し、自動保存しました:\n「${item.text}」`);
+       }
+   );
+}
+
+function resetDefaults() {
+   showConfirmModal(
+       "初期の刺激リストに復元しますか？\n(追加した項目は残ります)",
+       () => {
+           saveActiveChallenges([...initialDefaults]);
+           showChallengesList();
+           showAlertModal("初期の刺激リストに復元して保存しました！");
+       }
+   );
+}
+
+function finishChallenge(result) {
+   if (!currentChallenge) return;
+
+   const today = new Date().toLocaleDateString("ja-JP");
+   const record = {
+       date: today,
+       challenge: currentChallenge.text,
+       result: result
+   };
+
+   let history = JSON.parse(localStorage.getItem("stimulusHistorySimple")) || [];
+   history.unshift(record);
+   history = history.slice(0, 20);
+   localStorage.setItem("stimulusHistorySimple", JSON.stringify(history));
+
+   showAlertModal(`記録を自動保存しました！✨\n${result}`);
+
+   showHistory();
+
+   document.getElementById("resultSection").style.display = "none";
+   document.querySelector(".gacha-button").style.display = "block";
+   document.getElementById("retryButton").style.display = "none";
+   document.getElementById("gachaIcon").textContent = "🎁";
+   document.getElementById("challenge").textContent = "また明日、刺激を探そう。";
+   document.getElementById("hint").textContent = "お疲れ様でした！";
+   currentChallenge = null;
+}
+
+function showHistory() {
+   const historyList = document.getElementById("historyList");
+   const history = JSON.parse(localStorage.getItem("stimulusHistorySimple")) || [];
+
+   if (history.length === 0) {
+       historyList.innerHTML = '<div class="empty">まだ記録はありません。</div>';
+       return;
+   }
+
+   historyList.innerHTML = "";
+   history.slice(0, 5).forEach(item => {
+       const div = document.createElement("div");
+       div.className = "history-item";
+       div.innerHTML = `<strong>${item.date}</strong>: ${item.challenge} (${item.result})`;
+       historyList.appendChild(div);
+   });
+}
+
+function clearHistory() {
+   showConfirmModal(
+       "最近の記録をすべてクリアしますか？",
+       () => {
+           localStorage.removeItem("stimulusHistorySimple");
+           showHistory();
+           showAlertModal("履歴をクリアして保存しました。");
+       }
+   );
+}
+
+function showAlertModal(text) {
+   document.getElementById("modalText").textContent = text;
+   document.getElementById("modalButtons").innerHTML = `
+       <button class="modal-btn" onclick="closeModal()">OK</button>
+   `;
+   document.getElementById("modalOverlay").classList.add("show");
+}
+
+function showConfirmModal(text, onConfirm) {
+   document.getElementById("modalText").textContent = text;
+   document.getElementById("modalButtons").innerHTML = `
+       <button class="modal-btn secondary" onclick="closeModal()">キャンセル</button>
+       <button class="modal-btn" id="confirmActionBtn">削除する</button>
+   `;
+   document.getElementById("confirmActionBtn").onclick = () => {
+       closeModal();
+       onConfirm();
+   };
+   document.getElementById("modalOverlay").classList.add("show");
+}
+
+function closeModal() {
+   document.getElementById("modalOverlay").classList.remove("show");
+}
+
+// 初期化時に関係リストを表示
+showHistory();
+showChallengesList();
+</script>
+
+</body>
+</html>
