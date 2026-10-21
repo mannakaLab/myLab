@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>LUNA BODY - 「体重だけじゃない。鏡に映る私を変える。」</title>
+   <!-- Tailwind CSS CDN -->
+   <script src="https://cdn.tailwindcss.com"></script>
+   <!-- FontAwesome Icons -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   <!-- Chart.js CDN -->
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <!-- Google Fonts Inter & Noto Sans JP -->
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+   <script>
+       tailwind.config = {
+           theme: {
+               extend: {
+                   colors: {
+                       luna: {
+                           bg: '#FDFBF7',       // アイボリー背景
+                           card: '#FFFFFF',     // 純白カード
+                           beige: '#F5EFE6',    // ベージュサブカラー
+                           sage: '#78938A',     // くすみグリーン (アクセント)
+                           sageDark: '#566E66', // 濃いくすみグリーン
+                           sageLight: '#E8EFEA',// 明るいくすみグリーン
+                           text: '#333333',     // メインテキスト
+                           subtext: '#767676',  // サブテキスト
+                           accent: '#D4A373',   // ぬくもりのあるアクセントカラー
+                       }
+                   },
+                   fontFamily: {
+                       sans: ['"Noto Sans JP"', 'Inter', 'sans-serif'],
+                   }
+               }
+           }
+       }
+   </script>
+   <style>
+       body {
+           background-color: #FDFBF7;
+           color: #333333;
+           font-family: 'Noto Sans JP', sans-serif;
+           -webkit-tap-highlight-color: transparent;
+       }
+       .hide-scrollbar::-webkit-scrollbar {
+           display: none;
+       }
+       .hide-scrollbar {
+           -ms-overflow-style: none;
+           scrollbar-width: none;
+       }
+       /* アニメーション */
+       .fade-in {
+           animation: fadeIn 0.3s ease-in-out forwards;
+       }
+       @keyframes fadeIn {
+           from { opacity: 0; transform: translateY(6px); }
+           to { opacity: 1; transform: translateY(0); }
+       }
+   </style>
+</head>
+<body class="flex justify-center items-center min-h-screen bg-neutral-100 sm:py-4">
+
+   <!-- モバイル用コンテナ（スマホ枠風） -->
+   <div id="app-container" class="w-full max-w-md h-[100vh] sm:h-[844px] bg-luna-bg sm:rounded-[36px] shadow-2xl flex flex-col overflow-hidden relative border-0 sm:border-[8px] sm:border-stone-800">
+
+       <!-- ステータスバー（擬似） -->
+       <div class="w-full bg-luna-bg px-6 pt-3 pb-1 flex justify-between items-center text-xs font-semibold text-stone-500 z-50 select-none">
+           <span id="current-time">09:41</span>
+           <div class="flex items-center space-x-1.5">
+               <i class="fas fa-signal"></i>
+               <i class="fas fa-wifi"></i>
+               <i class="fas fa-battery-full text-sm"></i>
+           </div>
+       </div>
+
+       <!-- アプリのヘッダー -->
+       <header class="bg-luna-bg px-5 py-2.5 flex items-center justify-between border-b border-stone-200/50 z-40">
+           <div class="flex items-center space-x-2">
+               <div class="w-8 h-8 rounded-full bg-luna-sage flex items-center justify-center text-white font-bold text-base shadow-sm">
+                   🌙
+               </div>
+               <div>
+                   <h1 class="text-lg font-bold text-stone-800 tracking-wide leading-tight">LUNA BODY</h1>
+                   <p class="text-[10px] text-luna-subtext tracking-wider">ルナ・ボディ</p>
+               </div>
+           </div>
+           <div class="flex items-center space-x-2">
+               <button onclick="triggerKatsu()" class="px-2.5 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-800 text-xs font-semibold hover:bg-amber-200 transition flex items-center space-x-1 shadow-sm">
+                   <i class="fas fa-bolt text-amber-600"></i>
+                   <span>喝を入れる</span>
+               </button>
+               <button onclick="switchTab('settings')" class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 hover:bg-stone-200 transition">
+                   <i class="fas fa-cog"></i>
+               </button>
+           </div>
+       </header>
+
+       <!-- Main Content Area (Dynamic Screen Container) -->
+       <main id="main-content" class="flex-1 overflow-y-auto px-4 py-4 hide-scrollbar relative">
+           <!-- 画面コンテンツがJavaScriptで動的に切り替わります -->
+       </main>
+
+       <!-- 下部ナビゲーションバー -->
+       <nav class="bg-white border-t border-stone-200/80 px-2 py-2 flex justify-around items-center z-40 select-none shadow-lg">
+           <button onclick="switchTab('home')" id="nav-home" class="nav-btn flex flex-col items-center p-1 text-luna-sage font-semibold">
+               <i class="fas fa-home text-lg"></i>
+               <span class="text-[10px] mt-0.5">ホーム</span>
+           </button>
+           <button onclick="switchTab('workout')" id="nav-workout" class="nav-btn flex flex-col items-center p-1 text-stone-400 font-normal hover:text-luna-sage">
+               <i class="fas fa-running text-lg"></i>
+               <span class="text-[10px] mt-0.5">運動</span>
+           </button>
+           <button onclick="switchTab('meal')" id="nav-meal" class="nav-btn flex flex-col items-center p-1 text-stone-400 font-normal hover:text-luna-sage">
+               <i class="fas fa-utensils text-lg"></i>
+               <span class="text-[10px] mt-0.5">食事</span>
+           </button>
+           <button onclick="switchTab('cycle')" id="nav-cycle" class="nav-btn flex flex-col items-center p-1 text-stone-400 font-normal hover:text-luna-sage">
+               <i class="fas fa-calendar-alt text-lg"></i>
+               <span class="text-[10px] mt-0.5">周期/体調</span>
+           </button>
+           <button onclick="switchTab('progress')" id="nav-progress" class="nav-btn flex flex-col items-center p-1 text-stone-400 font-normal hover:text-luna-sage">
+               <i class="fas fa-chart-line text-lg"></i>
+               <span class="text-[10px] mt-0.5">記録・変化</span>
+           </button>
+       </nav>
+
+       <!-- Toast Notification / Modal Notification Overlay -->
+       <div id="toast" class="hidden absolute top-16 left-1/2 transform -translate-x-1/2 bg-stone-800 text-white text-xs px-4 py-2.5 rounded-full shadow-xl z-50 transition-all duration-300 flex items-center space-x-2">
+           <i class="fas fa-info-circle text-luna-sage"></i>
+           <span id="toast-msg">通知メッセージ</span>
+       </div>
+
+       <!-- Custom Modal Popup System -->
+       <div id="modal" class="hidden fixed inset-0 bg-black/40 z-50 flex justify-center items-center p-4 fade-in">
+           <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+               <div class="flex justify-between items-center border-b pb-2">
+                   <h3 id="modal-title" class="font-bold text-stone-800 text-base">タイトル</h3>
+                   <button onclick="closeModal()" class="text-stone-400 hover:text-stone-600"><i class="fas fa-times"></i></button>
+               </div>
+               <div id="modal-body" class="text-sm text-stone-600 space-y-2">
+                   モーダルの本文が入ります。
+               </div>
+               <div class="flex justify-end space-x-2 pt-2">
+                   <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-stone-100 text-stone-700 text-xs font-bold hover:bg-stone-200">閉じる</button>
+               </div>
+           </div>
+       </div>
+
+   </div>
+
+   <script>
+       /* ==========================================================================
+          アプリデータ構成 & デフォルト値 (LocalStorage対応)
+          ========================================================================== */
+       const APP_STORAGE_KEY = 'LUNA_BODY_DATA_V1';
+
+       // 初期設定データ（仕様より）
+       const defaultState = {
+           profile: {
+               name: 'ユーザー',
+               age: 37,
+               height: 151,
+               currentWeight: 62.0,
+               targetWeight: 50.0,
+               currentHip: 105,
+               experience: '楊式太極拳（約1年継続）',
+               goals: ['ウエスト改善', 'お尻の形を整える', '下腹部スッキリ', '姿勢改善'],
+               atmosphere: 'しなやか、上品、スポーティー、女性らしい',
+               preferredTime: '8', // '3', '8', '15'
+           },
+           condition: {
+               date: new Date().toISOString().split('T')[0],
+               fatigue: 'normal', // low, normal, high
+               appetite: 'normal',
+               mood: 'good',
+               stomach: 'good',
+               easiness: 'normal', // 運動しやすさ
+               notes: '特になし'
+           },
+           cycle: {
+               lastPeriodStart: '2026-10-10',
+               cycleLength: 28,
+               periodDuration: 5
+           },
+           workoutsLog: [
+               { id: '1', date: '2026-10-19', title: 'お尻・股関節 集中ケア', durationMinutes: 8, completed: true },
+               { id: '2', date: '2026-10-20', title: '姿勢改善体幹トレ', durationMinutes: 3, completed: true }
+           ],
+           mealsLog: [
+               { id: 'm1', date: new Date().toISOString().split('T')[0], type: '朝食', text: '和食（ご飯、納豆、味噌汁、卵焼き）', kcal: 420, p: 20, f: 12, c: 55, favorite: true },
+               { id: 'm2', date: new Date().toISOString().split('T')[0], type: '昼食', text: '蒸し鶏と野菜のフォー', kcal: 480, p: 28, f: 8, c: 68, favorite: false }
+           ],
+           bodyLog: [
+               { date: '2026-09-21', weight: 63.2, waist: 82, hip: 107, postureScore: 3, taichiEase: '普通' },
+               { date: '2026-10-05', weight: 62.5, waist: 80, hip: 106, postureScore: 4, taichiEase: '動きやすい' },
+               { date: new Date().toISOString().split('T')[0], weight: 62.0, waist: 79, hip: 105, postureScore: 4, taichiEase: '太極拳の軸が安定' }
+           ],
+           photos: [
+               { id: 'p1', date: '2026-09-21', title: 'スタート時', url: 'https://placehold.co/300x400/E8EFEA/566E66?text=Before+Front' },
+               { id: 'p2', date: new Date().toISOString().split('T')[0], title: '現在', url: 'https://placehold.co/300x400/78938A/FFFFFF?text=Current+Front' }
+           ],
+           weeklySchedule: {
+               Mon: 'お尻・股関節',
+               Tue: '軽い姿勢改善または休養',
+               Wed: 'お尻・体幹',
+               Thu: '太極拳',
+               Fri: '軽いコンディショニング',
+               Sat: '休養',
+               Sun: '休養'
+           }
+       };
+
+       // アプリの状態
+       let appData = loadState();
+
+       function loadState() {
+           try {
+               const saved = localStorage.getItem(APP_STORAGE_KEY);
+               if (saved) return JSON.parse(saved);
+           } catch (e) {
+               console.error('Failed to load state from localStorage', e);
+           }
+           return defaultState;
+       }
+
+       function saveState() {
+           try {
+               localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(appData));
+           } catch (e) {
+               console.error('Failed to save state to localStorage', e);
+           }
+       }
+
+       /* ==========================================================================
+          運動データベース（お尻・体幹・ウエスト・骨盤・背中・脚）
+          ========================================================================== */
+       const WORKOUT_PROGRAMS = {
+           '3': {
+               id: 'course-3',
+               title: '3分コース（最低限の継続）',
+               desc: '忙しい日や疲れ気味の日でも、未来の自分のためにスイッチを入れる3分間。',
+               exercises: [
+                   {
+                       name: '骨盤ゆらゆら＆ヒップリフト',
+                       target: 'お尻・骨盤まわり',
+                       durationSec: 90,
+                       posture: '仰向けになり膝を曲げ、息を吐きながらお尻を持ち上げます。',
+                       respiration: '上げる時に息を吐き、下ろす時に吸う。',
+                       mistakes: '腰を反らしすぎないこと。お尻の締めを意識。',
+                       precautions: '腰や股関節に違和感がある場合は無理に高く上げない。',
+                       difficulty: '★☆☆☆☆',
+                       alternative: '立った状態での尻締めウォーキング',
+                       svg: `<svg viewBox="0 0 100 60" class="w-full h-24 text-luna-sage fill-current"><path d="M10 45 C 30 45, 40 25, 60 25 C 75 25, 85 45, 90 45" stroke="currentColor" stroke-width="4" fill="none"/><circle cx="20" cy="42" r="5"/><circle cx="80" cy="42" r="5"/></svg>`
+                   },
+                   {
+                       name: '立位ドローイン＆キャットストレッチ',
+                       target: '体幹・背中',
+                       durationSec: 90,
+                       posture: '立位で息を吐ききり、お腹を凹ませたまま深く呼吸。',
+                       respiration: 'お腹を凹ませた状態をキープして浅く胸で呼吸。',
+                       mistakes: '肩に力が入ること。姿勢が丸まりすぎること。',
+                       precautions: 'めまいがしたら即座に通常の呼吸に戻す。',
+                       difficulty: '★☆☆☆☆',
+                       alternative: '椅子に座った深呼吸ストレッチ',
+                       svg: `<svg viewBox="0 0 100 60" class="w-full h-24 text-luna-sage fill-current"><circle cx="50" cy="15" r="7"/><path d="M50 22 L 50 45 M35 30 L 65 30 M40 58 L 50 45 L 60 58" stroke="currentColor" stroke-width="4" fill="none"/></svg>`
+                   }
+               ]
+           },
+           '8': {
+               id: 'course-8',
+               title: '8分コース（基本のボディメイク）',
+               desc: 'お尻、体幹、姿勢をバランスよく鍛え、しなやかなウエストとヒップラインを育む。',
+               exercises: [
+                   {
+                       name: 'クラムシェル (左右各15回)',
+                       target: '中臀筋・股関節（お尻の上部・丸み）',
+                       durationSec: 150,
+                       posture: '横向きになり膝を曲げ、かかとをつけたまま上の膝を開く。',
+                       respiration: '膝を開く時に息を吐き、閉じる時に吸う。',
+                       mistakes: '骨盤が後ろに倒れてしまうこと。',
+                       precautions: '股関節に引っかかり感がある場合は角度を狭める。',
+                       difficulty: '★★☆☆☆',
+                       alternative: '立位での横足上げ (サイドレッグレイズ)',
+                       svg: `<svg viewBox="0 0 100 60" class="w-full h-24 text-luna-sage fill-current"><path d="M15 45 L 50 45 L 80 30" stroke="currentColor" stroke-width="4" fill="none"/><circle cx="20" cy="40" r="5"/></svg>`
+                   },
+                   {
+                       name: '四つんばいバードドッグ',
+                       target: '体幹・背中・大臀筋',
+                       durationSec: 150,
+                       posture: '手と膝をつき、対角の手と足を一直線に伸ばす。',
+                       respiration: '伸ばす時に息を吐き、戻す時に吸う。',
+                       mistakes: '腰が反ること。軸足の骨盤が逃げること。',
+                       precautions: '手首が痛い場合は肘をついて行う。',
+                       difficulty: '★★★☆☆',
+                       alternative: 'うつ伏せで片足ずつ持ち上げるエクササイズ',
+                       svg: `<svg viewBox="0 0 100 60" class="w-full h-24 text-luna-sage fill-current"><path d="M10 20 L 40 35 L 70 35 L 90 20" stroke="currentColor" stroke-width="4" fill="none"/><circle cx="20" cy="15" r="5"/></svg>`
+                   },
+                   {
+                       name: '太極拳風・深屈股（足腰の安定化）',
+                       target: '脚・股関節・軸足の強化',
+                       durationSec: 180,
+                       posture: '足を広く開き、股関節から折りたたむように体重を股関節に乗せる。',
+                       respiration: '重心を下げる時に静かに息を吐く。',
+                       mistakes: '膝が内側に入ること（膝痛の原因）。',
+                       precautions: '膝に痛みが出たら曲げる深さを浅くする。',
+                       difficulty: '★★☆☆☆',
+                       alternative: '浅いスクワット',
+                       svg: `<svg viewBox="0 0 100 60" class="w-full h-24 text-luna-sage fill-current"><circle cx="50" cy="12" r="6"/><path d="M50 18 L 50 35 M30 28 L 70 28 M30 55 L 45 35 L 55 35 L 70 55" stroke="currentColor" stroke-width="4" fill="none"/></svg>`
+                   }
+               ]
+           },
+           '15': {
+               id: 'course-15',
+               title: '15分コース（集中トレーニング）',
+               desc: 'ウォーミングアップから集中筋トレ、クールダウンまでを含むフルプログラム。',
+               exercises: [
+                   {
+                       name: 'ウォームアップ：キャット＆カウ',
+                       target: '背中・胸椎の可動域向上',
+                       durationSec: 180,
+                       posture: '四つんばいで息を吸いながら胸を張り、吐きながら背中を丸める。',
+                       respiration: '動作に合わせて深くゆったりとした呼吸。',
+                       mistakes: '首だけを上下させること。背骨全体を使う。',
+                       precautions: '首に激痛がある場合は動きを小さく。',
+                       difficulty: '★☆☆☆☆',
+                       alternative: '座って行う胸ひらきストレッチ',
+                       svg: `<svg viewBox="0 0 100 60" class="w-full h-24 text-luna-sage fill-current"><path d="M20 40 Q 50 20 80 40" stroke="currentColor" stroke-width="4" fill="none"/></svg>`
+                   },
+                   {
+                       name: 'ヒップスラスト＆ブルガリアンスクワット調',
+                       target: '大臀筋・下腹部',
+                       durationSec: 360,
+                       posture: '片足を後ろに引き、股関節から折り曲げて前足のお尻に体重を載せる。',
+                       respiration: '下がる時に吸い、お尻で地面を蹴り上げながら吐く。',
+                       mistakes: '前膝が前に出過ぎること。',
+                       precautions: '膝に違和感が出たら通常のワイドスクワットに変更。',
+                       difficulty: '★★★☆☆',
+                       alternative: '自重ワイドスクワット',
+                       svg: `<svg viewBox="0 0 100 60" class="w-full h-24 text-luna-sage fill-current"><circle cx="40" cy="15" r="6"/><path d="M40 21 L 40 40 L 30 58 M40 40 L 60 55" stroke="currentColor" stroke-width="4" fill="none"/></svg>`
+                   },
+                   {
+                       name: 'サイドプランク＆プランクドローイン',
+                       target: 'ウエスト・くびれ・体幹深層',
+                       durationSec: 240,
+                       posture: '肘をつき、身体を一直線に保ち横腹を締める。',
+                       respiration: 'お腹を薄く保ちながら規則正しい呼吸。',
+                       mistakes: '腰が下に落ちること。',
+                       precautions: '肩が痛い場合は膝をついたサイドプランクにする。',
+                       difficulty: '★★★☆☆',
+                       alternative: '膝つきプランク',
+                       svg: `<svg viewBox="0 0 100 60" class="w-full h-24 text-luna-sage fill-current"><path d="M15 45 L 85 30" stroke="currentColor" stroke-width="4" fill="none"/><circle cx="15" cy="45" r="5"/></svg>`
+                   },
+                   {
+                       name: 'クールダウン：太極拳的・調息ストレッチ',
+                       target: '全身の疲労回復・自律神経調整',
+                       durationSec: 120,
+                       posture: '肩の力を抜き、両手を上下させながら全身をリラックス。',
+                       respiration: '手の上がりに合わせて吸い、下がる時に吐く。',
+                       mistakes: '呼吸を止めてしまうこと。',
+                       precautions: 'リラックスして心地よい範囲で行う。',
+                       difficulty: '★☆☆☆☆',
+                       alternative: '仰向けでの深呼吸',
+                       svg: `<svg viewBox="0 0 100 60" class="w-full h-24 text-luna-sage fill-current"><circle cx="50" cy="15" r="6"/><path d="M50 21 L 50 45 M30 35 Q 50 25 70 35" stroke="currentColor" stroke-width="4" fill="none"/></svg>`
+                   }
+               ]
+           }
+       };
+
+       /* ==========================================================================
+          UI タブ切り替え & レンダリングエンジン
+          ========================================================================== */
+       let currentTab = 'home';
+
+       function updateClock() {
+           const now = new Date();
+           const hours = String(now.getHours()).padStart(2, '0');
+           const minutes = String(now.getMinutes()).padStart(2, '0');
+           const clockEl = document.getElementById('current-time');
+           if (clockEl) clockEl.textContent = `${hours}:${minutes}`;
+       }
+       setInterval(updateClock, 1000);
+       updateClock();
+
+       function switchTab(tabName) {
+           currentTab = tabName;
+
+           // ナビボタンのハイライト更新
+           document.querySelectorAll('.nav-btn').forEach(btn => {
+               btn.classList.remove('text-luna-sage', 'font-semibold');
+               btn.classList.add('text-stone-400', 'font-normal');
+           });
+           const activeNav = document.getElementById(`nav-${tabName}`);
+           if (activeNav) {
+               activeNav.classList.remove('text-stone-400', 'font-normal');
+               activeNav.classList.add('text-luna-sage', 'font-semibold');
+           }
+
+           const mainContent = document.getElementById('main-content');
+           mainContent.innerHTML = '';
+           mainContent.scrollTop = 0;
+
+           switch (tabName) {
+               case 'home':
+                   renderHomeScreen(mainContent);
+                   break;
+               case 'workout':
+                   renderWorkoutScreen(mainContent);
+                   break;
+               case 'meal':
+                   renderMealScreen(mainContent);
+                   break;
+               case 'cycle':
+                   renderCycleScreen(mainContent);
+                   break;
+               case 'progress':
+                   renderProgressScreen(mainContent);
+                   break;
+               case 'settings':
+                   renderSettingsScreen(mainContent);
+                   break;
+               default:
+                   renderHomeScreen(mainContent);
+           }
+       }
+
+       /* ==========================================================================
+          1. ホーム画面のレンダリング
+          ========================================================================== */
+       function renderHomeScreen(container) {
+           const cyclePhase = getCyclePhase(appData.cycle.lastPeriodStart, appData.cycle.cycleLength);
+           const coachAdvice = getCoachAdvice('normal', cyclePhase);
+
+           container.innerHTML = `
+               <div class="space-y-4 fade-in">
+
+                   <!-- コーチからのひとこと (カード) -->
+                   <div class="bg-gradient-to-r from-luna-beige to-white p-4 rounded-2xl border border-amber-100 shadow-sm relative overflow-hidden">
+                       <div class="flex items-start space-x-3">
+                           <div class="w-11 h-11 rounded-full bg-luna-sage text-white flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-sm border-2 border-white">
+                               🌙
+                           </div>
+                           <div class="space-y-1 pr-2">
+                               <div class="flex items-center space-x-2">
+                                   <span class="font-bold text-stone-800 text-sm">専属ボディメイクコーチ</span>
+                                   <span class="text-[10px] bg-luna-sage/20 text-luna-sageDark px-2 py-0.5 rounded-full font-semibold">LUNA</span>
+                               </div>
+                               <p class="text-xs text-stone-700 leading-relaxed font-medium">
+                                   「${coachAdvice}」
+                               </p>
+                           </div>
+                       </div>
+                   </div>
+
+                   <!-- メインアクションボタン (最も目立つボタン) -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/60 shadow-md text-center space-y-3">
+                       <div class="flex justify-between items-center text-xs">
+                           <span class="text-stone-500 font-medium">本日のおすすめ提案</span>
+                           <span class="px-2 py-0.5 bg-stone-100 text-stone-600 rounded-md font-semibold">${appData.profile.preferredTime}分コース</span>
+                       </div>
+                       <div>
+                           <h2 class="text-lg font-bold text-stone-800">お尻＆体幹のしなやかボディメイク</h2>
+                           <p class="text-xs text-stone-500 mt-0.5">太極拳の軸を安定させ、ヒップの位置を整える</p>
+                       </div>
+                       <button onclick="startWorkoutProgram('${appData.profile.preferredTime}')" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-luna-sage to-luna-sageDark text-white font-bold text-base shadow-lg hover:brightness-105 active:scale-[0.99] transition flex items-center justify-center space-x-2">
+                           <i class="fas fa-play"></i>
+                           <span>今日のメニューを始める（${appData.profile.preferredTime}分）</span>
+                       </button>
+                   </div>
+
+                   <!-- 6つのクイックコンディショニングステータス GRID -->
+                   <div class="grid grid-cols-2 gap-3">
+                       <!-- 1. 生理周期と体調 -->
+                       <div onclick="switchTab('cycle')" class="bg-white p-3 rounded-2xl border border-stone-100 shadow-sm hover:border-luna-sage transition cursor-pointer">
+                           <div class="flex items-center justify-between text-xs text-stone-500 mb-1">
+                               <span>周期・体調</span>
+                               <i class="fas fa-arrow-right text-[10px]"></i>
+                           </div>
+                           <div class="font-bold text-stone-800 text-sm flex items-center space-x-1">
+                               <span class="text-pink-500">🌸</span>
+                               <span>${cyclePhase.phaseName}</span>
+                           </div>
+                           <p class="text-[11px] text-stone-500 mt-1 line-clamp-1">${cyclePhase.adviceShort}</p>
+                       </div>
+
+                       <!-- 2. 食事のポイント -->
+                       <div onclick="switchTab('meal')" class="bg-white p-3 rounded-2xl border border-stone-100 shadow-sm hover:border-luna-sage transition cursor-pointer">
+                           <div class="flex items-center justify-between text-xs text-stone-500 mb-1">
+                               <span>食事ポイント</span>
+                               <i class="fas fa-arrow-right text-[10px]"></i>
+                           </div>
+                           <div class="font-bold text-stone-800 text-sm flex items-center space-x-1">
+                               <span class="text-amber-500">🥗</span>
+                               <span>たんぱく質意識</span>
+                           </div>
+                           <p class="text-[11px] text-stone-500 mt-1">和食・温かいスープ推奨</p>
+                       </div>
+
+                       <!-- 3. 今週の実施状況 -->
+                       <div onclick="switchTab('workout')" class="bg-white p-3 rounded-2xl border border-stone-100 shadow-sm hover:border-luna-sage transition cursor-pointer">
+                           <div class="flex items-center justify-between text-xs text-stone-500 mb-1">
+                               <span>今週の継続</span>
+                               <i class="fas fa-fire text-amber-500"></i>
+                           </div>
+                           <div class="font-bold text-stone-800 text-sm">
+                               2 / 5 日完了
+                           </div>
+                           <div class="w-full bg-stone-100 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                               <div class="bg-luna-sage h-full rounded-full" style="width: 40%"></div>
+                           </div>
+                       </div>
+
+                       <!-- 4. ボディライン変化 -->
+                       <div onclick="switchTab('progress')" class="bg-white p-3 rounded-2xl border border-stone-100 shadow-sm hover:border-luna-sage transition cursor-pointer">
+                           <div class="flex items-center justify-between text-xs text-stone-500 mb-1">
+                               <span>ヒップ・ウエスト</span>
+                               <i class="fas fa-ruler-horizontal text-luna-sage"></i>
+                           </div>
+                           <div class="font-bold text-stone-800 text-sm">
+                               Hip: ${appData.profile.currentHip}cm
+                           </div>
+                           <p class="text-[11px] text-emerald-600 mt-1 font-semibold">開始比 -2.0cm 🎉</p>
+                       </div>
+                   </div>
+
+                   <!-- 今日のコンディション入力欄 -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/60 shadow-sm space-y-3">
+                       <div class="flex justify-between items-center">
+                           <h3 class="font-bold text-stone-800 text-xs flex items-center space-x-1.5">
+                               <i class="fas fa-heartbeat text-rose-400"></i>
+                               <span>今日のコンディションチェック</span>
+                           </h3>
+                           <span class="text-[10px] text-stone-400">タップで記録</span>
+                       </div>
+                       <div class="flex justify-between items-center text-xs gap-2">
+                           <button onclick="recordConditionQuick('low')" class="flex-1 py-2 rounded-xl border ${appData.condition.fatigue === 'low' ? 'bg-emerald-50 border-emerald-400 text-emerald-700 font-bold' : 'border-stone-200 text-stone-600'} text-center transition">
+                               😊 元気
+                           </button>
+                           <button onclick="recordConditionQuick('normal')" class="flex-1 py-2 rounded-xl border ${appData.condition.fatigue === 'normal' ? 'bg-amber-50 border-amber-400 text-amber-700 font-bold' : 'border-stone-200 text-stone-600'} text-center transition">
+                               😐 普通
+                           </button>
+                           <button onclick="recordConditionQuick('high')" class="flex-1 py-2 rounded-xl border ${appData.condition.fatigue === 'high' ? 'bg-rose-50 border-rose-400 text-rose-700 font-bold' : 'border-stone-200 text-stone-600'} text-center transition">
+                               😫 疲れ気味
+                           </button>
+                       </div>
+                   </div>
+
+                   <!-- 本日のスケジュール確認 -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/60 shadow-sm space-y-2">
+                       <div class="flex justify-between items-center">
+                           <h3 class="font-bold text-stone-800 text-xs">今週のボディメイク基本計画</h3>
+                           <span class="text-[10px] text-luna-sage font-bold">無理なく調整可</span>
+                       </div>
+                       <div class="text-xs space-y-1.5 text-stone-600 pt-1">
+                           <div class="flex justify-between py-1 border-b border-stone-100">
+                               <span>月曜日: お尻・股関節</span>
+                               <span class="text-emerald-600 font-semibold">✓ 済</span>
+                           </div>
+                           <div class="flex justify-between py-1 border-b border-stone-100">
+                               <span>火曜日: 軽い姿勢改善</span>
+                               <span class="text-emerald-600 font-semibold">✓ 済</span>
+                           </div>
+                           <div class="flex justify-between py-1 border-b border-stone-100 bg-luna-sageLight/50 px-2 rounded-md font-bold text-stone-800">
+                               <span>水曜日（本日）: お尻・体幹</span>
+                               <span class="text-luna-sageDark">本日の予定</span>
+                           </div>
+                           <div class="flex justify-between py-1 border-b border-stone-100">
+                               <span>木曜日: 楊式太極拳</span>
+                               <span class="text-stone-400">予定</span>
+                           </div>
+                       </div>
+                   </div>
+
+               </div>
+           `;
+       }
+
+       /* QUICK RECORD CONDITION */
+       function recordConditionQuick(fatigueLevel) {
+           appData.condition.fatigue = fatigueLevel;
+           saveState();
+           showToast(fatigueLevel === 'high' ? 'お疲れ様です。今日は無理せず短時間メニューがおすすめです！' : 'コンディションを更新しました！');
+           switchTab('home');
+       }
+
+       /* ==========================================================================
+          2. 運動プログラム機能・タイマー・結果確認
+          ========================================================================== */
+       function renderWorkoutScreen(container) {
+           container.innerHTML = `
+               <div class="space-y-4 fade-in">
+                   <div class="flex justify-between items-center">
+                       <h2 class="font-bold text-stone-800 text-base">運動プログラム一覧</h2>
+                       <span class="text-xs text-stone-500">目的や時間に合わせて選択</span>
+                   </div>
+
+                   <!-- 部位別ボディライン改善の説明カード -->
+                   <div class="bg-white p-3.5 rounded-2xl border border-stone-200/60 shadow-sm text-xs space-y-2">
+                       <div class="font-bold text-stone-800 flex items-center space-x-1 text-luna-sageDark">
+                           <i class="fas fa-bullseye"></i>
+                           <span>LUNA BODYのシルエットアプローチ</span>
+                       </div>
+                       <p class="text-stone-600 leading-relaxed text-[11px]">
+                           ※特定の部位だけ脂肪を落とす「部分痩せ」ではなく、筋肉の発達・骨盤アライメント・体幹の安定によって「しなやかで美しいシルエット」を作ります。
+                       </p>
+                   </div>
+
+                   <!-- コースカード選択 -->
+                   <div class="space-y-3">
+                       <!-- 3分コース -->
+                       <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm hover:shadow-md transition space-y-2">
+                           <div class="flex justify-between items-start">
+                               <div>
+                                   <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md">負担軽減</span>
+                                   <h3 class="font-bold text-stone-800 text-sm mt-1">3分コース（最低限の継続）</h3>
+                               </div>
+                               <span class="text-xs font-bold text-stone-400">約3分</span>
+                           </div>
+                           <p class="text-xs text-stone-500">${WORKOUT_PROGRAMS['3'].desc}</p>
+                           <button onclick="startWorkoutProgram('3')" class="w-full py-2 bg-stone-100 hover:bg-luna-sage hover:text-white text-stone-700 font-bold text-xs rounded-xl transition">
+                               3分メニューを開始
+                           </button>
+                       </div>
+
+                       <!-- 8分コース -->
+                       <div class="bg-white p-4 rounded-2xl border-2 border-luna-sage/60 shadow-sm hover:shadow-md transition space-y-2 relative">
+                           <span class="absolute -top-2.5 right-4 bg-luna-sage text-white text-[9px] font-bold px-2 py-0.5 rounded-full">一番人気・推奨</span>
+                           <div class="flex justify-between items-start">
+                               <div>
+                                   <span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">基本のボディメイク</span>
+                                   <h3 class="font-bold text-stone-800 text-sm mt-1">8分コース（お尻・体幹・姿勢）</h3>
+                               </div>
+                               <span class="text-xs font-bold text-stone-400">約8分</span>
+                           </div>
+                           <p class="text-xs text-stone-500">${WORKOUT_PROGRAMS['8'].desc}</p>
+                           <button onclick="startWorkoutProgram('8')" class="w-full py-2.5 bg-luna-sage text-white font-bold text-xs rounded-xl shadow hover:brightness-105 transition">
+                               8分基本メニューを開始
+                           </button>
+                       </div>
+
+                       <!-- 15分コース -->
+                       <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm hover:shadow-md transition space-y-2">
+                           <div class="flex justify-between items-start">
+                               <div>
+                                   <span class="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-bold rounded-md">集中ケア</span>
+                                   <h3 class="font-bold text-stone-800 text-sm mt-1">15分コース（フルプログラム）</h3>
+                               </div>
+                               <span class="text-xs font-bold text-stone-400">約15分</span>
+                           </div>
+                           <p class="text-xs text-stone-500">${WORKOUT_PROGRAMS['15'].desc}</p>
+                           <button onclick="startWorkoutProgram('15')" class="w-full py-2 bg-stone-100 hover:bg-luna-sage hover:text-white text-stone-700 font-bold text-xs rounded-xl transition">
+                               15分集中メニューを開始
+                           </button>
+                       </div>
+                   </div>
+
+                   <!-- ターゲット部位の図解ガイド -->
+                   <div class="bg-luna-beige/60 p-4 rounded-2xl border border-amber-200/40 space-y-2">
+                       <h3 class="font-bold text-stone-800 text-xs">重点アプローチ部位</h3>
+                       <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+                           <div class="bg-white p-2 rounded-xl shadow-xs">
+                               <span class="block font-bold text-luna-sageDark">🍑 お尻</span>
+                               <span class="text-[10px] text-stone-500">大臀筋・中臀筋</span>
+                           </div>
+                           <div class="bg-white p-2 rounded-xl shadow-xs">
+                               <span class="block font-bold text-luna-sageDark">🧘‍♀️ 体幹</span>
+                               <span class="text-[10px] text-stone-500">腹横筋・骨盤底筋</span>
+                           </div>
+                           <div class="bg-white p-2 rounded-xl shadow-xs">
+                               <span class="block font-bold text-luna-sageDark">🌿 姿勢</span>
+                               <span class="text-[10px] text-stone-500">背筋・股関節軸</span>
+                           </div>
+                       </div>
+                   </div>
+
+               </div>
+           `;
+       }
+
+       /* 運動実行インタラクティブ画面 (タイマー機能つき) */
+       let activeWorkoutSession = null;
+       let workoutTimerInterval = null;
+
+       function startWorkoutProgram(courseKey) {
+           const program = WORKOUT_PROGRAMS[courseKey];
+           if (!program) return;
+
+           activeWorkoutSession = {
+               courseKey: courseKey,
+               title: program.title,
+               exercises: program.exercises,
+               currentIndex: 0,
+               secondsRemaining: program.exercises[0].durationSec,
+               isPaused: false
+           };
+
+           renderActiveExerciseScreen();
+       }
+
+       function renderActiveExerciseScreen() {
+           const container = document.getElementById('main-content');
+           const session = activeWorkoutSession;
+           const ex = session.exercises[session.currentIndex];
+
+           container.innerHTML = `
+               <div class="space-y-4 fade-in">
+                   <!-- ヘッダー進行状況 -->
+                   <div class="flex justify-between items-center text-xs font-bold text-stone-600">
+                       <span>${session.title}</span>
+                       <span>${session.currentIndex + 1} / ${session.exercises.length} 種目目</span>
+                   </div>
+                   <div class="w-full bg-stone-200 h-2 rounded-full overflow-hidden">
+                       <div class="bg-luna-sage h-full transition-all duration-300" style="width: ${((session.currentIndex + 1) / session.exercises.length) * 100}%"></div>
+                   </div>
+
+                   <!-- 運動グラフィック＆タイマー -->
+                   <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-md text-center space-y-3">
+                       <span class="inline-block px-2.5 py-1 bg-luna-sageLight text-luna-sageDark text-xs font-bold rounded-md">
+                           対象部位: ${ex.target}
+                       </span>
+                       <h2 class="text-lg font-bold text-stone-800">${ex.name}</h2>
+
+                       <!-- イラスト枠 -->
+                       <div class="py-2 bg-stone-50 rounded-xl flex items-center justify-center border border-dashed border-stone-200">
+                           ${ex.svg}
+                       </div>
+
+                       <!-- リアルタイムカウントダウン表示 -->
+                       <div class="text-3xl font-extrabold text-luna-sage tracking-wider my-2" id="timer-display">
+                           ${formatSeconds(session.secondsRemaining)}
+                       </div>
+
+                       <!-- タイマー操作ボタン -->
+                       <div class="flex justify-center space-x-2 pt-1">
+                           <button onclick="toggleWorkoutPause()" id="pause-btn" class="px-4 py-2 bg-amber-100 text-amber-800 text-xs font-bold rounded-xl hover:bg-amber-200 transition">
+                               <i class="fas fa-pause mr-1"></i> 一時停止
+                           </button>
+                           <button onclick="makeWorkoutLighter()" class="px-4 py-2 bg-stone-100 text-stone-700 text-xs font-bold rounded-xl hover:bg-stone-200 transition">
+                               🍃 今日は軽めにする
+                           </button>
+                       </div>
+                   </div>
+
+                   <!-- 正しいフォームと注意点 -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm space-y-2.5 text-xs">
+                       <div class="font-bold text-stone-800 border-b pb-1">フォーム＆ポイント</div>
+                       <p><strong class="text-luna-sageDark">姿勢:</strong> ${ex.posture}</p>
+                       <p><strong class="text-luna-sageDark">呼吸:</strong> ${ex.respiration}</p>
+                       <p><strong class="text-amber-700">よくある間違い:</strong> ${ex.mistakes}</p>
+                       <p><strong class="text-rose-600">安全注意:</strong> ${ex.precautions}</p>
+                       <p><strong class="text-stone-500">代替運動:</strong> ${ex.alternative}</p>
+                   </div>
+
+                   <!-- 操作ナビゲーション -->
+                   <div class="flex justify-between items-center gap-2 pt-2">
+                       <button onclick="cancelWorkoutSession()" class="flex-1 py-3 bg-stone-200 text-stone-700 font-bold text-xs rounded-xl text-center">
+                           中断・終了
+                       </button>
+                       <button onclick="nextWorkoutExercise()" class="flex-2 w-2/3 py-3 bg-luna-sage text-white font-bold text-xs rounded-xl shadow-lg text-center hover:brightness-105">
+                           ${session.currentIndex < session.exercises.length - 1 ? '次の種目へ ➔' : 'トレーニング完了！'}
+                       </button>
+                   </div>
+               </div>
+           `;
+
+           startTimer();
+       }
+
+       function formatSeconds(sec) {
+           const m = Math.floor(sec / 60);
+           const s = sec % 60;
+           return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+       }
+
+       function startTimer() {
+           clearInterval(workoutTimerInterval);
+           workoutTimerInterval = setInterval(() => {
+               if (!activeWorkoutSession || activeWorkoutSession.isPaused) return;
+
+               activeWorkoutSession.secondsRemaining--;
+               const timerEl = document.getElementById('timer-display');
+               if (timerEl) {
+                   timerEl.textContent = formatSeconds(activeWorkoutSession.secondsRemaining);
+               }
+
+               if (activeWorkoutSession.secondsRemaining <= 0) {
+                   clearInterval(workoutTimerInterval);
+                   showToast('1種目が終了しました！');
+                   nextWorkoutExercise();
+               }
+           }, 1000);
+       }
+
+       function toggleWorkoutPause() {
+           if (!activeWorkoutSession) return;
+           activeWorkoutSession.isPaused = !activeWorkoutSession.isPaused;
+           const btn = document.getElementById('pause-btn');
+           if (btn) {
+               btn.innerHTML = activeWorkoutSession.isPaused ? '<i class="fas fa-play mr-1"></i> 再開' : '<i class="fas fa-pause mr-1"></i> 一時停止';
+           }
+       }
+
+       function makeWorkoutLighter() {
+           if (!activeWorkoutSession) return;
+           activeWorkoutSession.secondsRemaining = Math.max(10, Math.floor(activeWorkoutSession.secondsRemaining / 2));
+           showToast('運動時間を短縮（軽め設定）に調整しました');
+       }
+
+       function nextWorkoutExercise() {
+           clearInterval(workoutTimerInterval);
+           if (!activeWorkoutSession) return;
+
+           if (activeWorkoutSession.currentIndex < activeWorkoutSession.exercises.length - 1) {
+               activeWorkoutSession.currentIndex++;
+               activeWorkoutSession.secondsRemaining = activeWorkoutSession.exercises[activeWorkoutSession.currentIndex].durationSec;
+               renderActiveExerciseScreen();
+           } else {
+               // 完了画面へ
+               completeWorkoutSession();
+           }
+       }
+
+       function cancelWorkoutSession() {
+           clearInterval(workoutTimerInterval);
+           activeWorkoutSession = null;
+           showToast('運動を中断しました');
+           switchTab('workout');
+       }
+
+       function completeWorkoutSession() {
+           clearInterval(workoutTimerInterval);
+           const duration = activeWorkoutSession.courseKey === '3' ? 3 : (activeWorkoutSession.courseKey === '8' ? 8 : 15);
+
+           // 履歴に保存
+           const newLog = {
+               id: Date.now().toString(),
+               date: new Date().toISOString().split('T')[0],
+               title: activeWorkoutSession.title,
+               durationMinutes: duration,
+               completed: true
+           };
+           appData.workoutsLog.push(newLog);
+           saveState();
+
+           // 完了ダイアログの表示
+           const mainContent = document.getElementById('main-content');
+           mainContent.innerHTML = `
+               <div class="space-y-5 py-6 text-center fade-in">
+                   <div class="w-20 h-20 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl shadow-lg">
+                       🎉
+                   </div>
+                   <div class="space-y-1">
+                       <h2 class="text-xl font-bold text-stone-800">トレーニング完了！</h2>
+                       <p class="text-xs text-stone-500">自分との約束を守れた素晴らしい一歩です。</p>
+                   </div>
+
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm text-left text-xs space-y-2">
+                       <div class="font-bold text-stone-800 border-b pb-1">専属コーチからのフィードバック</div>
+                       <p class="text-stone-700 leading-relaxed">
+                           「ナイスチャレンジ！短時間でも筋肉に心地よい刺激が入りました。姿勢や太極拳の軸を保つ身体が、今日でまた一歩育ちましたよ。」
+                       </p>
+                   </div>
+
+                   <button onclick="switchTab('home')" class="w-full py-3.5 bg-luna-sage text-white font-bold text-sm rounded-xl shadow-md">
+                       ホームに戻る
+                   </button>
+               </div>
+           `;
+           activeWorkoutSession = null;
+       }
+
+       /* ==========================================================================
+          3. 食事管理・栄養バランス・レシピ提案
+          ========================================================================== */
+       function renderMealScreen(container) {
+           const todayStr = new Date().toISOString().split('T')[0];
+           const todayMeals = appData.mealsLog.filter(m => m.date === todayStr);
+
+           const totalKcal = todayMeals.reduce((acc, cur) => acc + (cur.kcal || 0), 0);
+           const totalP = todayMeals.reduce((acc, cur) => acc + (cur.p || 0), 0);
+
+           container.innerHTML = `
+               <div class="space-y-4 fade-in">
+                   <div class="flex justify-between items-center">
+                       <h2 class="font-bold text-stone-800 text-base">本日の食事管理</h2>
+                       <button onclick="showMealAddModal()" class="px-3 py-1 bg-luna-sage text-white font-bold text-xs rounded-lg shadow-sm">
+                           <i class="fas fa-plus mr-1"></i> 記録追加
+                       </button>
+                   </div>
+
+                   <!-- 栄養簡易サマリー -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm space-y-3">
+                       <div class="flex justify-between items-center text-xs">
+                           <span class="font-bold text-stone-700">本日摂取エネルギー＆タンパク質</span>
+                           <span class="text-stone-400">目安: 約1600kcal / P60g</span>
+                       </div>
+                       <div class="grid grid-cols-2 gap-3 text-center">
+                           <div class="bg-luna-beige/50 p-2.5 rounded-xl">
+                               <span class="text-[10px] text-stone-500 block">推定カロリー</span>
+                               <span class="text-base font-bold text-stone-800">${totalKcal} kcal</span>
+                           </div>
+                           <div class="bg-luna-sageLight/60 p-2.5 rounded-xl">
+                               <span class="text-[10px] text-luna-sageDark block">たんぱく質 (P)</span>
+                               <span class="text-base font-bold text-luna-sageDark">${totalP} g</span>
+                           </div>
+                       </div>
+                   </div>
+
+                   <!-- 本日の食事記録リスト -->
+                   <div class="space-y-2">
+                       <h3 class="font-bold text-stone-800 text-xs">登録済みの食事</h3>
+                       ${todayMeals.length === 0 ? `
+                           <p class="text-xs text-stone-400 py-3 text-center bg-white rounded-xl border border-dashed">本日の食事記録はまだありません</p>
+                       ` : todayMeals.map(meal => `
+                           <div class="bg-white p-3 rounded-xl border border-stone-100 shadow-xs flex justify-between items-center text-xs">
+                               <div>
+                                   <span class="px-2 py-0.5 bg-stone-100 text-stone-600 rounded font-bold text-[10px]">${meal.type}</span>
+                                   <span class="font-semibold text-stone-800 ml-1.5">${meal.text}</span>
+                               </div>
+                               <div class="flex items-center space-x-2">
+                                   <span class="text-stone-500 text-[11px]">${meal.kcal} kcal</span>
+                                   <button onclick="deleteMeal('${meal.id}')" class="text-stone-300 hover:text-rose-500">
+                                       <i class="fas fa-trash-alt"></i>
+                                   </button>
+                               </div>
+                           </div>
+                       `).join('')}
+                   </div>
+
+                   <!-- 食事提案（生理周期や胃腸への配慮） -->
+                   <div class="bg-white p-4 rounded-2xl border border-amber-200/60 shadow-sm space-y-2">
+                       <div class="flex justify-between items-center">
+                           <h3 class="font-bold text-stone-800 text-xs flex items-center space-x-1">
+                               <i class="fas fa-lightbulb text-amber-500"></i>
+                               <span>本日のおすすめボディメイク献立</span>
+                           </h3>
+                           <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">温活・胃腸に優しい</span>
+                       </div>
+                       <div class="text-xs text-stone-600 space-y-1.5 pt-1">
+                           <p class="font-semibold text-stone-800">🍲 「蒸し鶏とたっぷり温野菜の生姜ポトフ」</p>
+                           <p class="text-[11px] text-stone-500">高たんぱく低脂質で内臓を温め、太極拳前の身体の伸びをサポート。生理前・中の浮腫みがちな時期にも優しく寄り添います。</p>
+                       </div>
+                   </div>
+
+                   <!-- 補足方針 -->
+                   <p class="text-[10px] text-stone-400 text-center">
+                       ※過度な食事制限や極端な糖質オフは行いません。無理なくバランス良く栄養を摂ることを推奨します。
+                   </p>
+               </div>
+           `;
+       }
+
+       function showMealAddModal() {
+           const modalTitle = document.getElementById('modal-title');
+           const modalBody = document.getElementById('modal-body');
+
+           modalTitle.textContent = '食事の記録';
+           modalBody.innerHTML = `
+               <div class="space-y-3">
+                   <div>
+                       <label class="block text-xs font-bold text-stone-700 mb-1">区分</label>
+                       <select id="meal-type" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                           <option value="朝食">朝食</option>
+                           <option value="昼食">昼食</option>
+                           <option value="夕食">夕食</option>
+                           <option value="間食">間食</option>
+                       </select>
+                   </div>
+                   <div>
+                       <label class="block text-xs font-bold text-stone-700 mb-1">食事内容（テキスト入力）</label>
+                       <input id="meal-text" type="text" placeholder="例: 鮭の塩焼き、ごはん、味噌汁" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                   </div>
+                   <div>
+                       <label class="block text-xs font-bold text-stone-700 mb-1">概算カロリー (kcal)</label>
+                       <input id="meal-kcal" type="number" value="450" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                   </div>
+                   <div>
+                       <label class="block text-xs font-bold text-stone-700 mb-1">たんぱく質 (g)</label>
+                       <input id="meal-p" type="number" value="20" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                   </div>
+                   <button onclick="saveMealEntry()" class="w-full py-2.5 bg-luna-sage text-white font-bold text-xs rounded-xl mt-2">
+                       保存する
+                   </button>
+               </div>
+           `;
+           document.getElementById('modal').classList.remove('hidden');
+       }
+
+       function saveMealEntry() {
+           const type = document.getElementById('meal-type').value;
+           const text = document.getElementById('meal-text').value.trim();
+           const kcal = parseInt(document.getElementById('meal-kcal').value) || 0;
+           const p = parseInt(document.getElementById('meal-p').value) || 0;
+
+           if (!text) {
+               showToast('食事内容を入力してください');
+               return;
+           }
+
+           const newMeal = {
+               id: Date.now().toString(),
+               date: new Date().toISOString().split('T')[0],
+               type: type,
+               text: text,
+               kcal: kcal,
+               p: p,
+               favorite: false
+           };
+
+           appData.mealsLog.push(newMeal);
+           saveState();
+           closeModal();
+           showToast('食事を記録しました');
+           switchTab('meal');
+       }
+
+       function deleteMeal(id) {
+           appData.mealsLog = appData.mealsLog.filter(m => m.id !== id);
+           saveState();
+           showToast('記録を削除しました');
+           switchTab('meal');
+       }
+
+       /* ==========================================================================
+          4. 生理周期 & 体調管理機能
+          ========================================================================== */
+       function getCyclePhase(startDateStr, cycleLength = 28) {
+           const start = new Date(startDateStr);
+           const today = new Date();
+           const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24)) % cycleLength;
+
+           if (diffDays >= 0 && diffDays < 5) {
+               return {
+                   phaseName: '月経期（リセット期）',
+                   adviceShort: '血行改善と温活。無理せずゆったりストレッチを。',
+                   intensity: 'light'
+               };
+           } else if (diffDays >= 5 && diffDays < 13) {
+               return {
+                   phaseName: '卵胞期（キラキラ期）',
+                   adviceShort: '代謝アップ！お尻＆体幹の筋トレ成果が出やすい時期。',
+                   intensity: 'active'
+               };
+           } else if (diffDays >= 13 && diffDays < 17) {
+               return {
+                   phaseName: '排卵期',
+                   adviceShort: '体調は良好。フォームの正確さを重視。',
+                   intensity: 'normal'
+               };
+           } else {
+               return {
+                   phaseName: '黄体期（ご自愛期）',
+                   adviceShort: 'むくみや食欲増に注意。温かい食事と3分〜8分ケアで十分。',
+                   intensity: 'gentle'
+               };
+           }
+       }
+
+       function renderCycleScreen(container) {
+           const cyclePhase = getCyclePhase(appData.cycle.lastPeriodStart, appData.cycle.cycleLength);
+
+           container.innerHTML = `
+               <div class="space-y-4 fade-in">
+                   <div class="flex justify-between items-center">
+                       <h2 class="font-bold text-stone-800 text-base">生理周期＆体調トラッカー</h2>
+                       <button onclick="showCycleConfigModal()" class="px-2.5 py-1 bg-stone-100 text-stone-600 font-bold text-xs rounded-lg border">
+                           周期設定
+                       </button>
+                   </div>
+
+                   <!-- 生理周期フェーズ カード -->
+                   <div class="bg-gradient-to-br from-pink-50 to-white p-4 rounded-2xl border border-pink-200/60 shadow-sm space-y-2">
+                       <div class="flex items-center justify-between">
+                           <span class="text-xs font-bold text-pink-700">現在のコンディションフェーズ</span>
+                           <span class="text-[10px] text-pink-500 font-semibold">直近開始: ${appData.cycle.lastPeriodStart}</span>
+                       </div>
+                       <h3 class="text-lg font-bold text-stone-800">${cyclePhase.phaseName}</h3>
+                       <p class="text-xs text-stone-600 leading-relaxed">${cyclePhase.adviceShort}</p>
+                   </div>
+
+                   <!-- 体調詳細チェックリスト -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm space-y-3">
+                       <h3 class="font-bold text-stone-800 text-xs border-b pb-1">本日のからだのサインを記録</h3>
+
+                       <div class="space-y-2 text-xs">
+                           <div>
+                               <label class="block text-stone-500 text-[11px] mb-1">疲労感</label>
+                               <div class="flex gap-2">
+                                   <button onclick="setDetailCondition('fatigue', '少ない')" class="flex-1 py-1.5 rounded-lg border text-center">軽い</button>
+                                   <button onclick="setDetailCondition('fatigue', '普通')" class="flex-1 py-1.5 rounded-lg border bg-stone-100 font-bold text-center">普通</button>
+                                   <button onclick="setDetailCondition('fatigue', '重い')" class="flex-1 py-1.5 rounded-lg border text-center">強い</button>
+                               </div>
+                           </div>
+
+                           <div>
+                               <label class="block text-stone-500 text-[11px] mb-1">食欲の傾向</label>
+                               <div class="flex gap-2">
+                                   <button onclick="setDetailCondition('appetite', '落ち着いている')" class="flex-1 py-1.5 rounded-lg border text-center">安定</button>
+                                   <button onclick="setDetailCondition('appetite', '少し強い')" class="flex-1 py-1.5 rounded-lg border text-center">やや旺盛</button>
+                                   <button onclick="setDetailCondition('appetite', '旺盛')" class="flex-1 py-1.5 rounded-lg border text-center">食べたい！</button>
+                               </div>
+                           </div>
+                       </div>
+
+                       <button onclick="showToast('体調詳細を保存しました')" class="w-full py-2 bg-luna-sage text-white font-bold text-xs rounded-xl shadow-xs mt-2">
+                           体調サインを更新
+                       </button>
+                   </div>
+
+                   <!-- 注意事項 -->
+                   <div class="p-3 bg-stone-100 rounded-xl text-[10px] text-stone-500 leading-normal">
+                       ※予測される周期はあくまで目安です。本アプリは医学的診断を行うものではありません。アプリの提案より、ご自身の体感を最優先してください。
+                   </div>
+               </div>
+           `;
+       }
+
+       function showCycleConfigModal() {
+           const modalTitle = document.getElementById('modal-title');
+           const modalBody = document.getElementById('modal-body');
+
+           modalTitle.textContent = '生理周期の設定';
+           modalBody.innerHTML = `
+               <div class="space-y-3 text-xs">
+                   <div>
+                       <label class="block font-bold text-stone-700 mb-1">直近の生理開始日</label>
+                       <input id="cycle-start-input" type="date" value="${appData.cycle.lastPeriodStart}" class="w-full border border-stone-300 rounded-xl p-2">
+                   </div>
+                   <div>
+                       <label class="block font-bold text-stone-700 mb-1">平均周期の日数 (日)</label>
+                       <input id="cycle-len-input" type="number" value="${appData.cycle.cycleLength}" class="w-full border border-stone-300 rounded-xl p-2">
+                   </div>
+                   <button onclick="saveCycleConfig()" class="w-full py-2.5 bg-luna-sage text-white font-bold rounded-xl mt-2">
+                       更新する
+                   </button>
+               </div>
+           `;
+           document.getElementById('modal').classList.remove('hidden');
+       }
+
+       function saveCycleConfig() {
+           const startDate = document.getElementById('cycle-start-input').value;
+           const cycleLen = parseInt(document.getElementById('cycle-len-input').value) || 28;
+
+           if (startDate) {
+               appData.cycle.lastPeriodStart = startDate;
+               appData.cycle.cycleLength = cycleLen;
+               saveState();
+               closeModal();
+               showToast('生理周期設定を更新しました');
+               switchTab('cycle');
+           }
+       }
+
+       function setDetailCondition(key, val) {
+           appData.condition[key] = val;
+           saveState();
+           showToast(`${key} を「${val}」に設定しました`);
+       }
+
+       /* ==========================================================================
+          5. 体型・体重記録 & グラフ & 写真比較
+          ========================================================================== */
+       function renderProgressScreen(container) {
+           container.innerHTML = `
+               <div class="space-y-4 fade-in">
+                   <div class="flex justify-between items-center">
+                       <h2 class="font-bold text-stone-800 text-base">ボディライン変化＆記録</h2>
+                       <button onclick="showBodyLogModal()" class="px-3 py-1 bg-luna-sage text-white font-bold text-xs rounded-lg shadow-sm">
+                           <i class="fas fa-plus mr-1"></i> 新規記録
+                       </button>
+                   </div>
+
+                   <!-- リアルタイムグラフエリア -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm space-y-3">
+                       <div class="flex justify-between items-center">
+                           <h3 class="font-bold text-stone-800 text-xs">体重・ウエスト・ヒップ推移</h3>
+                           <span class="text-[10px] text-stone-400">数字よりシルエット重視</span>
+                       </div>
+                       <div class="w-full h-48">
+                           <canvas id="progressChart"></canvas>
+                       </div>
+                   </div>
+
+                   <!-- 最新記録サマリー -->
+                   <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                       <div class="bg-white p-2.5 rounded-xl border border-stone-100 shadow-xs">
+                           <span class="text-[10px] text-stone-400 block">体重</span>
+                           <span class="font-bold text-stone-800 text-sm">${appData.profile.currentWeight} kg</span>
+                       </div>
+                       <div class="bg-white p-2.5 rounded-xl border border-stone-100 shadow-xs">
+                           <span class="text-[10px] text-stone-400 block">ウエスト</span>
+                           <span class="font-bold text-stone-800 text-sm">${appData.bodyLog[appData.bodyLog.length - 1]?.waist || '--'} cm</span>
+                       </div>
+                       <div class="bg-white p-2.5 rounded-xl border border-stone-100 shadow-xs">
+                           <span class="text-[10px] text-luna-sageDark block">ヒップ</span>
+                           <span class="font-bold text-luna-sageDark text-sm">${appData.profile.currentHip} cm</span>
+                       </div>
+                   </div>
+
+                   <!-- ビフォーアフター写真比較機能 -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm space-y-3">
+                       <div class="flex justify-between items-center">
+                           <h3 class="font-bold text-stone-800 text-xs">体型比較（ビフォーアフター）</h3>
+                           <span class="text-[10px] text-stone-400">プライベート保存</span>
+                       </div>
+                       <div class="grid grid-cols-2 gap-2">
+                           ${appData.photos.map(p => `
+                               <div class="space-y-1">
+                                   <div class="aspect-[3/4] bg-stone-100 rounded-xl overflow-hidden relative border border-stone-200">
+                                       <img src="${p.url}" class="w-full h-full object-cover" alt="体型写真">
+                                       <span class="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded">${p.title}</span>
+                                   </div>
+                                   <span class="text-[10px] text-stone-500 block text-center">${p.date}</span>
+                               </div>
+                           `).join('')}
+                       </div>
+                   </div>
+
+               </div>
+           `;
+
+           // Chart.js の初期化（非同期で描画）
+           setTimeout(initProgressChart, 100);
+       }
+
+       function initProgressChart() {
+           const ctx = document.getElementById('progressChart');
+           if (!ctx) return;
+
+           const labels = appData.bodyLog.map(item => item.date);
+           const weights = appData.bodyLog.map(item => item.weight);
+           const hips = appData.bodyLog.map(item => item.hip);
+
+           new Chart(ctx, {
+               type: 'line',
+               data: {
+                   labels: labels,
+                   datasets: [
+                       {
+                           label: '体重(kg)',
+                           data: weights,
+                           borderColor: '#D4A373',
+                           backgroundColor: 'rgba(212, 163, 115, 0.1)',
+                           borderWidth: 2,
+                           tension: 0.3
+                       },
+                       {
+                           label: 'ヒップ(cm)',
+                           data: hips,
+                           borderColor: '#78938A',
+                           backgroundColor: 'rgba(120, 147, 138, 0.1)',
+                           borderWidth: 2,
+                           tension: 0.3
+                       }
+                   ]
+               },
+               options: {
+                   responsive: true,
+                   maintainAspectRatio: false,
+                   plugins: {
+                       legend: {
+                           position: 'bottom',
+                           labels: {
+                               font: { size: 10 }
+                           }
+                       }
+                   },
+                   scales: {
+                       y: {
+                           beginAtZero: false,
+                           grid: { color: '#F3F4F6' }
+                       },
+                       x: {
+                           grid: { display: false }
+                       }
+                   }
+               }
+           });
+       }
+
+       function showBodyLogModal() {
+           const modalTitle = document.getElementById('modal-title');
+           const modalBody = document.getElementById('modal-body');
+
+           modalTitle.textContent = '体型・サイズの記録';
+           modalBody.innerHTML = `
+               <div class="space-y-3 text-xs">
+                   <div>
+                       <label class="block font-bold text-stone-700 mb-1">体重 (kg)</label>
+                       <input id="log-weight" type="number" step="0.1" value="${appData.profile.currentWeight}" class="w-full border border-stone-300 rounded-xl p-2">
+                   </div>
+                   <div>
+                       <label class="block font-bold text-stone-700 mb-1">ウエスト (cm)</label>
+                       <input id="log-waist" type="number" step="0.5" value="${appData.bodyLog[appData.bodyLog.length-1]?.waist || 79}" class="w-full border border-stone-300 rounded-xl p-2">
+                   </div>
+                   <div>
+                       <label class="block font-bold text-stone-700 mb-1">ヒップ (cm)</label>
+                       <input id="log-hip" type="number" step="0.5" value="${appData.profile.currentHip}" class="w-full border border-stone-300 rounded-xl p-2">
+                   </div>
+                   <div>
+                       <label class="block font-bold text-stone-700 mb-1">太極拳の動きやすさ</label>
+                       <select id="log-taichi" class="w-full border border-stone-300 rounded-xl p-2">
+                           <option value="とても軸が安定">とても軸が安定している</option>
+                           <option value="動きやすい" selected>動きやすい</option>
+                           <option value="普通">普通</option>
+                       </select>
+                   </div>
+                   <button onclick="saveBodyLogEntry()" class="w-full py-2.5 bg-luna-sage text-white font-bold rounded-xl mt-2">
+                       保存する
+                   </button>
+               </div>
+           `;
+           document.getElementById('modal').classList.remove('hidden');
+       }
+
+       function saveBodyLogEntry() {
+           const weight = parseFloat(document.getElementById('log-weight').value) || appData.profile.currentWeight;
+           const waist = parseFloat(document.getElementById('log-waist').value) || 79;
+           const hip = parseFloat(document.getElementById('log-hip').value) || appData.profile.currentHip;
+           const taichi = document.getElementById('log-taichi').value;
+
+           const todayStr = new Date().toISOString().split('T')[0];
+
+           appData.profile.currentWeight = weight;
+           appData.profile.currentHip = hip;
+
+           appData.bodyLog.push({
+               date: todayStr,
+               weight: weight,
+               waist: waist,
+               hip: hip,
+               postureScore: 4,
+               taichiEase: taichi
+           });
+
+           saveState();
+           closeModal();
+           showToast('体型記録を更新しました');
+           switchTab('progress');
+       }
+
+       /* ==========================================================================
+          6. 設定 & プロフィール編集 画面
+          ========================================================================== */
+       function renderSettingsScreen(container) {
+           container.innerHTML = `
+               <div class="space-y-4 fade-in">
+                   <h2 class="font-bold text-stone-800 text-base">設定・プロフィール情報</h2>
+
+                   <!-- プロフィールフォーム -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm space-y-3 text-xs">
+                       <div class="font-bold text-stone-800 border-b pb-1">基本プロフィール設定</div>
+
+                       <div>
+                           <label class="block text-stone-500 mb-0.5">年齢</label>
+                           <input id="set-age" type="number" value="${appData.profile.age}" class="w-full border border-stone-300 rounded-xl p-2">
+                       </div>
+                       <div>
+                           <label class="block text-stone-500 mb-0.5">身長 (cm)</label>
+                           <input id="set-height" type="number" value="${appData.profile.height}" class="w-full border border-stone-300 rounded-xl p-2">
+                       </div>
+                       <div>
+                           <label class="block text-stone-500 mb-0.5">目標体重 (kg) ※目安設定</label>
+                           <input id="set-targetweight" type="number" value="${appData.profile.targetWeight}" class="w-full border border-stone-300 rounded-xl p-2">
+                       </div>
+                       <div>
+                           <label class="block text-stone-500 mb-0.5">運動経験</label>
+                           <input id="set-exp" type="text" value="${appData.profile.experience}" class="w-full border border-stone-300 rounded-xl p-2">
+                       </div>
+                       <div>
+                           <label class="block text-stone-500 mb-0.5">希望の運動時間コース</label>
+                           <select id="set-time" class="w-full border border-stone-300 rounded-xl p-2">
+                               <option value="3" ${appData.profile.preferredTime === '3' ? 'selected' : ''}>3分コース</option>
+                               <option value="8" ${appData.profile.preferredTime === '8' ? 'selected' : ''}>8分コース</option>
+                               <option value="15" ${appData.profile.preferredTime === '15' ? 'selected' : ''}>15分コース</option>
+                           </select>
+                       </div>
+
+                       <button onclick="saveProfileSettings()" class="w-full py-2.5 bg-luna-sage text-white font-bold rounded-xl mt-2">
+                           プロフィール保存
+                       </button>
+                   </div>
+
+                   <!-- データ管理 -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm space-y-3 text-xs">
+                       <div class="font-bold text-stone-800 border-b pb-1">データバックアップ・安全管理</div>
+                       <p class="text-stone-500 text-[11px]">本アプリのデータは端末内に保存されます。プライバシー画像やログは外部へ送信されません。</p>
+                       <div class="flex gap-2">
+                           <button onclick="exportData()" class="flex-1 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-center">
+                               データ書き出し
+                           </button>
+                           <button onclick="resetData()" class="flex-1 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl text-center">
+                               初期化
+                           </button>
+                       </div>
+                   </div>
+               </div>
+           `;
+       }
+
+       function saveProfileSettings() {
+           appData.profile.age = parseInt(document.getElementById('set-age').value) || 37;
+           appData.profile.height = parseInt(document.getElementById('set-height').value) || 151;
+           appData.profile.targetWeight = parseFloat(document.getElementById('set-targetweight').value) || 50.0;
+           appData.profile.experience = document.getElementById('set-exp').value;
+           appData.profile.preferredTime = document.getElementById('set-time').value;
+
+           saveState();
+           showToast('プロフィール設定を更新しました');
+           switchTab('home');
+       }
+
+       function exportData() {
+           const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+           const downloadAnchor = document.createElement('a');
+           downloadAnchor.setAttribute("href", dataStr);
+           downloadAnchor.setAttribute("download", `LUNA_BODY_Backup_${new Date().toISOString().split('T')[0]}.json`);
+           document.body.appendChild(downloadAnchor);
+           downloadAnchor.click();
+           downloadAnchor.remove();
+           showToast('データのエクスポートが完了しました');
+       }
+
+       function resetData() {
+           if (confirm('すべてのデータ（記録・プロフィール）を初期化しますか？')) {
+               localStorage.removeItem(APP_STORAGE_KEY);
+               appData = defaultState;
+               saveState();
+               showToast('データを初期化しました');
+               switchTab('home');
+           }
+       }
+
+       /* ==========================================================================
+          7. 専属コーチのメッセージ生成 ＆ 「喝を入れる」機能
+          ========================================================================== */
+       function getCoachAdvice(fatigueLevel, cyclePhase) {
+           if (fatigueLevel === 'high') {
+               return "今日は無理せず休む判断も立派な自己管理です。疲労を無視して追い込まず、身体を温めてリラックスしましょう。";
+           }
+           if (cyclePhase.intensity === 'gentle') {
+               return "ご自愛期です。浮腫みや体調に合わせて3分や8分の軽めの運動で十分です。自分に優しくいきましょう。";
+           }
+           return "いいコンディションですね！今日はお尻と体幹に集中して、しなやかな姿勢と太極拳の美しさをつくっていきましょう。";
+       }
+
+       function triggerKatsu() {
+           const modalTitle = document.getElementById('modal-title');
+           const modalBody = document.getElementById('modal-body');
+
+           modalTitle.textContent = '🔥 コーチからの熱い励まし';
+           modalBody.innerHTML = `
+               <div class="space-y-3 py-1">
+                   <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-stone-800 text-xs leading-relaxed font-semibold">
+                       「理想の身体になりたいなら、考えているだけじゃ変わらないよ！完璧な15分を待たなくてもいい。まず3分、今すぐ身体を動かそう！」
+                   </div>
+                   <p class="text-[11px] text-stone-500">
+                       小さな1歩を今日踏み出せるかどうかが、未来のシルエットを変えます。
+                   </p>
+                   <button onclick="closeModal(); startWorkoutProgram('3');" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs rounded-xl shadow-md">
+                       今すぐ3分コースを始める！
+                   </button>
+               </div>
+           `;
+           document.getElementById('modal').classList.remove('hidden');
+       }
+
+       /* UI ヘルパー */
+       function showToast(msg) {
+           const toast = document.getElementById('toast');
+           const toastMsg = document.getElementById('toast-msg');
+           if (toast && toastMsg) {
+               toastMsg.textContent = msg;
+               toast.classList.remove('hidden');
+               setTimeout(() => {
+                   toast.classList.add('hidden');
+               }, 3000);
+           }
+       }
+
+       function closeModal() {
+           document.getElementById('modal').classList.add('hidden');
+       }
+
+       /* 画面読み込み時の初期化 */
+       window.onload = function() {
+           switchTab('home');
+       };
+   </script>
+</body>
+</html>
