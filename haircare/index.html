@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>HairCare Companion - 美髪習慣トラッカー</title>
+ <!-- Tailwind CSS -->
+ <script src="https://cdn.tailwindcss.com"></script>
+ <!-- FontAwesome Icons -->
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <!-- Google Fonts: Inter & Noto Sans JP -->
+ <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+ <style>
+   body {
+     font-family: 'Noto Sans JP', sans-serif;
+     background-color: #faf7f5;
+     color: #3b312b;
+     font-size: 16px;
+     line-height: 1.6;
+   }
+   .gradient-header {
+     background: linear-gradient(135deg, #e8d5c8 0%, #f3ece7 50%, #e0cecb 100%);
+   }
+   .custom-scrollbar::-webkit-scrollbar {
+     width: 6px;
+   }
+   .custom-scrollbar::-webkit-scrollbar-track {
+     background: #f1f1f1;
+     border-radius: 10px;
+   }
+   .custom-scrollbar::-webkit-scrollbar-thumb {
+     background: #d4c2b8;
+     border-radius: 10px;
+   }
+   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+     background: #b8a498;
+   }
+ </style>
+</head>
+<body class="min-h-screen pb-12 text-stone-900">
+
+ <!-- Header -->
+ <header class="gradient-header py-6 px-4 shadow-sm border-b border-pink-100">
+   <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+     <div class="flex items-center gap-3">
+       <div class="bg-white/90 p-3 rounded-full shadow-inner text-amber-700">
+         <i class="fa-solid font-sparkles text-3xl">✨</i>
+       </div>
+       <div>
+         <h1 class="text-2xl md:text-3xl font-extrabold text-amber-950 tracking-wide">HairCare Companion</h1>
+         <p class="text-base md:text-lg text-stone-700 font-bold">忙しい毎日でも無理なく続く、美髪習慣トラッカー</p>
+       </div>
+     </div>
+     <!-- Progress Pill -->
+     <div class="bg-white/90 rounded-2xl px-5 py-3 shadow-sm border border-rose-100/50 flex items-center gap-4 w-full md:w-auto justify-between">
+       <div class="text-sm text-stone-700">
+         <span class="block text-stone-500 font-bold text-xs">今日の達成度</span>
+         <span id="today-progress-text" class="font-black text-amber-900 text-lg">0 / 0 タスク</span>
+       </div>
+       <div class="w-32 md:w-40 bg-stone-200 rounded-full h-4 overflow-hidden border border-stone-300">
+         <div id="today-progress-bar" class="bg-gradient-to-r from-amber-500 to-rose-500 h-full w-0 transition-all duration-500 rounded-full"></div>
+       </div>
+     </div>
+   </div>
+ </header>
+
+ <main class="max-w-4xl mx-auto px-4 mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+
+   <!-- Navigation / Sidebar -->
+   <section class="md:col-span-1 space-y-4">
+     <!-- Nav Tabs -->
+     <nav class="bg-white rounded-2xl p-2 shadow-sm border border-stone-200 flex md:flex-col gap-1 overflow-x-auto">
+       <button onclick="switchTab('tasks')" id="tab-btn-tasks" class="nav-tab active flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-bold transition-all w-full text-left bg-amber-50 text-amber-950 shadow-sm shrink-0">
+         <i class="fa-solid fa-list-check text-amber-700 text-xl"></i>
+         <span>毎日の習慣チェック</span>
+       </button>
+       <button onclick="switchTab('guides')" id="tab-btn-guides" class="nav-tab flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-bold text-stone-700 hover:bg-stone-50 transition-all w-full text-left shrink-0">
+         <i class="fa-solid fa-lightbulb text-amber-600 text-xl"></i>
+         <span>正しいヘアケアガイド</span>
+       </button>
+       <button onclick="switchTab('trivia')" id="tab-btn-trivia" class="nav-tab flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-bold text-stone-700 hover:bg-stone-50 transition-all w-full text-left shrink-0">
+         <i class="fa-solid fa-graduation-cap text-teal-700 text-xl"></i>
+         <span>美髪＆ズボラ豆知識</span>
+       </button>
+       <button onclick="switchTab('diary')" id="tab-btn-diary" class="nav-tab flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-bold text-stone-700 hover:bg-stone-50 transition-all w-full text-left shrink-0">
+         <i class="fa-solid fa-book-heart text-rose-600 text-xl"></i>
+         <span>美髪ケア日記</span>
+       </button>
+     </nav>
+
+     <!-- Hair Profile Card -->
+     <div class="bg-white rounded-2xl p-5 shadow-sm border border-stone-200 space-y-3">
+       <div class="flex justify-between items-center border-b border-stone-200 pb-2">
+         <h3 class="font-extrabold text-stone-900 text-base flex items-center gap-2">
+           <i class="fa-solid fa-user-gear text-stone-500"></i> 髪質プロフィール
+         </h3>
+         <button onclick="openProfileModal()" class="text-sm font-bold text-amber-800 hover:underline">編集</button>
+       </div>
+       <div id="profile-display" class="text-sm md:text-base space-y-2 text-stone-800">
+         <p><span class="text-stone-500 font-medium">髪質:</span> <span id="prof-type" class="font-bold text-stone-900">太め・硬め（多毛 / 量多め）</span></p>
+         <p><span class="text-stone-500 font-medium">お悩み:</span> <span id="prof-concerns" class="font-bold text-stone-900">広がり・うねり（横に広がりやすい）</span></p>
+         <p><span class="text-stone-500 font-medium">長さ:</span> <span id="prof-length" class="font-bold text-stone-900">ロング（胸の上あたり）</span></p>
+       </div>
+     </div>
+
+     <!-- Streak / Motivation Card -->
+     <div class="bg-gradient-to-br from-amber-600 to-rose-500 rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
+       <div class="relative z-10">
+         <p class="text-sm font-bold opacity-90">継続の成果</p>
+         <div class="flex items-baseline gap-2 my-1">
+           <span id="streak-count" class="text-4xl font-black">1</span>
+           <span class="text-lg font-bold">日連続達成中！</span>
+         </div>
+         <p class="text-xs md:text-sm font-medium opacity-95 mt-2 leading-relaxed">ワンオペ・育児中の忙しい毎日でも、無理せず手抜きしながら続けていきましょう✨</p>
+       </div>
+       <i class="fa-solid fa-fire text-white/20 text-7xl absolute -right-2 -bottom-2"></i>
+     </div>
+   </section>
+
+   <!-- Main Content Area -->
+   <section class="md:col-span-2">
+
+     <!-- SECTION 1: Daily Tasks -->
+     <div id="section-tasks" class="tab-content space-y-4">
+       <div class="flex justify-between items-center bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-stone-200">
+         <div>
+           <h2 class="text-xl md:text-2xl font-black text-stone-900">本日のヘアケア習慣</h2>
+           <p class="text-sm md:text-base text-stone-600 font-medium" id="current-date-str">----年--月--日</p>
+         </div>
+         <button onclick="resetDailyTasks()" class="text-sm text-stone-600 hover:text-stone-900 transition-colors bg-stone-100 hover:bg-stone-200 px-3.5 py-2 rounded-xl font-bold border border-stone-200">
+           <i class="fa-solid fa-rotate-right mr-1"></i>リセット
+         </button>
+       </div>
+
+       <!-- Task Categories -->
+       <div class="space-y-4">
+         <!-- Morning Care -->
+         <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-stone-200">
+           <h3 class="text-base font-extrabold text-amber-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+             <i class="fa-solid fa-sun text-amber-500 text-lg"></i> 朝のケア (Morning)
+           </h3>
+           <div id="morning-tasks" class="space-y-2"></div>
+         </div>
+
+         <!-- Night / Bath Care -->
+         <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-stone-200">
+           <h3 class="text-base font-extrabold text-indigo-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+             <i class="fa-solid fa-bath text-indigo-600 text-lg"></i> ナイト＆バスケア (Night & Bath)
+           </h3>
+           <div id="night-tasks" class="space-y-2"></div>
+         </div>
+
+         <!-- Lifestyle Care -->
+         <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-stone-200">
+           <h3 class="text-base font-extrabold text-emerald-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+             <i class="fa-solid fa-heart-pulse text-emerald-600 text-lg"></i> インナー＆生活習慣 (Lifestyle)
+           </h3>
+           <div id="lifestyle-tasks" class="space-y-2"></div>
+         </div>
+       </div>
+     </div>
+
+     <!-- SECTION 2: Hair Care Guides -->
+     <div id="section-guides" class="tab-content hidden space-y-4">
+       <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-stone-200 space-y-6">
+         <h2 class="text-xl md:text-2xl font-black text-stone-900 border-b border-stone-200 pb-3">美髪を育む基本テクニック＆裏ワザ</h2>
+
+         <div class="grid grid-cols-1 gap-6">
+
+           <!-- Childcare Urgent Drying Technique -->
+           <div class="border-2 border-rose-300 bg-rose-50/50 p-4 md:p-5 rounded-2xl space-y-3">
+             <h3 class="font-extrabold text-rose-950 text-base md:text-lg flex items-center gap-2">
+               <i class="fa-solid fa-baby text-rose-600 text-xl"></i> 【ワンオペ・育児中】すぐにドライヤーがかけられない時の応急対策
+             </h3>
+             <p class="text-sm md:text-base text-stone-800 leading-relaxed font-medium">
+               子供のお世話ですぐ乾かせない時は、とにかく<strong class="text-rose-900">「頭皮の湿気を逃がし、毛先の乾燥を防ぐ」</strong>ことが最優先です！
+             </p>
+             <ol class="list-decimal list-inside text-sm md:text-base text-stone-800 space-y-2.5 leading-relaxed bg-white p-4 rounded-xl border border-rose-200">
+               <li><strong class="text-rose-900">吸水マイクロファイバータオルを活用:</strong> 通常タオルの2〜3倍水分を吸う専用タオルで髪を包み、優しくプレスして水分を徹底除去。</li>
+               <li><strong class="text-rose-900">タオルターバンで頭皮の蒸れを防ぐ:</strong> 濡れたまま髪を放置すると雑菌が繁殖してニオイや頭皮トラブルの原因に。マイクロファイバータオルで包んでクリップ固定しておきます。</li>
+               <li><strong class="text-rose-900">先行ミルク・オイルで保護:</strong> お風呂から上がったらすぐに、毛先に洗い流さないトリートメントを馴染ませておくと、放置中の水分蒸発と自然乾燥のパサつきを防げます。</li>
+               <li><strong class="text-rose-900">5分でも時間ができたら根元だけ乾かす:</strong> 毛先は後回しでもOK！まずは雑菌が繁殖しやすい頭皮・地肌部分だけでもドライヤーを当てましょう。</li>
+             </ol>
+           </div>
+
+           <!-- Detailed Hair Dryer Guide -->
+           <div class="border-2 border-amber-300 bg-amber-50/60 p-4 md:p-5 rounded-2xl space-y-4">
+             <h3 class="font-extrabold text-amber-950 text-base md:text-xl flex items-center gap-2">
+               <i class="fa-solid fa-wind text-amber-700 text-2xl"></i> 【プロ直伝】多毛・胸上ロングの広がりを防ぐ！正しいドライヤーの乾かし方
+             </h3>
+             <p class="text-sm md:text-base text-stone-800 leading-relaxed font-medium">
+               多毛・うねり・胸上ロングの方は「乾かす順番」と「風の向き」で膨らみが劇的に抑えられます！
+             </p>
+
+             <div class="space-y-3 text-sm md:text-base text-stone-800">
+               <!-- Step 1 -->
+               <div class="bg-white p-4 rounded-xl border border-amber-200">
+                 <div class="flex items-center gap-2 font-bold text-amber-950 mb-1">
+                   <span class="bg-amber-600 text-white text-xs md:text-sm px-2.5 py-0.5 rounded-full font-bold">STEP 1</span>
+                   <span class="text-base font-bold">タオルでポンポン！水分をしっかり取る</span>
+                 </div>
+                 <p class="text-stone-700 text-sm md:text-base leading-relaxed">
+                   摩擦を起こさないようタオルで挟むようにポンポンと水分を吸収させます。特に髪が溜まりやすい「頭皮の根元・えり足」はタオルの上から揉み込んで水分を拭き取りましょう。
+                 </p>
+               </div>
+
+               <!-- Step 2 -->
+               <div class="bg-white p-4 rounded-xl border border-amber-200">
+                 <div class="flex items-center gap-2 font-bold text-amber-950 mb-1">
+                   <span class="bg-amber-600 text-white text-xs md:text-sm px-2.5 py-0.5 rounded-full font-bold">STEP 2</span>
+                   <span class="text-base font-bold">ミルク ➔ オイルの「重ね付け（W使い）」</span>
+                 </div>
+                 <p class="text-stone-700 text-sm md:text-base leading-relaxed">
+                   多毛・乾燥毛・うねりには**【1】内部を潤すミルク ➔ 【2】水分にフタをするオイル**の順番が最強。耳より下の毛先〜中間に馴染ませます。
+                 </p>
+               </div>
+
+               <!-- Step 3 -->
+               <div class="bg-white p-4 rounded-xl border border-amber-200">
+                 <div class="flex items-center gap-2 font-bold text-amber-950 mb-1">
+                   <span class="bg-amber-600 text-white text-xs md:text-sm px-2.5 py-0.5 rounded-full font-bold">STEP 3</span>
+                   <span class="text-base font-bold">「地肌・えり足」の根元から風を当てる</span>
+                 </div>
+                 <p class="text-stone-700 text-sm md:text-base leading-relaxed">
+                   胸上ロングや量が多い方は、内側が乾きにくいため**「えり足」や「耳の後ろ」の根元に手を差し入れ、地肌に向けて温風**を当てます。根元が8割乾くまで毛先は放置でOK！
+                 </p>
+               </div>
+
+               <!-- Step 4 -->
+               <div class="bg-white p-4 rounded-xl border border-amber-200">
+                 <div class="flex items-center gap-2 font-bold text-amber-950 mb-1">
+                   <span class="bg-amber-600 text-white text-xs md:text-sm px-2.5 py-0.5 rounded-full font-bold">STEP 4</span>
+                   <span class="text-base font-bold">風は常に「上から下」に向ける（広がり防止）</span>
+                 </div>
+                 <p class="text-stone-700 text-sm md:text-base leading-relaxed">
+                   下から風を当てるとキューティクルがめくれて髪が横に膨らみます。ドライヤーを上から構え、**手ぐしで軽く下にテンション（引っ張り）を掛けながら上から下に風を滑らせる**ことでボリュームを抑えます。
+                 </p>
+               </div>
+
+               <!-- Step 5 -->
+               <div class="bg-white p-4 rounded-xl border border-amber-200">
+                 <div class="flex items-center gap-2 font-bold text-amber-950 mb-1">
+                   <span class="bg-amber-600 text-white text-xs md:text-sm px-2.5 py-0.5 rounded-full font-bold">STEP 5</span>
+                   <span class="text-base font-bold">仕上げの「冷風（クールドライ）」でツヤ固定</span>
+                 </div>
+                 <p class="text-stone-700 text-sm md:text-base leading-relaxed">
+                   全体が9割乾いたら、手ぐしを通しながら上から下に冷風を当てます。キューティクルが引き締まり、ツヤと翌朝の収まり（広がり防止）が持続します。
+                 </p>
+               </div>
+             </div>
+           </div>
+
+           <!-- Hair Straightener / Iron Guide -->
+           <div class="border border-stone-300 bg-amber-50/40 p-4 md:p-5 rounded-2xl space-y-3">
+             <h3 class="font-extrabold text-amber-950 text-base md:text-lg flex items-center gap-2">
+               <i class="fa-solid fa-wand-magic-sparkles text-amber-600 text-xl"></i> 【使いこなし術】多毛・うねり毛を美しく伸ばすヘアアイロンの極意
+             </h3>
+             <ul class="list-disc list-inside text-sm md:text-base text-stone-800 space-y-2.5 leading-relaxed bg-white p-4 rounded-xl border border-amber-200">
+               <li><strong class="text-amber-900">アイロン前は原則何もつけない（または専用品）:</strong> 一般的なオイルを塗ってすぐアイロンを当てると髪が熱で揚がって傷みます！夜のケアが効いていれば素髪のまま当ててOK。オイルはアイロンの「後」につけましょう。</li>
+               <li><strong class="text-amber-900">必ず完全に乾いてから使用:</strong> 水分が残った状態でアイロンを当てると水蒸気爆発が起き、髪が傷んでパサつきの原因になります。</li>
+               <li><strong class="text-amber-900">適正温度は140℃〜160℃:</strong> 髪が硬め・多毛でも160℃あれば十分伸びます。180℃以上はタンパク質が変性して髪が硬くなるため避けましょう。</li>
+               <li><strong class="text-amber-900">ダッカール（髪留め）でブロッキング:</strong> 髪を上・中・下に分けて少束ずつ挟むのが一番の近道。一度に大量の髪を挟むと熱が伝わらず何度も当てることになります。</li>
+               <li><strong class="text-amber-900">ゆっくり1回滑らせる:</strong> 同じ場所に止まらず、根元から毛先に向かって3〜5秒かけてスーッと1回で滑らせるのがコツです。</li>
+             </ul>
+           </div>
+
+           <!-- Comb Alternative Guide -->
+           <div class="border border-purple-200 bg-purple-50/40 p-4 md:p-5 rounded-2xl space-y-3">
+             <h3 class="font-extrabold text-purple-950 text-base md:text-lg flex items-center gap-2">
+               <i class="fa-solid fa-hand-sparkles text-purple-600 text-xl"></i> 粗めコームがない時の代用アイデア＆「粗手ぐし」のコツ
+             </h3>
+             <p class="text-sm md:text-base text-stone-800 leading-relaxed font-medium">
+               トリートメントを馴染ませる際、粗めコームが手元になくても大丈夫です！以下の方法で浸透させることができます。
+             </p>
+             <div class="bg-white p-4 rounded-xl border border-purple-200 space-y-3 text-sm md:text-base text-stone-800">
+               <div class="border-b border-stone-200 pb-2">
+                 <span class="font-bold text-purple-950">① 「手ぐしコーム（粗手ぐし）」で通す</span>
+                 <p class="text-sm text-stone-700 mt-1">指を少し開いて「粗いコームの歯」に見立てます。髪の根元ではなく**中間〜毛先**に向けて、引っ張らずに指の間を優しくすり抜けさせるように滑らせます。</p>
+               </div>
+               <div class="border-b border-stone-200 pb-2">
+                 <span class="font-bold text-purple-950">② 手のひらで挟んで滑らせる（タッピング）</span>
+                 <p class="text-sm text-stone-700 mt-1">トリートメントをつけた部分を両手の手のひらで優しく挟み、上から下へすーっと滑らせる（なめす）だけで、成分がムラなく広がります。</p>
+               </div>
+             </div>
+           </div>
+
+         </div>
+       </div>
+     </div>
+
+     <!-- SECTION 3: Trivia Section -->
+     <div id="section-trivia" class="tab-content hidden space-y-4">
+       <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-stone-200 space-y-5">
+         <h2 class="text-xl md:text-2xl font-black text-teal-950 border-b border-stone-200 pb-3 flex items-center gap-2">
+           <i class="fa-solid fa-graduation-cap text-teal-600"></i> 美髪＆ズボラケアの知恵袋
+         </h2>
+
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+           <!-- Lazy Shampoo Tip -->
+           <div class="p-4 bg-teal-50/70 rounded-2xl border border-teal-200 space-y-2">
+             <h3 class="font-extrabold text-teal-950 text-base md:text-lg flex items-center gap-2">
+               <i class="fa-solid fa-spray-can-sparkles text-teal-700"></i> 洗うのが面倒な日は「湯シャン＆スプレー」
+             </h3>
+             <p class="text-sm text-stone-800 leading-relaxed font-medium">
+               「今日は髪を洗う気力がない…」という日は無理しなくてOK！お湯だけで洗う「湯シャン」や、頭皮にシューッとするだけの**「スプレー型ドライシャンプー」**を活用しましょう。水もドライヤーも不要で10秒でスッキリします。
+             </p>
+           </div>
+
+           <!-- Milk & Oil W Use Tip -->
+           <div class="p-4 bg-amber-50/70 rounded-2xl border border-amber-200 space-y-2">
+             <h3 class="font-extrabold text-amber-950 text-base md:text-lg flex items-center gap-2">
+               <i class="fa-solid fa-bottle-droplet text-amber-700"></i> ミルク ➔ オイルの順番で塗る理由
+             </h3>
+             <p class="text-sm text-stone-800 leading-relaxed font-medium">
+               ヘアミルクは「化粧水（水分補給）」、ヘアオイルは「乳液・フタ（油分）」の役割。**先にミルクで水分を補い、後からオイルで蓋をする**ことで多毛・うねりの横広がりを最強レベルで抑えられます。
+             </p>
+           </div>
+
+           <!-- Night Oil Timing Tip -->
+           <div class="p-4 bg-indigo-50/70 rounded-2xl border border-indigo-200 space-y-2">
+             <h3 class="font-extrabold text-indigo-950 text-base md:text-lg flex items-center gap-2">
+               <i class="fa-solid fa-moon text-indigo-700"></i> オイルは「夜の乾かす前だけ」でOK！
+             </h3>
+             <p class="text-sm text-stone-800 leading-relaxed font-medium">
+               朝も夜も塗るのは面倒！それなら「夜のドライヤー前」の1回だけに絞りましょう。寝ている間の乾燥と摩擦を防ぐため、翌朝の爆発・横広がりが激減し、朝のセットが格段に楽になります。
+             </p>
+           </div>
+
+           <!-- Lazy UV Protection Tip -->
+           <div class="p-4 bg-rose-50/70 rounded-2xl border border-rose-200 space-y-2">
+             <h3 class="font-extrabold text-rose-950 text-base md:text-lg flex items-center gap-2">
+               <i class="fa-solid fa-sun text-rose-700"></i> 家にいる日は「UVスプレー不要」！
+             </h3>
+             <p class="text-sm text-stone-800 leading-relaxed font-medium">
+               室内中心の日は毎日UVスプレーをかける必要はありません。レースカーテンを閉めておくか、外に出る時だけサッと帽子をかぶるのが一番ラクで効果的な紫外線対策です。
+             </p>
+           </div>
+
+           <!-- Cold Wind Tip -->
+           <div class="p-4 bg-blue-50/70 rounded-2xl border border-blue-200 space-y-2">
+             <h3 class="font-extrabold text-blue-950 text-base md:text-lg flex items-center gap-2">
+               <i class="fa-solid fa-snowflake text-blue-700"></i> 冷風（クールドライ）の魔法
+             </h3>
+             <p class="text-sm text-stone-800 leading-relaxed font-medium">
+               髪のタンパク質は「温まると柔らかくなり、冷えると固まる」性質があります。温風で乾かした後に冷風を当てるとスタイルとツヤがキュッと固定され、うねりや広がりを防げます。
+             </p>
+           </div>
+
+           <!-- Wet Hair Tip -->
+           <div class="p-4 bg-purple-50/70 rounded-2xl border border-purple-200 space-y-2">
+             <h3 class="font-extrabold text-purple-950 text-base md:text-lg flex items-center gap-2">
+               <i class="fa-solid fa-shield-cat text-purple-700"></i> 擦り合わせ摩擦はNG！
+             </h3>
+             <p class="text-sm text-stone-800 leading-relaxed font-medium">
+               濡れた髪はキューティクルが開いてとても傷つきやすい状態です。タオルでゴシゴシ擦るのではなく、ポンポンと挟み込むように水分を拭き取りましょう。
+             </p>
+           </div>
+
+         </div>
+       </div>
+     </div>
+
+     <!-- SECTION 4: Hair Diary -->
+     <div id="section-diary" class="tab-content hidden space-y-4">
+       <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-200 space-y-4">
+         <h2 class="text-xl md:text-2xl font-black text-stone-900 flex items-center justify-between">
+           <span>今日の髪の状態を記録</span>
+           <span class="text-xs md:text-sm text-stone-500 font-bold">コツコツ観察</span>
+         </h2>
+
+         <div class="space-y-4">
+           <!-- Condition Rating -->
+           <div>
+             <label class="block text-base font-extrabold text-stone-800 mb-2">髪のコンディション</label>
+             <div class="flex gap-2" id="rating-container">
+               <button onclick="setRating(1)" class="rate-btn flex-1 py-3 border border-stone-300 rounded-xl text-2xl md:text-3xl hover:bg-amber-50" data-rate="1">😩</button>
+               <button onclick="setRating(2)" class="rate-btn flex-1 py-3 border border-stone-300 rounded-xl text-2xl md:text-3xl hover:bg-amber-50" data-rate="2">🙁</button>
+               <button onclick="setRating(3)" class="rate-btn flex-1 py-3 border border-stone-300 rounded-xl text-2xl md:text-3xl hover:bg-amber-50" data-rate="3">😐</button>
+               <button onclick="setRating(4)" class="rate-btn flex-1 py-3 border border-stone-300 rounded-xl text-2xl md:text-3xl hover:bg-amber-50" data-rate="4">🙂</button>
+               <button onclick="setRating(5)" class="rate-btn flex-1 py-3 border-2 border-amber-500 bg-amber-50 rounded-xl text-2xl md:text-3xl" data-rate="5">✨</button>
+             </div>
+           </div>
+
+           <!-- Notes -->
+           <div>
+             <label class="block text-base font-extrabold text-stone-800 mb-2">メモ・使用したアイテム</label>
+             <textarea id="diary-note" placeholder="例: ドライシャンプー使用で超ラクだった！/ 夜のオイル重ね付けで広がりが抑えられた。" class="w-full text-base bg-stone-50 border border-stone-300 rounded-xl p-3.5 focus:outline-none focus:border-amber-600 h-28 resize-none font-medium"></textarea>
+           </div>
+
+           <button onclick="saveDiaryEntry()" class="w-full bg-stone-900 text-white py-3.5 rounded-xl text-base font-bold hover:bg-black transition-colors shadow-sm">
+             記録を保存する
+           </button>
+         </div>
+       </div>
+
+       <!-- Diary History List -->
+       <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-200 space-y-3">
+         <h3 class="text-base font-extrabold text-stone-900">過去の記録</h3>
+         <div id="diary-history" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
+           <!-- Entries injected by JS -->
+         </div>
+       </div>
+     </div>
+
+   </section>
+ </main>
+
+ <!-- Profile Edit Modal -->
+ <div id="profile-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+   <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-stone-200">
+     <h3 class="text-xl font-black text-stone-900">髪質プロフィールの編集</h3>
+
+     <div class="space-y-3 text-base">
+       <div>
+         <label class="block font-bold text-stone-800 mb-1">髪質・毛量</label>
+         <select id="input-type" class="w-full bg-stone-50 border border-stone-300 rounded-xl p-3 text-base font-bold">
+           <option value="太め・硬め（多毛 / 量多め）">太め・硬め（多毛 / 量多め）</option>
+           <option value="細め・柔らかい">細め・柔らかい（猫っ毛）</option>
+           <option value="普通髪">普通髪</option>
+           <option value="くせ毛・うねり毛">くせ毛・うねり毛</option>
+         </select>
+       </div>
+
+       <div>
+         <label class="block font-bold text-stone-800 mb-1">一番の悩み</label>
+         <select id="input-concerns" class="w-full bg-stone-50 border border-stone-300 rounded-xl p-3 text-base font-bold">
+           <option value="広がり・うねり（横に広がりやすい）">広がり・うねり（横に広がりやすい）</option>
+           <option value="乾燥・パサつき">乾燥・パサつき</option>
+           <option value="ダメージ・枝毛">ダメージ・枝毛</option>
+           <option value="ペタンコ・ボリューム不足">ペタンコ・ボリューム不足</option>
+           <option value="頭皮のかゆみ・フケ">頭皮のかゆみ・フケ</option>
+         </select>
+       </div>
+
+       <div>
+         <label class="block font-bold text-stone-800 mb-1">髪の長さ</label>
+         <select id="input-length" class="w-full bg-stone-50 border border-stone-300 rounded-xl p-3 text-base font-bold">
+           <option value="ロング（胸の上あたり）">ロング（胸の上あたり）</option>
+           <option value="ショート">ショート</option>
+           <option value="ボブ">ボブ</option>
+           <option value="ミディアム">ミディアム</option>
+         </select>
+       </div>
+     </div>
+
+     <div class="flex gap-2 pt-2">
+       <button onclick="closeProfileModal()" class="flex-1 bg-stone-100 text-stone-800 py-3 rounded-xl text-base font-bold hover:bg-stone-200">キャンセル</button>
+       <button onclick="saveProfile()" class="flex-1 bg-amber-800 text-white py-3 rounded-xl text-base font-bold hover:bg-amber-900">保存</button>
+     </div>
+   </div>
+ </div>
+
+ <script>
+   // Master Tasks Data with updated routines
+   const defaultTasks = [
+     { id: 'm1', cat: 'morning', text: '朝の手ぐし・ブラッシング（絡まりを優しく解く）', checked: false },
+     { id: 'm2', cat: 'morning', text: '【外出時のみ】帽子をかぶるかサッと紫外線カット', checked: false },
+     { id: 'm3', cat: 'morning', text: 'アイロン使用時は140〜160℃でゆっくり1回滑らせる', checked: false },
+     { id: 'n1', cat: 'night', text: '洗うのが面倒な日は「湯シャン」か「ドライシャンプー」で楽をする', checked: false },
+     { id: 'n2', cat: 'night', text: 'トリートメントは「粗手ぐし」や手のひら挟みで揉み込む', checked: false },
+     { id: 'n3', cat: 'night', text: '【ワンオペ用】お風呂上がりにマイクロファイバータオルで速攻吸水＆ターバン', checked: false },
+     { id: 'n4', cat: 'night', text: '【夜1回でOK】タオルドライ後にヘアミルク＋オイルの重ね付け（広がり防止）', checked: false },
+     { id: 'n5', cat: 'night', text: 'えり足・地肌の根元から乾かし、仕上げは上からの冷風でツヤ出し', checked: false },
+     { id: 'l1', cat: 'lifestyle', text: 'こまめな水分補給（頭皮環境の改善）', checked: false },
+     { id: 'l2', cat: 'lifestyle', text: 'タンパク質と亜鉛を意識した食事', checked: false }
+   ];
+
+   // State Variables (User Profile Defaults)
+   let userProfile = {
+     type: '太め・硬め（多毛 / 量多め）',
+     concerns: '広がり・うねり（横に広がりやすい）',
+     length: 'ロング（胸の上あたり）'
+   };
+   let dailyTasks = [];
+   let diaryEntries = [];
+   let currentRating = 5;
+   let streakCount = 1;
+
+   // --- Initialization ---
+   window.onload = function() {
+     loadData();
+
+     const now = new Date();
+     const dateStr = now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+     document.getElementById('current-date-str').innerText = dateStr;
+
+     renderTasks();
+     updateProgress();
+     renderProfile();
+     renderDiary();
+   };
+
+   // --- LocalStorage Utilities ---
+   function saveData() {
+     localStorage.setItem('haircare_profile', JSON.stringify(userProfile));
+     localStorage.setItem('haircare_tasks', JSON.stringify(dailyTasks));
+     localStorage.setItem('haircare_diary', JSON.stringify(diaryEntries));
+     localStorage.setItem('haircare_streak', streakCount.toString());
+   }
+
+   function loadData() {
+     const savedProfile = localStorage.getItem('haircare_profile');
+     if (savedProfile) userProfile = JSON.parse(savedProfile);
+
+     const savedTasks = localStorage.getItem('haircare_tasks');
+     if (savedTasks) {
+       dailyTasks = JSON.parse(savedTasks);
+     } else {
+       dailyTasks = [...defaultTasks];
+     }
+
+     const savedDiary = localStorage.getItem('haircare_diary');
+     if (savedDiary) diaryEntries = JSON.parse(savedDiary);
+
+     const savedStreak = localStorage.getItem('haircare_streak');
+     if (savedStreak) streakCount = parseInt(savedStreak, 10);
+     document.getElementById('streak-count').innerText = streakCount;
+   }
+
+   // --- Navigation ---
+   function switchTab(tabName) {
+     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+     document.querySelectorAll('.nav-tab').forEach(el => {
+       el.classList.remove('bg-amber-50', 'text-amber-950', 'shadow-sm', 'font-bold');
+       el.classList.add('text-stone-700', 'font-bold');
+     });
+
+     document.getElementById(`section-${tabName}`).classList.remove('hidden');
+     const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+     activeBtn.classList.add('bg-amber-50', 'text-amber-950', 'shadow-sm', 'font-bold');
+     activeBtn.classList.remove('text-stone-700');
+   }
+
+   // --- Tasks Functionality ---
+   function renderTasks() {
+     const categories = ['morning', 'night', 'lifestyle'];
+     categories.forEach(cat => {
+       const container = document.getElementById(`${cat}-tasks`);
+       container.innerHTML = '';
+       const catTasks = dailyTasks.filter(t => t.cat === cat);
+
+       catTasks.forEach(task => {
+         const item = document.createElement('div');
+         item.className = 'flex items-center gap-3 p-3.5 rounded-xl hover:bg-stone-50 transition-colors cursor-pointer text-base border border-stone-200/80';
+         item.onclick = () => toggleTask(task.id);
+
+         item.innerHTML = `
+           <input type="checkbox" ${task.checked ? 'checked' : ''} class="w-5 h-5 accent-amber-700 rounded cursor-pointer pointer-events-none">
+           <span class="${task.checked ? 'line-through text-stone-400 font-normal' : 'text-stone-900 font-bold'} select-none">${task.text}</span>
+         `;
+         container.appendChild(item);
+       });
+     });
+   }
+
+   function toggleTask(id) {
+     const task = dailyTasks.find(t => t.id === id);
+     if (task) {
+       task.checked = !task.checked;
+       saveData();
+       renderTasks();
+       updateProgress();
+     }
+   }
+
+   function updateProgress() {
+     const total = dailyTasks.length;
+     const completed = dailyTasks.filter(t => t.checked).length;
+     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+     document.getElementById('today-progress-text').innerText = `${completed} / ${total} タスク (${percentage}%)`;
+     document.getElementById('today-progress-bar').style.width = `${percentage}%`;
+   }
+
+   function resetDailyTasks() {
+     dailyTasks.forEach(t => t.checked = false);
+     saveData();
+     renderTasks();
+     updateProgress();
+   }
+
+   // --- Profile Modal ---
+   function openProfileModal() {
+     document.getElementById('input-type').value = userProfile.type;
+     document.getElementById('input-concerns').value = userProfile.concerns;
+     document.getElementById('input-length').value = userProfile.length;
+     document.getElementById('profile-modal').classList.remove('hidden');
+   }
+
+   function closeProfileModal() {
+     document.getElementById('profile-modal').classList.add('hidden');
+   }
+
+   function saveProfile() {
+     userProfile.type = document.getElementById('input-type').value;
+     userProfile.concerns = document.getElementById('input-concerns').value;
+     userProfile.length = document.getElementById('input-length').value;
+
+     saveData();
+     renderProfile();
+     closeProfileModal();
+   }
+
+   function renderProfile() {
+     document.getElementById('prof-type').innerText = userProfile.type;
+     document.getElementById('prof-concerns').innerText = userProfile.concerns;
+     document.getElementById('prof-length').innerText = userProfile.length;
+   }
+
+   function escapeHtml(str) {
+     return str.replace(/[&<>"']/g, function(m) {
+       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+     });
+   }
+
+   // --- Hair Diary Functionality ---
+   function setRating(val) {
+     currentRating = val;
+     document.querySelectorAll('.rate-btn').forEach(btn => {
+       if (parseInt(btn.dataset.rate) === val) {
+         btn.classList.add('border-2', 'border-amber-500', 'bg-amber-50');
+       } else {
+         btn.classList.remove('border-2', 'border-amber-500', 'bg-amber-50');
+       }
+     });
+   }
+
+   function saveDiaryEntry() {
+     const note = document.getElementById('diary-note').value.trim();
+     const ratingIcons = { 1: '😩', 2: '🙁', 3: '😐', 4: '🙂', 5: '✨' };
+
+     const newEntry = {
+       id: Date.now(),
+       date: new Date().toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+       rating: currentRating,
+       icon: ratingIcons[currentRating],
+       note: note || 'メモなし'
+     };
+
+     diaryEntries.unshift(newEntry);
+     document.getElementById('diary-note').value = '';
+
+     saveData();
+     renderDiary();
+   }
+
+   function renderDiary() {
+     const historyContainer = document.getElementById('diary-history');
+     historyContainer.innerHTML = '';
+
+     if (diaryEntries.length === 0) {
+       historyContainer.innerHTML = '<p class="text-base text-stone-500 font-medium">まだ記録がありません。今日の様子を記録してみましょう！</p>';
+       return;
+     }
+
+     diaryEntries.forEach(entry => {
+       const item = document.createElement('div');
+       item.className = 'p-4 bg-stone-50 border border-stone-200 rounded-xl text-base space-y-1';
+       item.innerHTML = `
+         <div class="flex justify-between items-center font-bold text-stone-900">
+           <span>${entry.date}</span>
+           <span class="text-2xl">${entry.icon}</span>
+         </div>
+         <p class="text-stone-800 leading-relaxed font-medium">${escapeHtml(entry.note)}</p>
+       `;
+       historyContainer.appendChild(item);
+     });
+   }
+ </script>
+</body>
+</html>
