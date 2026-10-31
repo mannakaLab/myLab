@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>フェイスライン習慣化アプリ</title>
+ <script src="https://cdn.tailwindcss.com"></script>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen pb-12">
+
+ <!-- Header -->
+ <header class="bg-gradient-to-r from-pink-500 to-rose-400 text-white p-4 shadow-md sticky top-0 z-10">
+   <div class="max-w-md mx-auto flex justify-between items-center">
+     <div class="flex items-center space-x-2">
+       <i class="fa-solid font-bold text-xl fa-face-smile"></i>
+       <h1 class="text-lg font-bold tracking-wide">FaceLine Habit</h1>
+     </div>
+     <div class="text-xs bg-white/20 px-3 py-1 rounded-full font-medium">
+       連続 <span id="streak-count" class="font-bold text-yellow-300">1</span> 日目
+     </div>
+   </div>
+ </header>
+
+ <main class="max-w-md mx-auto p-4 space-y-6">
+
+   <!-- Date Header & Reset Status -->
+   <div class="flex justify-between items-center px-1 text-xs text-slate-500">
+     <div id="today-date-str" class="font-bold text-slate-700">2026年10月31日(土)</div>
+     <div class="flex items-center gap-1 text-slate-400">
+       <i class="fa-solid fa-rotate-left text-[10px]"></i> 毎日0時に自動リセット
+     </div>
+   </div>
+
+   <!-- Hero Progress Banner -->
+   <section class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden">
+     <div class="flex justify-between items-end mb-2">
+       <div>
+         <span class="text-xs font-semibold text-rose-500 uppercase tracking-wider">Today's Goal</span>
+         <h2 class="text-xl font-bold text-slate-800">今日のフェイスライン習慣</h2>
+       </div>
+       <span id="progress-percent" class="text-2xl font-black text-rose-500">0%</span>
+     </div>
+     <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+       <div id="progress-bar" class="bg-gradient-to-r from-pink-400 to-rose-500 h-full w-0 transition-all duration-500 rounded-full"></div>
+     </div>
+     <p id="progress-message" class="text-xs text-slate-500 mt-3">まずはひとつ習慣をクリアしてみましょう！</p>
+   </section>
+
+   <!-- Quick Exercise Launcher -->
+   <section class="bg-gradient-to-br from-rose-50 to-pink-50 p-5 rounded-3xl border border-pink-100 flex items-center justify-between">
+     <div>
+       <div class="flex items-center gap-1.5">
+         <span class="text-xs font-bold text-pink-600 bg-pink-100 px-2 py-0.5 rounded-full" id="today-day-tag">本日のおすすめ</span>
+         <span class="text-[10px] text-pink-500 font-semibold" id="exercise-category-tag">日替わり</span>
+       </div>
+       <h3 class="font-bold text-slate-800 text-base mt-1" id="today-exercise-title">本日の筋トレ</h3>
+       <p class="text-xs text-slate-500 mt-0.5" id="today-exercise-sub">毎日違うメニューで効果アップ！</p>
+     </div>
+     <button onclick="openTimerModal()" class="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white font-bold px-4 py-2.5 rounded-2xl text-sm shadow-md shadow-pink-500/20 transition flex items-center gap-1.5 shrink-0">
+       <i class="fa-solid fa-play text-xs"></i> 開始
+     </button>
+   </section>
+
+   <!-- Daily Checklist -->
+   <section class="space-y-3">
+     <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+       <i class="fa-solid fa-square-check text-rose-500"></i> 本日のチェックリスト
+     </h3>
+
+     <div id="checklist-container" class="space-y-2">
+       <!-- JSで生成されます -->
+     </div>
+   </section>
+
+   <!-- Posture & Habit Tips -->
+   <section class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-3">
+     <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+       <i class="fa-solid fa-lightbulb text-amber-500"></i> フェイスラインを崩さない秘訣
+     </h3>
+     <div class="grid grid-cols-2 gap-2 text-xs">
+       <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100">
+         <div class="font-bold text-slate-700 mb-1"><i class="fa-solid fa-head-side-virus text-pink-500"></i> スマホ首に注意</div>
+         <p class="text-slate-500 leading-relaxed">画面を少し高くして顎下のたるみを防止。</p>
+       </div>
+       <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100">
+         <div class="font-bold text-slate-700 mb-1"><i class="fa-solid fa-tooth text-pink-500"></i> 歯をかみ合わせない</div>
+         <p class="text-slate-500 leading-relaxed">普段は上の歯と下の歯に少し隙間を開ける。</p>
+       </div>
+     </div>
+   </section>
+
+ </main>
+
+ <!-- Timer Modal -->
+ <div id="timer-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+   <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl relative space-y-5 text-center">
+
+     <button onclick="closeTimerModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2">
+       <i class="fa-solid fa-xmark text-xl"></i>
+     </button>
+
+     <div>
+       <h3 id="exercise-name" class="text-lg font-bold text-slate-800">あいうえお体操</h3>
+       <p id="exercise-desc" class="text-xs text-slate-500 mt-1 min-h-[36px]">口を大きく開き、「あ・い・う・え・お」と大きく動かします。</p>
+     </div>
+
+     <!-- Workout Selector Tab -->
+     <div id="exercise-tabs" class="flex rounded-xl bg-slate-100 p-1 text-[11px] font-medium overflow-x-auto">
+       <!-- JSで曜日・別メニューを生成 -->
+     </div>
+
+     <!-- Overall Steps Overview List -->
+     <div class="bg-rose-50/60 p-3 rounded-2xl border border-rose-100 text-left">
+       <div class="text-[11px] font-bold text-pink-600 mb-1.5 flex items-center gap-1">
+         <i class="fa-solid fa-list-ol text-xs"></i> 全体の流れ（全ステップ）
+       </div>
+       <div id="exercise-steps-overview" class="flex flex-wrap gap-1.5 text-xs">
+         <!-- JSで全ステップ一覧を挿入 -->
+       </div>
+     </div>
+
+     <!-- Timer Box with Progress Ring -->
+     <div class="relative w-52 h-52 mx-auto flex flex-col items-center justify-center">
+       <!-- Circular Progress Ring (SVG) -->
+       <svg class="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+         <circle cx="50" cy="50" r="44" stroke="#fce7f3" stroke-width="8" fill="none" />
+         <circle id="timer-progress-ring" cx="50" cy="50" r="44" stroke="#ec4899" stroke-width="8" fill="none"
+                 stroke-dasharray="276.46" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-300 ease-linear" />
+       </svg>
+
+       <!-- Inner Content Container -->
+       <div class="relative z-10 flex flex-col items-center justify-center w-40 h-40 rounded-full bg-white shadow-inner p-2">
+         <!-- Main Step Text -->
+         <div id="exercise-action" class="text-2xl font-black text-pink-500 my-1 truncate max-w-[140px]">
+           READY
+         </div>
+         <!-- Current Step Counter -->
+         <div id="exercise-step" class="text-xs font-semibold text-slate-400">
+           タップしてスタート
+         </div>
+         <!-- Countdown Seconds -->
+         <div id="exercise-timer" class="text-xs font-bold text-pink-600 mt-2 bg-pink-50 px-3 py-1 rounded-full border border-pink-100">
+           残り 60秒
+         </div>
+       </div>
+     </div>
+
+     <!-- Start/Pause Button -->
+     <div>
+       <button id="timer-start-btn" onclick="toggleTimer()" class="bg-pink-500 text-white font-bold px-8 py-3.5 rounded-2xl shadow-lg shadow-pink-500/30 hover:bg-pink-600 active:scale-95 transition w-full text-base">
+         スタート
+       </button>
+     </div>
+
+   </div>
+ </div>
+
+ <script>
+   // Checklist items data
+   const habits = [
+     { id: 1, title: '本日のフェイス筋トレ（1分）', desc: '曜日ごとの日替わりメニューを実践', done: false },
+     { id: 2, title: '正しい姿勢の意識（姿勢を整える）', desc: '猫背・ストレートネックの防止', done: false },
+     { id: 3, title: '水分補給（コップ1杯）', desc: 'むくみを解消し代謝を高める', done: false },
+     { id: 4, title: '噛み締め（食いしばり）チェック', desc: '奥歯に力を入れない状態をキープ', done: false },
+     { id: 5, title: '湯船に浸かってむくみケア', desc: '血行を良くしてフェイスラインすっきり', done: false }
+   ];
+
+   // 今日の日付を取得 (YYYY-MM-DD形式)
+   function getTodayKey() {
+     const d = new Date();
+     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+   }
+
+   // 今日の日付表示を更新
+   function updateDateDisplay() {
+     const d = new Date();
+     const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+     const dateStr = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日(${weekDays[d.getDay()]})`;
+     const dateEl = document.getElementById('today-date-str');
+     if (dateEl) dateEl.textContent = dateStr;
+   }
+
+   // ローカルストレージからの自動リセット付きデータ読み込み
+   function loadSavedState() {
+     const todayKey = getTodayKey();
+     const lastSavedDate = localStorage.getItem('faceline_last_date');
+     const savedHabits = localStorage.getItem('faceline_habits');
+     const savedStreak = localStorage.getItem('faceline_streak');
+
+     if (savedStreak) {
+       document.getElementById('streak-count').textContent = savedStreak;
+     }
+
+     // 日付が変わっている場合は自動リセット！
+     if (lastSavedDate !== todayKey) {
+       // 前日が全達成されていたかチェック（連続達成カウント更新用）
+       if (savedHabits && lastSavedDate) {
+         const prevHabits = JSON.parse(savedHabits);
+         const allDone = prevHabits.every(h => h.done);
+         let streak = parseInt(savedStreak || '1', 10);
+         if (allDone) {
+           streak += 1;
+         }
+         localStorage.setItem('faceline_streak', streak);
+         document.getElementById('streak-count').textContent = streak;
+       }
+
+       // 新しい日のチェックリストを初期化（全て未達成）
+       habits.forEach(h => h.done = false);
+       saveState();
+     } else if (savedHabits) {
+       // 同じ日であれば保存されている達成状況を読み込む
+       const loaded = JSON.parse(savedHabits);
+       loaded.forEach(savedH => {
+         const h = habits.find(item => item.id === savedH.id);
+         if (h) h.done = savedH.done;
+       });
+     }
+   }
+
+   // 達成状況の保存
+   function saveState() {
+     const todayKey = getTodayKey();
+     localStorage.setItem('faceline_last_date', todayKey);
+     localStorage.setItem('habits_state', JSON.stringify(habits)); me: 'Faceline'
+     localStorage.setItem('faceline_habits', JSON.stringify(habits));
+   }
+
+   // Day of week exercises (7パターン)
+   const dailyExercises = [
+     {
+       dayName: '日曜日',
+       name: '首・デコルテ伸ばし',
+       cat: '姿勢＆首ライン整え',
+       desc: '天井を向いて首の前側を伸ばし、舌を上に出します。二重あごと首のシワを防ぎます。',
+       steps: ['上を向く', '舌を上へ突き出す', '5秒キープ', 'ゆっくり戻す'],
+       durationSec: 60
+     },
+     {
+       dayName: '月曜日',
+       name: '二重あご撃退ストレッチ',
+       cat: 'あご下すっきり',
+       desc: 'あごを軽く引き、舌を天井に向けてぐーっと突き出します。あご下のたるみを集中ケア！',
+       steps: ['上を向く', '舌を極限まで伸ばす', '左右にゆっくり揺らす', '正面に戻る'],
+       durationSec: 60
+     },
+     {
+       dayName: '火曜日',
+       name: 'あいうえお体操',
+       cat: 'フェイスライン引き締め',
+       desc: '口を大きく開き、「あ・い・う・え・お」と1文字ずつ2秒間キープしながら動かします。',
+       steps: ['あー', 'いー', 'うー', 'えー', 'おー'],
+       durationSec: 60
+     },
+     {
+       dayName: '水曜日',
+       name: '舌回し運動（ミューイング）',
+       cat: 'むくみ＆たるみケア',
+       desc: '口を閉じたまま、歯の表面に沿って舌をグルリと1周回します。頬の内側から刺激します。',
+       steps: ['右回り 1', '右回り 2', '左回り 1', '左回り 2'],
+       durationSec: 60
+     },
+     {
+       dayName: '木曜日',
+       name: '頬のリフトアップスマイル',
+       cat: '口角アップ・リフレッシュ',
+       desc: '口角を意識して上に引き上げ、とびきりの笑顔を作ってキープ。頬の位置を高めます。',
+       steps: ['口角を限界まで上げる', '5秒キープ', '力を抜く', 'ウの口にする'],
+       durationSec: 60
+     },
+     {
+       dayName: '金曜日',
+       name: 'エラ張り・咬筋リセット',
+       cat: '食いしばりケア',
+       desc: '奥歯の噛み合わせをゆるめ、「はー」と息を吐きながら顎の緊張をほぐしていきます。',
+       steps: ['口を半開きにする', '脱力して息を吐く', 'あごを左右に揺らす', '優しく首をまわす'],
+       durationSec: 60
+     },
+     {
+       dayName: '土曜日',
+       name: '表情筋フルコンボ',
+       cat: '週末スペシャル',
+       desc: '「あいうえお」と「舌回し」を組み合わせた1週間の総仕上げメニューです。',
+       steps: ['あーいーうー', '舌右まわり', 'えーおー', '舌左まわり'],
+       durationSec: 60
+     }
+   ];
+
+   // 今日の曜日のインデックスを取得 (0:日, 1:月, ... 6:土)
+   const todayIndex = new Date().getDay();
+   let currentExIndex = todayIndex;
+   let timerInterval = null;
+   let isRunning = false;
+   let stepIndex = 0;
+   let remainingSeconds = 60;
+
+   function initDailyExercise() {
+     const todayEx = dailyExercises[todayIndex];
+     document.getElementById('today-day-tag').textContent = `${todayEx.dayName}限定`;
+     document.getElementById('exercise-category-tag').textContent = todayEx.cat;
+     document.getElementById('today-exercise-title').textContent = todayEx.name;
+     document.getElementById('today-exercise-sub').textContent = todayEx.desc;
+
+     renderTabs();
+   }
+
+   function renderTabs() {
+     const tabsContainer = document.getElementById('exercise-tabs');
+     tabsContainer.innerHTML = '';
+
+     dailyExercises.forEach((ex, idx) => {
+       const btn = document.createElement('button');
+       btn.id = `ex-tab-${idx}`;
+       const isToday = idx === todayIndex;
+       const isSelected = idx === currentExIndex;
+
+       btn.className = `flex-1 min-w-[65px] py-1.5 px-2 rounded-lg text-center font-medium transition ${
+         isSelected
+           ? 'bg-white font-bold text-pink-600 shadow-sm'
+           : 'text-slate-500 hover:text-slate-800'
+       }`;
+
+       btn.onclick = () => selectExercise(idx);
+       btn.innerHTML = `${ex.dayName.replace('曜日','')}${isToday ? '★' : ''}`;
+       tabsContainer.appendChild(btn);
+     });
+   }
+
+   function renderChecklist() {
+     const container = document.getElementById('checklist-container');
+     container.innerHTML = '';
+
+     habits.forEach(habit => {
+       const item = document.createElement('div');
+       item.className = `p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+         habit.done
+           ? 'bg-rose-50/50 border-rose-200 text-rose-900'
+           : 'bg-white border-slate-100 hover:border-pink-200 shadow-sm'
+       }`;
+       item.onclick = () => toggleHabit(habit.id);
+
+       item.innerHTML = `
+         <div class="flex items-center space-x-3">
+           <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+             habit.done ? 'border-pink-500 bg-pink-500 text-white' : 'border-slate-300'
+           }">
+             ${habit.done ? '<i class="fa-solid fa-check text-xs"></i>' : ''}
+           </div>
+           <div>
+             <div class="text-sm font-bold ${habit.done ? 'line-through text-slate-400' : 'text-slate-800'}">${habit.title}</div>
+             <div class="text-xs text-slate-400">${habit.desc}</div>
+           </div>
+         </div>
+       `;
+       container.appendChild(item);
+     });
+
+     updateProgress();
+   }
+
+   function toggleHabit(id) {
+     const habit = habits.find(h => h.id === id);
+     if (habit) {
+       habit.done = !habit.done;
+       saveState();
+       renderChecklist();
+     }
+   }
+
+   function updateProgress() {
+     const doneCount = habits.filter(h => h.done).length;
+     const total = habits.length;
+     const percent = Math.round((doneCount / total) * 100);
+
+     document.getElementById('progress-bar').style.width = `${percent}%`;
+     document.getElementById('progress-percent').textContent = `${percent}%`;
+
+     const msg = document.getElementById('progress-message');
+     if (percent === 100) {
+       msg.textContent = '🎉 すごい！今日の全習慣を達成しました！';
+       msg.className = 'text-xs text-emerald-600 font-bold mt-3';
+     } else if (percent > 0) {
+       msg.textContent = `いい調子！あと ${total - doneCount} つの習慣でコンプリートです。`;
+       msg.className = 'text-xs text-pink-600 font-medium mt-3';
+     } else {
+       msg.textContent = 'まずはひとつ習慣をクリアしてみましょう！';
+       msg.className = 'text-xs text-slate-500 mt-3';
+     }
+   }
+
+   function openTimerModal() {
+     document.getElementById('timer-modal').classList.remove('hidden');
+     selectExercise(todayIndex);
+   }
+
+   function closeTimerModal() {
+     document.getElementById('timer-modal').classList.add('hidden');
+     stopTimer();
+   }
+
+   function selectExercise(idx) {
+     stopTimer();
+     currentExIndex = idx;
+     const ex = dailyExercises[idx];
+     remainingSeconds = ex.durationSec;
+     stepIndex = 0;
+
+     document.getElementById('exercise-name').textContent = `${ex.name} (${ex.dayName})`;
+     document.getElementById('exercise-desc').textContent = ex.desc;
+     document.getElementById('exercise-action').textContent = 'READY';
+     document.getElementById('exercise-step').textContent = 'スタートを押してください';
+     document.getElementById('exercise-timer').textContent = `残り ${remainingSeconds}秒`;
+
+     renderStepsOverview(ex.steps, -1);
+     updateTimerGauge(ex.durationSec, ex.durationSec);
+     renderTabs();
+   }
+
+   function renderStepsOverview(steps, activeIdx) {
+     const container = document.getElementById('exercise-steps-overview');
+     if (!container) return;
+     container.innerHTML = '';
+
+     steps.forEach((step, i) => {
+       const isCurrent = i === activeIdx;
+       const badge = document.createElement('div');
+       badge.className = `px-2.5 py-1 rounded-lg font-medium text-xs transition-all flex items-center gap-1 ${
+         isCurrent
+           ? 'bg-pink-500 text-white font-bold shadow-sm scale-105'
+           : 'bg-white text-slate-600 border border-slate-200/60'
+       }`;
+       badge.innerHTML = `<span class="opacity-70 text-[10px]">${i + 1}.</span> ${step}`;
+       container.appendChild(badge);
+     });
+   }
+
+   function updateTimerGauge(currentSec, totalSec) {
+     const percent = Math.max(0, Math.min(100, Math.round(((totalSec - currentSec) / totalSec) * 100)));
+
+     // 円形ゲージ（SVG Circumference = 2 * PI * 44 ≈ 276.46）
+     const circumference = 276.46;
+     const offset = circumference - (percent / 100) * circumference;
+     const ring = document.getElementById('timer-progress-ring');
+     if (ring) {
+       ring.style.strokeDashoffset = offset;
+     }
+   }
+
+   function toggleTimer() {
+     if (isRunning) {
+       stopTimer();
+     } else {
+       startTimer();
+     }
+   }
+
+   function startTimer() {
+     isRunning = true;
+     const ex = dailyExercises[currentExIndex];
+
+     if (remainingSeconds <= 0) {
+       remainingSeconds = ex.durationSec;
+       stepIndex = 0;
+     }
+
+     const btn = document.getElementById('timer-start-btn');
+     btn.textContent = '一時停止';
+     btn.className = 'bg-slate-700 text-white font-bold px-8 py-3.5 rounded-2xl shadow-lg hover:bg-slate-800 transition w-full text-base';
+
+     document.getElementById('exercise-action').textContent = ex.steps[stepIndex];
+     document.getElementById('exercise-step').textContent = `ステップ ${stepIndex + 1} / ${ex.steps.length}`;
+     document.getElementById('exercise-timer').textContent = `残り ${remainingSeconds}秒`;
+
+     renderStepsOverview(ex.steps, stepIndex);
+     updateTimerGauge(remainingSeconds, ex.durationSec);
+
+     timerInterval = setInterval(() => {
+       remainingSeconds--;
+       document.getElementById('exercise-timer').textContent = `残り ${remainingSeconds}秒`;
+
+       updateTimerGauge(remainingSeconds, ex.durationSec);
+
+       // 3秒ごとにステップ進行
+       if (remainingSeconds % 3 === 0) {
+         stepIndex = (stepIndex + 1) % ex.steps.length;
+         document.getElementById('exercise-action').textContent = ex.steps[stepIndex];
+         document.getElementById('exercise-step').textContent = `ステップ ${stepIndex + 1} / ${ex.steps.length}`;
+         renderStepsOverview(ex.steps, stepIndex);
+       }
+
+       // 完了時
+       if (remainingSeconds <= 0) {
+         stopTimer();
+         document.getElementById('exercise-action').textContent = '🎉 完了!';
+         document.getElementById('exercise-step').textContent = 'お疲れ様でした！';
+         document.getElementById('exercise-timer').textContent = 'トレーニング達成';
+         renderStepsOverview(ex.steps, -1);
+         updateTimerGauge(0, ex.durationSec);
+
+         // チェックリストの運動項目を達成状態に
+         habits[0].done = true;
+         saveState();
+         renderChecklist();
+       }
+     }, 1000);
+   }
+
+   function stopTimer() {
+     isRunning = false;
+     clearInterval(timerInterval);
+     const btn = document.getElementById('timer-start-btn');
+     if (btn) {
+       btn.textContent = remainingSeconds <= 0 ? 'もう一度行う' : 'スタート';
+       btn.className = 'bg-pink-500 text-white font-bold px-8 py-3.5 rounded-2xl shadow-lg shadow-pink-500/30 hover:bg-pink-600 transition w-full text-base';
+     }
+   }
+
+   // 初期化
+   window.onload = function() {
+     updateDateDisplay();
+     loadSavedState();
+     initDailyExercise();
+     renderChecklist();
+   };
+ </script>
+</body>
+</html>
