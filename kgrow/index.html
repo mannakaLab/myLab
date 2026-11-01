@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>K-GLOW SKIN - 韓国アイドル級の美肌習慣</title>
+   <!-- Tailwind CSS CDN -->
+   <script src="https://cdn.tailwindcss.com"></script>
+   <!-- FontAwesome Icons -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   <!-- Google Fonts -->
+   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+   <script>
+       tailwind.config = {
+           theme: {
+               extend: {
+                   colors: {
+                       kglow: {
+                           bg: '#FAF7F5',
+                           card: '#FFFFFF',
+                           pink: '#FCE7F3',
+                           pinkDark: '#DB2777',
+                           lavender: '#EDE9FE',
+                           lavenderDark: '#7C3AED',
+                           mint: '#D1FAE5',
+                           mintDark: '#059669',
+                           gold: '#FEF3C7',
+                           goldDark: '#D97706',
+                           text: '#27272A',
+                           subtext: '#71717A'
+                       }
+                   },
+                   fontFamily: {
+                       sans: ['"M PLUS Rounded 1c"', '"Noto Sans JP"', 'sans-serif'],
+                   }
+               }
+           }
+       }
+   </script>
+   <style>
+       body {
+           background-color: #FAF7F5;
+           color: #27272A;
+           font-family: 'M PLUS Rounded 1c', sans-serif;
+           -webkit-tap-highlight-color: transparent;
+       }
+       .fade-in {
+           animation: fadeIn 0.25s ease-in-out;
+       }
+       @keyframes fadeIn {
+           from { opacity: 0; transform: translateY(4px); }
+           to { opacity: 1; transform: translateY(0); }
+       }
+   </style>
+</head>
+<body class="bg-kglow-bg min-h-screen text-kglow-text pb-20">
+
+   <!-- ヘッダー -->
+   <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-pink-100 px-4 py-3 shadow-xs">
+       <div class="max-w-md mx-auto flex justify-between items-center">
+           <div class="flex items-center space-x-2">
+               <span class="text-xl">✨</span>
+               <div>
+                   <h1 class="font-bold text-kglow-text text-sm tracking-wide leading-tight">K-GLOW</h1>
+                   <p class="text-[9px] text-pink-600 font-bold">水光肌習慣トラッカー</p>
+               </div>
+           </div>
+           <span class="text-[10px] bg-pink-50 text-pink-600 px-2.5 py-1 rounded-full font-bold border border-pink-100">
+               毎日のルーティン
+           </span>
+       </div>
+   </header>
+
+   <!-- メインコンテンツ -->
+   <main id="main-content" class="max-w-md mx-auto px-4 py-4 space-y-4">
+       <!-- JSで習慣チェックリストを描画 -->
+   </main>
+
+   <!-- モーダル -->
+   <div id="modal" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 hidden">
+       <div class="bg-white rounded-3xl max-w-sm w-full p-5 space-y-4 shadow-2xl fade-in max-h-[85vh] overflow-y-auto">
+           <div class="flex justify-between items-center border-b border-pink-100 pb-2">
+               <h3 id="modal-title" class="font-bold text-zinc-800 text-sm flex items-center space-x-1.5">
+                   <span>タイトル</span>
+               </h3>
+               <button onclick="closeModal()" class="text-zinc-400 hover:text-zinc-600 text-xl">&times;</button>
+           </div>
+           <div id="modal-body" class="space-y-3 text-xs">
+               <!-- 動的コンテンツ -->
+           </div>
+       </div>
+   </div>
+
+   <!-- トースト -->
+   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-zinc-800/90 text-white text-xs py-2 px-4 rounded-full shadow-lg hidden fade-in transition flex items-center space-x-2">
+       <span>✨</span>
+       <span id="toast-msg">メッセージ</span>
+   </div>
+
+   <script>
+       const STORAGE_KEY = 'kglow_app_data_v2';
+
+       const defaultData = {
+           dailyHabits: [
+               { id: 'h1', time: 'morning', title: '朝はぬるま湯洗顔', tag: 'やさしくオフ', completed: false, tip: '必要なうるおいを残す', detail: '30〜32度くらいのぬるま湯でやさしく流します。寝ている間の汗やホコリだけを洗い流し、肌に必要な皮脂やバリア機能を守ります。ゴシゴシ擦るのではなく、パシャパシャと水をあてるイメージで行いましょう。' },
+               { id: 'h2', time: 'morning', title: 'トナー3回重ねづけ', tag: '水分爆弾', completed: false, tip: 'ハンドプレスで奥まで入れる', detail: 'さらっとした化粧水を適量手に取り、包み込むように手のひらでやさしくプレスします。これを3回繰り返すことで、肌の角質層深くまで水分が満たされ、内側から滲み出る水光感（ツヤ）が完成します。<br><br><span class="text-pink-600 font-bold">💡 おうちのアイテムでの代用OK！</span><br>高価なトナーを新しく買わなくても、<b>【いつもの化粧水3回 ➔ ハトムギ美容液ジェル ➔ 保湿クリーム（または乳液）】</b>の順番で重ねれば、バッチリ韓国アイドル風の水光肌ケアが完成します！<br><br><span class="text-pink-600 font-bold">💡 【重要】朝も油分の「蓋」が必要！</span><br>化粧水（トナー）や水分ジェルだけでは、時間の経過とともに水分が空気中に蒸発して乾燥の原因になります。朝も必ず少量の乳液・クリーム（または保湿効果のある日焼け止め）で蓋をしましょう。ベタつきが気になる場合は、少量を手のひらで薄く伸ばしてプレスすればOKです！' },
+               { id: 'h3', time: 'morning', title: '日焼け止め（指2本分）', tag: '光老化防止', completed: false, tip: '首や生え際まで徹底ガード', detail: '人差し指と中指の2本分の長さをしっかり取り、顔全体・首筋・髪の生え際まで均一に伸ばします。室内でも紫外線の影響を受けるため、毎朝塗るのが韓国芸能人流の透明感キープ術です。<br><br><span class="text-pink-600 font-bold">☀️ 日焼け止めの選び方目安</span><br>・<b>普段使い・在宅・通勤</b>：SPF30〜40 / PA+++（肌への負担が少なく保湿力が高い水分ミルク・セラムタイプ）<br>・<b>長時間の外出・レジャー</b>：SPF50+ / PA++++（汗・水に強いウォータープルーフタイプ）<br><br><span class="text-pink-600 font-bold">💡 朝の時短＆代用テクニック</span><br><b>「SPF30〜40 / PA+++ のUVカット効果付き下地」</b>でもバッチリ代用できます！<br><b>【ツヤ肌づくりのコツ】</b><br>1. ケチらずパール1粒〜指1本分をムラなく伸ばす<br>2. 化粧水・ジェルが肌にしっかり馴染んでから塗る<br>3. 手のひらやスポンジでトントンと優しく叩き込むと、韓国アイドル特有のみずみずしい光沢感が出せます！' },
+               { id: 'h4', time: 'night', title: 'オイルで1分やさしくオフ', tag: '摩擦レス', completed: false, tip: 'くるくる優しく汚れを浮かす', detail: 'クレンジングオイルを手で温めた後、顔の中心から外側へ指の腹を使ってくるくると優しくなじませます。1分以上おくと肌の乾燥につながるので、水かぬるま湯で手早くしっかり洗い流しましょう。' },
+               { id: 'h5', time: 'night', title: 'シートパック（10分厳守）', tag: '1日1パック', completed: false, tip: '15分以上は逆乾燥するのでNG', detail: '洗顔後の清潔な肌（またはトナー後）にシートマスクを密着させます。10分経過したら水分が乾く前に剥がすのがポイント！パックに残った美容液は首や手になじませましょう。' },
+               { id: 'h6', time: 'night', title: '保湿クリームでしっかり蓋', tag: '水分キープ', completed: false, tip: '寝ている間の乾燥をガード', detail: '入れた水分を閉じ込めるため、仕上げに保湿クリームまたは乳液を使います。手のひらで温めてから、顔全体を優しく包み込むようにハンドプレスして密着させます。' }
+           ]
+       };
+
+       let appData = loadData();
+
+       function loadData() {
+           try {
+               const saved = localStorage.getItem(STORAGE_KEY);
+               if (saved) return JSON.parse(saved);
+           } catch (e) {
+               console.error(e);
+           }
+           return defaultData;
+       }
+
+       function saveData() {
+           try {
+               localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+           } catch (e) {
+               console.error(e);
+           }
+       }
+
+       function renderHabitScreen() {
+           const container = document.getElementById('main-content');
+           if (!container) return;
+
+           const completedCount = appData.dailyHabits.filter(h => h.completed).length;
+           const progressPercent = Math.round((completedCount / appData.dailyHabits.length) * 100);
+
+           container.innerHTML = `
+               <div class="space-y-4 fade-in">
+                   <!-- 進捗バー -->
+                   <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white p-4 rounded-2xl shadow-md space-y-2">
+                       <div class="flex justify-between items-center text-xs">
+                           <span class="font-bold">本日の習慣達成度</span>
+                           <span class="font-black text-sm">${progressPercent}%</span>
+                       </div>
+                       <div class="w-full bg-white/20 h-2 rounded-full overflow-hidden">
+                           <div class="bg-white h-full transition-all duration-300" style="width: ${progressPercent}%"></div>
+                       </div>
+                   </div>
+
+                   <!-- 朝の習慣 -->
+                   <div class="bg-white p-3.5 rounded-2xl border border-pink-100 shadow-xs space-y-2">
+                       <div class="font-bold text-xs text-amber-600 flex items-center space-x-1">
+                           <span>☀️ 朝のルーティン</span>
+                       </div>
+                       <div class="space-y-1.5">
+                           ${appData.dailyHabits.filter(h => h.time === 'morning').map(h => renderHabitItem(h)).join('')}
+                       </div>
+                   </div>
+
+                   <!-- 夜の習慣 -->
+                   <div class="bg-white p-3.5 rounded-2xl border border-purple-100 shadow-xs space-y-2">
+                       <div class="font-bold text-xs text-indigo-600 flex items-center space-x-1">
+                           <span>🌙 夜のルーティン</span>
+                       </div>
+                       <div class="space-y-1.5">
+                           ${appData.dailyHabits.filter(h => h.time === 'night').map(h => renderHabitItem(h)).join('')}
+                       </div>
+                   </div>
+               </div>
+           `;
+       }
+
+       function renderHabitItem(habit) {
+           return `
+               <div class="p-2.5 rounded-xl border ${habit.completed ? 'bg-pink-50/60 border-pink-200' : 'bg-zinc-50 border-zinc-200/60'} transition flex items-center justify-between">
+                   <div onclick="toggleHabit('${habit.id}')" class="flex items-center space-x-2.5 cursor-pointer flex-1 mr-2">
+                       <input type="checkbox" ${habit.completed ? 'checked' : ''} onclick="event.stopPropagation(); toggleHabit('${habit.id}');" class="w-4 h-4 text-pink-600 rounded border-zinc-300">
+                       <div>
+                           <span class="font-bold text-xs ${habit.completed ? 'line-through text-zinc-400' : 'text-zinc-800'}">${habit.title}</span>
+                           <span class="text-[10px] text-zinc-400 block">${habit.tip}</span>
+                       </div>
+                   </div>
+                   <div class="flex items-center space-x-1.5">
+                       <button onclick="showHabitDetail('${habit.id}')" class="text-[10px] bg-white border border-pink-200 text-pink-600 hover:bg-pink-50 font-bold px-2 py-1 rounded-lg shadow-2xs transition">
+                           解説 🔍
+                       </button>
+                   </div>
+               </div>
+           `;
+       }
+
+       function showHabitDetail(id) {
+           const habit = appData.dailyHabits.find(h => h.id === id);
+           if (!habit) return;
+
+           const modalTitle = document.getElementById('modal-title');
+           const modalBody = document.getElementById('modal-body');
+
+           modalTitle.textContent = `💡 ${habit.title}の詳しい実践方法`;
+           modalBody.innerHTML = `
+               <div class="space-y-3 py-1">
+                   <div class="flex items-center justify-between">
+                       <span class="text-[10px] bg-pink-100 text-pink-700 font-bold px-2 py-0.5 rounded">${habit.tag}</span>
+                       <span class="text-[11px] text-zinc-400 font-bold">${habit.time === 'morning' ? '☀️ 朝のケア' : '🌙 夜のケア'}</span>
+                   </div>
+                   <div class="p-3 bg-pink-50/50 rounded-xl border border-pink-100 text-zinc-700 text-xs leading-relaxed">
+                       ${habit.detail}
+                   </div>
+                   <button onclick="closeModal()" class="w-full py-2.5 bg-pink-600 text-white font-bold text-xs rounded-xl shadow-xs transition">
+                       確認しました
+                   </button>
+               </div>
+           `;
+           document.getElementById('modal').classList.remove('hidden');
+       }
+
+       function toggleHabit(id) {
+           const h = appData.dailyHabits.find(item => item.id === id);
+           if (h) {
+               h.completed = !h.completed;
+               saveData();
+               showToast(h.completed ? '達成！✨' : '更新しました');
+               renderHabitScreen();
+           }
+       }
+
+       function showToast(msg) {
+           const toast = document.getElementById('toast');
+           const msgEl = document.getElementById('toast-msg');
+           if (toast && msgEl) {
+               msgEl.textContent = msg;
+               toast.classList.remove('hidden');
+               setTimeout(() => toast.classList.add('hidden'), 2500);
+           }
+       }
+
+       function closeModal() {
+           document.getElementById('modal').classList.add('hidden');
+       }
+
+       window.onload = function() {
+           renderHabitScreen();
+       };
+   </script>
+</body>
+</html>
