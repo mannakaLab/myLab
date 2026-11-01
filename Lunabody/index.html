@@ -266,7 +266,8 @@
            cycle: {
                lastPeriodStart: getTodayDateString(),
                cycleLength: 28,
-               periodDuration: 5
+               periodDuration: 5,
+               manualPhase: null // 周期不安定の方向けの手動フェーズ（'period', 'after_period', 'ovulation', 'before_period'）
            },
            workoutsLog: [],
            mealsLog: [],
@@ -419,11 +420,22 @@
                    <!-- 今週のおまかせスケジュール確認 -->
                    <div class="bg-white p-4 rounded-2xl border border-stone-200/60 shadow-sm space-y-2">
                        <div class="flex justify-between items-center">
-                           <h3 class="font-bold text-stone-800 text-xs">月〜金 おまかせボディメイク計画</h3>
+                           <h3 class="font-bold text-stone-800 text-xs">週間ボディメイク計画（土日は積極的休養）</h3>
                            <span class="text-[10px] text-luna-sage font-bold">自動最適化済</span>
                        </div>
                        <div class="text-xs space-y-1.5 text-stone-600 pt-1" id="weekly-schedule-list">
                        </div>
+                   </div>
+
+                   <!-- 土日休養・リフレッシュのワンポイント解説 -->
+                   <div class="bg-gradient-to-r from-teal-50 via-white to-emerald-50 p-3.5 rounded-2xl border border-teal-200/60 shadow-xs space-y-1.5 text-xs">
+                       <div class="font-bold text-teal-900 flex items-center space-x-1.5">
+                           <span>🌿</span>
+                           <span>なぜ「土日お休み（完全休養/アクティブリフレッシュ）」でいいの？</span>
+                       </div>
+                       <p class="text-stone-600 leading-relaxed text-[11px]">
+                           筋肉や体幹の成長・前ももの張り緩和は、<strong>「刺激（平日）」＋「超回復（休養）」</strong>のセットで起こります。土日にしっかり休むことで平日の運動効果が引き出されます。疲労感がない時や動きたい時だけ、無理のない範囲で3分ストレッチ等を行いましょう。
+                       </p>
                    </div>
 
                </div>
@@ -447,24 +459,25 @@
            ];
 
            const todayDayNum = new Date().getDay();
-           const displayDays = days.filter(d => d.dayNum >= 1 && d.dayNum <= 5);
 
-           listEl.innerHTML = displayDays.map(item => {
+           listEl.innerHTML = days.map(item => {
                const isToday = item.dayNum === todayDayNum;
-               const menuName = appData.weeklySchedule ? (appData.weeklySchedule[item.key] || '予定なし') : '予定なし';
+               let menuName = appData.weeklySchedule ? (appData.weeklySchedule[item.key] || '完全休養・ストレッチ') : '完全休養・ストレッチ';
+               if (item.dayNum === 6) menuName = '完全休養・前ももほぐし（任意）';
+               if (item.dayNum === 0) menuName = '完全休養・からだリセット（任意）';
 
                if (isToday) {
                    return `
                        <div class="flex justify-between py-1.5 px-2 bg-luna-sageLight/50 rounded-lg font-bold text-stone-800 border-l-4 border-luna-sage">
                            <span>${item.name}（本日）: <span class="text-luna-sageDark">${menuName}</span></span>
-                           <span class="text-xs text-luna-sageDark font-extrabold">▶ 実行中</span>
+                           <span class="text-xs text-luna-sageDark font-extrabold">${item.dayNum === 0 || item.dayNum === 6 ? '☕ 休養日' : '▶ 実行中'}</span>
                        </div>
                    `;
                } else {
                    return `
                        <div class="flex justify-between py-1 px-2 border-b border-stone-100 text-stone-600">
                            <span>${item.name}: ${menuName}</span>
-                           <span class="text-stone-400 text-[11px]">おまかせ</span>
+                           <span class="text-stone-400 text-[11px]">${item.dayNum === 0 || item.dayNum === 6 ? 'OFF' : 'ON'}</span>
                        </div>
                    `;
                }
@@ -473,16 +486,27 @@
 
        function getTodayScheduledMenu() {
            const dayNum = new Date().getDay();
+           if (dayNum === 6 || dayNum === 0) {
+               return '土日お休み・リフレッシュコース（任意）';
+           }
            const keys = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
            const key = keys[dayNum] || 'Mon';
            return appData.weeklySchedule ? (appData.weeklySchedule[key] || '前もも緊張リリース＆ドローイン（3分）') : '前ももリリース';
        }
 
        function getCoachAdviceForMenu(menu) {
+           const dayNum = new Date().getDay();
+           if (dayNum === 6 || dayNum === 0) {
+               return `【土日はお休み日です☕】平日に頑張ったお腹や脚の筋肉をしっかり休ませることで超回復が進みます。「少し身体を伸ばしたいな」と思った時だけ、3分ストレッチを軽く行うくらいで十分ですよ！`;
+           }
            return `月〜金まで、前ももの張り解消と筋肉量不足を補うおまかせメニューを組み立てました！外を歩けない日も室内エアウォークや体幹ドローインでしなやかなレッグラインをつくります。`;
        }
 
        function getProgramTitleForMenu(menu) {
+           const dayNum = new Date().getDay();
+           if (dayNum === 6 || dayNum === 0) {
+               return '土日はお休み日（軽めの前ももストレッチ・任意）';
+           }
            if (menu.includes('エアウォーク') || menu.includes('代謝')) return '室内エアウォーク ＆ 下半身代謝アップ（8分）';
            if (menu.includes('15分') || menu.includes('完全燃焼')) return '15分コース（インドア完全燃焼フルケア）';
            if (menu.includes('3分') || menu.includes('ドローイン')) return '3分コース（前ももリリース＆腹筋スイッチ）';
@@ -490,12 +514,16 @@
        }
 
        function getActionLabelForMenu(menu) {
+           const dayNum = new Date().getDay();
+           if (dayNum === 6 || dayNum === 0) return 'ゆったり3分ストレッチ（任意）';
            if (menu.includes('15分')) return '15分メニューを開始';
            if (menu.includes('3分')) return '3分メニューを開始';
            return '8分メニューを開始';
        }
 
        function getActionClickForMenu(menu) {
+           const dayNum = new Date().getDay();
+           if (dayNum === 6 || dayNum === 0) return "startWorkoutProgram('3')";
            if (menu.includes('15分')) return "startWorkoutProgram('15')";
            if (menu.includes('3分')) return "startWorkoutProgram('3')";
            return "startWorkoutProgram('8')";
@@ -770,11 +798,11 @@
           ========================================================================== */
        function getCycleNutritionTarget() {
            const cyclePhase = getCyclePhase(appData.cycle.lastPeriodStart, appData.cycle.cycleLength);
-           if (cyclePhase.phaseName.includes('月経期')) {
+           if (cyclePhase.phaseKey === 'period') {
                return { phase: '① 生理中（1〜5日目）', kcalText: '1,300〜1,400 kcal', minKcal: 1300, maxKcal: 1400, pText: '75〜85g', minP: 75, maxP: 85 };
-           } else if (cyclePhase.phaseName.includes('卵胞期')) {
+           } else if (cyclePhase.phaseKey === 'after_period') {
                return { phase: '② 生理後〜排卵前', kcalText: '1,300〜1,350 kcal', minKcal: 1300, maxKcal: 1350, pText: '75〜85g', minP: 75, maxP: 85 };
-           } else if (cyclePhase.phaseName.includes('排卵期')) {
+           } else if (cyclePhase.phaseKey === 'ovulation') {
                return { phase: '③ 排卵前後', kcalText: '1,300〜1,350 kcal', minKcal: 1300, maxKcal: 1350, pText: '75〜85g', minP: 75, maxP: 85 };
            } else {
                return { phase: '④ 排卵後〜生理前', kcalText: '1,350〜1,450 kcal', minKcal: 1350, maxKcal: 1450, pText: '75〜85g', minP: 75, maxP: 85 };
@@ -820,21 +848,50 @@
                        <div class="flex justify-between items-center text-xs">
                            <span class="font-bold text-stone-700 flex items-center">
                                <span class="bg-pink-100 text-pink-800 px-2 py-0.5 rounded text-[10px] font-bold mr-1.5">${target.phase}</span>
-                               本日の目標
+                               本日の目標バランス
                            </span>
                            <button onclick="showCalorieGuideModal()" class="text-luna-sageDark font-bold hover:underline flex items-center text-[11px]">
                                <span>周期別一覧</span>
                                <i class="fas fa-chevron-right text-[10px] ml-1"></i>
                            </button>
                        </div>
+
+                       <!-- カロリー＆タンパク質 達成・残り表示メーター -->
                        <div class="grid grid-cols-2 gap-3 text-center">
-                           <div class="bg-luna-beige/50 p-2.5 rounded-xl border border-amber-100">
-                               <span class="text-[10px] text-stone-500 block">推定摂取カロリー</span>
-                               <span class="text-base font-bold text-stone-800">${totalKcal} <span class="text-[10px] font-normal text-stone-600"><br>目標: ${target.kcalText}</span></span>
+                           <!-- カロリー -->
+                           <div class="bg-luna-beige/50 p-3 rounded-xl border border-amber-100 space-y-1.5">
+                               <div class="flex justify-between items-center text-[10px]">
+                                   <span class="text-stone-500 font-bold">摂取カロリー</span>
+                                   <span class="font-semibold text-stone-400">目標: ${target.kcalText}</span>
+                               </div>
+                               <div class="text-lg font-extrabold text-stone-800">
+                                   ${totalKcal} <span class="text-[10px] font-normal text-stone-500">kcal</span>
+                               </div>
+                               <!-- 残り表示 -->
+                               <div class="pt-1 border-t border-amber-200/60 flex justify-between items-center text-[11px]">
+                                   <span class="text-stone-500">あと消費可能:</span>
+                                   <span class="font-extrabold ${ (target.maxKcal - totalKcal) < 0 ? 'text-rose-500' : 'text-amber-800' }">
+                                       ${ Math.max(0, target.maxKcal - totalKcal) } kcal
+                                   </span>
+                               </div>
                            </div>
-                           <div class="bg-luna-sageLight/60 p-2.5 rounded-xl border border-luna-sage/20">
-                               <span class="text-[10px] text-luna-sageDark block">たんぱく質 (P)</span>
-                               <span class="text-base font-bold text-luna-sageDark">${totalP}g <span class="text-[10px] font-normal text-stone-600"><br>目標: ${target.pText}</span></span>
+
+                           <!-- タンパク質 -->
+                           <div class="bg-luna-sageLight/60 p-3 rounded-xl border border-luna-sage/20 space-y-1.5">
+                               <div class="flex justify-between items-center text-[10px]">
+                                   <span class="text-luna-sageDark font-bold">タンパク質 (P)</span>
+                                   <span class="font-semibold text-stone-400">目標: ${target.pText}</span>
+                               </div>
+                               <div class="text-lg font-extrabold text-luna-sageDark">
+                                   ${totalP} <span class="text-[10px] font-normal text-stone-500">g</span>
+                               </div>
+                               <!-- 残り表示 -->
+                               <div class="pt-1 border-t border-luna-sage/20 flex justify-between items-center text-[11px]">
+                                   <span class="text-stone-500">あと必要:</span>
+                                   <span class="font-extrabold ${ (target.minP - totalP) <= 0 ? 'text-emerald-600' : 'text-luna-sageDark' }">
+                                       ${ (target.minP - totalP) <= 0 ? '達成！🎉' : (target.minP - totalP) + ' g' }
+                                   </span>
+                               </div>
                            </div>
                        </div>
                    </div>
@@ -851,23 +908,23 @@
                        <div class="grid grid-cols-4 gap-1.5 text-center text-[11px] pt-1">
                            <div class="bg-white/80 p-1.5 rounded-xl border border-amber-100">
                                <div class="text-amber-800 font-bold text-[10px]">朝食</div>
-                               <div class="text-stone-800 font-extrabold mt-0.5 text-xs">300 kcal</div>
-                               <div class="text-stone-500 text-[9px]">P: 20g</div>
-                           </div>
-                           <div class="bg-white/80 p-1.5 rounded-xl border border-amber-100">
-                               <div class="text-amber-800 font-bold text-[10px]">昼食</div>
                                <div class="text-stone-800 font-extrabold mt-0.5 text-xs">450 kcal</div>
                                <div class="text-stone-500 text-[9px]">P: 25g</div>
                            </div>
                            <div class="bg-white/80 p-1.5 rounded-xl border border-amber-100">
+                               <div class="text-amber-800 font-bold text-[10px]">昼食</div>
+                               <div class="text-stone-800 font-extrabold mt-0.5 text-xs">550 kcal</div>
+                               <div class="text-stone-500 text-[9px]">P: 30g</div>
+                           </div>
+                           <div class="bg-white/80 p-1.5 rounded-xl border border-amber-100">
                                <div class="text-amber-800 font-bold text-[10px]">夕食</div>
-                               <div class="text-stone-800 font-extrabold mt-0.5 text-xs">500 kcal</div>
-                               <div class="text-stone-500 text-[9px]">P: 25〜30g</div>
+                               <div class="text-stone-800 font-extrabold mt-0.5 text-xs">350 kcal</div>
+                               <div class="text-stone-500 text-[9px]">P: 20〜25g</div>
                            </div>
                            <div class="bg-white/80 p-1.5 rounded-xl border border-amber-100">
                                <div class="text-amber-800 font-bold text-[10px]">間食</div>
-                               <div class="text-stone-800 font-extrabold mt-0.5 text-xs">150 kcal</div>
-                               <div class="text-stone-500 text-[9px]">P: 5〜10g</div>
+                               <div class="text-stone-800 font-extrabold mt-0.5 text-xs">0〜50 kcal</div>
+                               <div class="text-stone-500 text-[9px]">P: 0〜5g</div>
                            </div>
                        </div>
                    </div>
@@ -889,7 +946,12 @@
                                </div>
                                <div class="flex items-center space-x-2">
                                    <span class="text-stone-500 text-[11px]">${meal.kcal} kcal / P:${meal.p || 0}g</span>
-                                   <button onclick="deleteMeal('${meal.id}')" class="text-stone-300 hover:text-rose-500"><i class="fas fa-trash-alt"></i></button>
+                                   <button onclick="editMeal('${meal.id}')" class="text-stone-400 hover:text-luna-sageDark p-1" title="編集">
+                                       <i class="fas fa-edit"></i>
+                                   </button>
+                                   <button onclick="deleteMeal('${meal.id}')" class="text-stone-300 hover:text-rose-500 p-1" title="削除">
+                                       <i class="fas fa-trash-alt"></i>
+                                   </button>
                                </div>
                            </div>
                        `).join('')}
@@ -968,6 +1030,28 @@
            const modalBody = document.getElementById('modal-body');
            const targetDate = selectedMealDate || getTodayDateString();
 
+           // 本日・指定日の既存ログから次に適した区分を自動判定 (朝食 -> 昼食 -> 夕食 -> 間食)
+           const dayMeals = appData.mealsLog.filter(m => m.date === targetDate);
+           const typesLogged = dayMeals.map(m => m.type);
+
+           let nextType = '朝食';
+           let defaultKcal = 450;
+           let defaultP = 25;
+
+           if (typesLogged.includes('朝食') && !typesLogged.includes('昼食')) {
+               nextType = '昼食';
+               defaultKcal = 550;
+               defaultP = 30;
+           } else if (typesLogged.includes('朝食') && typesLogged.includes('昼食') && !typesLogged.includes('夕食')) {
+               nextType = '夕食';
+               defaultKcal = 350;
+               defaultP = 25;
+           } else if (typesLogged.includes('朝食') && typesLogged.includes('昼食') && typesLogged.includes('夕食')) {
+               nextType = '間食';
+               defaultKcal = 50;
+               defaultP = 5;
+           }
+
            modalTitle.textContent = `食事の記録 (${targetDate})`;
            modalBody.innerHTML = `
                <div class="space-y-3">
@@ -977,11 +1061,11 @@
                    </div>
                    <div>
                        <label class="block text-xs font-bold text-stone-700 mb-1">区分</label>
-                       <select id="meal-type" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
-                           <option value="朝食">朝食</option>
-                           <option value="昼食">昼食</option>
-                           <option value="夕食">夕食</option>
-                           <option value="間食">間食</option>
+                       <select id="meal-type" onchange="updateDefaultKcalP(this.value)" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                           <option value="朝食" ${nextType === '朝食' ? 'selected' : ''}>朝食</option>
+                           <option value="昼食" ${nextType === '昼食' ? 'selected' : ''}>昼食</option>
+                           <option value="夕食" ${nextType === '夕食' ? 'selected' : ''}>夕食</option>
+                           <option value="間食" ${nextType === '間食' ? 'selected' : ''}>間食</option>
                        </select>
                    </div>
                    <div>
@@ -990,16 +1074,37 @@
                    </div>
                    <div>
                        <label class="block text-xs font-bold text-stone-700 mb-1">概算カロリー (kcal)</label>
-                       <input id="meal-kcal" type="number" value="450" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                       <input id="meal-kcal" type="number" value="${defaultKcal}" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
                    </div>
                    <div>
                        <label class="block text-xs font-bold text-stone-700 mb-1">たんぱく質 (g)</label>
-                       <input id="meal-p" type="number" value="20" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                       <input id="meal-p" type="number" value="${defaultP}" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
                    </div>
                    <button onclick="saveMealEntry()" class="w-full py-2.5 bg-luna-sage text-white font-bold text-xs rounded-xl mt-2">保存する</button>
                </div>
            `;
            document.getElementById('modal').classList.remove('hidden');
+       }
+
+       /* 区分変更時に初期カロリー・タンパク量を自動セット */
+       function updateDefaultKcalP(selectedType) {
+           const kcalInput = document.getElementById('meal-kcal');
+           const pInput = document.getElementById('meal-p');
+           if (!kcalInput || !pInput) return;
+
+           if (selectedType === '朝食') {
+               kcalInput.value = 450;
+               pInput.value = 25;
+           } else if (selectedType === '昼食') {
+               kcalInput.value = 550;
+               pInput.value = 30;
+           } else if (selectedType === '夕食') {
+               kcalInput.value = 350;
+               pInput.value = 25;
+           } else if (selectedType === '間食') {
+               kcalInput.value = 50;
+               pInput.value = 5;
+           }
        }
 
        function saveMealEntry() {
@@ -1008,25 +1113,85 @@
            const text = document.getElementById('meal-text').value.trim();
            const kcal = parseInt(document.getElementById('meal-kcal').value) || 0;
            const p = parseInt(document.getElementById('meal-p').value) || 0;
+           const mealId = document.getElementById('meal-id-input')?.value;
 
            if (!text) {
                showToast('食事内容を入力してください');
                return;
            }
 
-           appData.mealsLog.push({
-               id: Date.now().toString(),
-               date: dateInput || getTodayDateString(),
-               type: type,
-               text: text,
-               kcal: kcal,
-               p: p,
-               favorite: false
-           });
+           if (mealId) {
+               // 既存レコードの編集・更新
+               const mealIndex = appData.mealsLog.findIndex(m => m.id === mealId);
+               if (mealIndex !== -1) {
+                   appData.mealsLog[mealIndex] = {
+                       ...appData.mealsLog[mealIndex],
+                       date: dateInput || getTodayDateString(),
+                       type: type,
+                       text: text,
+                       kcal: kcal,
+                       p: p
+                   };
+               }
+           } else {
+               // 新規追加
+               appData.mealsLog.push({
+                   id: Date.now().toString(),
+                   date: dateInput || getTodayDateString(),
+                   type: type,
+                   text: text,
+                   kcal: kcal,
+                   p: p,
+                   favorite: false
+               });
+           }
+
            saveState();
            closeModal();
-           showToast('食事を記録しました');
+           showToast(mealId ? '食事記録を更新しました' : '食事を記録しました');
            switchTab('meal');
+       }
+
+       function editMeal(id) {
+           const meal = appData.mealsLog.find(m => m.id === id);
+           if (!meal) return;
+
+           const modalTitle = document.getElementById('modal-title');
+           const modalBody = document.getElementById('modal-body');
+
+           modalTitle.textContent = `食事の編集 (${meal.date})`;
+           modalBody.innerHTML = `
+               <div class="space-y-3">
+                   <input id="meal-id-input" type="hidden" value="${meal.id}">
+                   <div>
+                       <label class="block text-xs font-bold text-stone-700 mb-1">記録日</label>
+                       <input id="meal-date-input" type="date" value="${meal.date}" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                   </div>
+                   <div>
+                       <label class="block text-xs font-bold text-stone-700 mb-1">区分</label>
+                       <select id="meal-type" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                           <option value="朝食" ${meal.type === '朝食' ? 'selected' : ''}>朝食</option>
+                           <option value="昼食" ${meal.type === '昼食' ? 'selected' : ''}>昼食</option>
+                           <option value="夕食" ${meal.type === '夕食' ? 'selected' : ''}>夕食</option>
+                           <option value="間食" ${meal.type === '間食' ? 'selected' : ''}>間食</option>
+                       </select>
+                   </div>
+                   <div>
+                       <label class="block text-xs font-bold text-stone-700 mb-1">食事内容</label>
+                       <input id="meal-text" type="text" value="${meal.text}" placeholder="例: 鮭の塩焼き、ごはん" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                   </div>
+                   <div>
+                       <label class="block text-xs font-bold text-stone-700 mb-1">概算カロリー (kcal)</label>
+                       <input id="meal-kcal" type="number" value="${meal.kcal}" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                   </div>
+                   <div>
+                       <label class="block text-xs font-bold text-stone-700 mb-1">たんぱく質 (g)</label>
+                       <input id="meal-p" type="number" value="${meal.p || 0}" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                   </div>
+                   <button onclick="saveMealEntry()" class="w-full py-2.5 bg-luna-sage text-white font-bold text-xs rounded-xl mt-2">更新する</button>
+               </div>
+           `;
+           document.getElementById('modal').classList.remove('hidden');
        }
 
        function deleteMeal(id) {
@@ -1040,40 +1205,122 @@
           4. 生理周期 & 体調管理画面
           ========================================================================== */
        function getCyclePhase(startDateStr, cycleLength = 28) {
-           const start = new Date(startDateStr);
-           const today = new Date();
-           const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24)) % cycleLength;
+           // 手動設定（manualPhase）がある場合は、周期の自動計算より手動設定を最優先
+           if (appData.cycle.manualPhase) {
+               switch (appData.cycle.manualPhase) {
+                   case 'period':
+                       return { phaseKey: 'period', phaseName: '月経期（生理中）', adviceShort: '血行改善と温活。無理せずゆったりストレッチを。', intensity: 'light' };
+                   case 'after_period':
+                       return { phaseKey: 'after_period', phaseName: '卵胞期（生理後〜排卵前）', adviceShort: '代謝アップ！お尻＆体幹の筋トレ成果が出やすい時期。', intensity: 'active' };
+                   case 'ovulation':
+                       return { phaseKey: 'ovulation', phaseName: '排卵前後', adviceShort: '体調は良好。フォームの正確さを重視。', intensity: 'normal' };
+                   case 'before_period':
+                       return { phaseKey: 'before_period', phaseName: '黄体期（生理前・ご自愛期）', adviceShort: 'むくみや張りに注意。温かい食事と室内ストレッチで優しく。', intensity: 'gentle' };
+               }
+           }
+
+           if (!startDateStr) {
+               return { phaseKey: 'period', phaseName: '月経期（生理中）', adviceShort: '血行改善と温活。無理せずゆったりストレッチを。', intensity: 'light' };
+           }
+
+           // 日付文字列 (YYYY-MM-DD) から時刻を除外した Date オブジェクトを作成して日付差分を正確に計算
+           const [sYear, sMonth, sDay] = startDateStr.split('-').map(Number);
+           const start = new Date(sYear, sMonth - 1, sDay);
+
+           const todayObj = new Date();
+           const today = new Date(todayObj.getFullYear(), todayObj.getMonth(), todayObj.getDate());
+
+           const diffTime = today - start;
+           let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+           // 生理開始日が今日より未来、または周期を越えている場合の余り計算
+           diffDays = ((diffDays % cycleLength) + cycleLength) % cycleLength;
 
            if (diffDays >= 0 && diffDays < 5) {
-               return { phaseName: '月経期（リセット期）', adviceShort: '血行改善と温活。無理せずゆったりストレッチを。', intensity: 'light' };
+               return { phaseKey: 'period', phaseName: '月経期（生理中）', adviceShort: '血行改善と温活。無理せずゆったりストレッチを。', intensity: 'light' };
            } else if (diffDays >= 5 && diffDays < 13) {
-               return { phaseName: '卵胞期（キラキラ期）', adviceShort: '代謝アップ！お尻＆体幹の筋トレ成果が出やすい時期。', intensity: 'active' };
+               return { phaseKey: 'after_period', phaseName: '卵胞期（生理後〜排卵前）', adviceShort: '代謝アップ！お尻＆体幹の筋トレ成果が出やすい時期。', intensity: 'active' };
            } else if (diffDays >= 13 && diffDays < 17) {
-               return { phaseName: '排卵期', adviceShort: '体調は良好。フォームの正確さを重視。', intensity: 'normal' };
+               return { phaseKey: 'ovulation', phaseName: '排卵前後', adviceShort: '体調は良好。フォームの正確さを重視。', intensity: 'normal' };
            } else {
-               return { phaseName: '黄体期（ご自愛期）', adviceShort: 'むくみや張りに注意。温かい食事と室内ストレッチで優しく。', intensity: 'gentle' };
+               return { phaseKey: 'before_period', phaseName: '黄体期（生理前・ご自愛期）', adviceShort: 'むくみや張りに注意。温かい食事と室内ストレッチで優しく。', intensity: 'gentle' };
            }
        }
 
        function renderCycleScreen(container) {
            const cyclePhase = getCyclePhase(appData.cycle.lastPeriodStart, appData.cycle.cycleLength);
+           const isManual = !!appData.cycle.manualPhase;
+
            container.innerHTML = `
                <div class="space-y-4 fade-in">
                    <div class="flex justify-between items-center">
                        <h2 class="font-bold text-stone-800 text-base">生理周期＆体調トラッカー</h2>
-                       <button onclick="showCycleConfigModal()" class="px-2.5 py-1 bg-stone-100 text-stone-600 font-bold text-xs rounded-lg border">周期設定</button>
+                       <button onclick="showCycleConfigModal()" class="px-2.5 py-1 bg-stone-100 text-stone-600 font-bold text-xs rounded-lg border">自動予測設定</button>
                    </div>
 
+                   <!-- 周期不安定な方向け：ワンタップ状態設定カード -->
+                   <div class="bg-white p-3.5 rounded-2xl border border-stone-200/80 shadow-xs space-y-2.5">
+                       <div class="flex justify-between items-center">
+                           <span class="font-bold text-stone-800 text-xs flex items-center space-x-1">
+                               <span>⚡</span>
+                               <span>【直感モード】今の状態をワンタップ変更</span>
+                           </span>
+                           ${isManual ? `<button onclick="resetCycleManualMode()" class="text-[10px] text-luna-sageDark font-bold bg-luna-sageLight px-2 py-0.5 rounded">自動計算に戻す</button>` : `<span class="text-[10px] text-stone-400">周期不安定な方へ</span>`}
+                       </div>
+                       <p class="text-[11px] text-stone-500 leading-normal">
+                           周期が乱れている時は、日付計算に縛られず以下のボタンで「今のカラダの状態」を選ぶだけで、食事目標や運動が即座に最適化されます。
+                       </p>
+                       <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+                           <button onclick="setManualCyclePhase('period')" class="p-2.5 rounded-xl border ${cyclePhase.phaseKey === 'period' ? 'bg-pink-100 border-pink-400 text-pink-900 font-bold shadow-xs' : 'bg-stone-50 border-stone-200 text-stone-700'} text-left transition">
+                               <div class="text-[10px] text-pink-700">🩸 今生理中</div>
+                               <div class="font-bold text-xs mt-0.5">月経期</div>
+                           </button>
+                           <button onclick="setManualCyclePhase('after_period')" class="p-2.5 rounded-xl border ${cyclePhase.phaseKey === 'after_period' ? 'bg-emerald-100 border-emerald-400 text-emerald-900 font-bold shadow-xs' : 'bg-stone-50 border-stone-200 text-stone-700'} text-left transition">
+                               <div class="text-[10px] text-emerald-700">✨ 生理が終わった</div>
+                               <div class="font-bold text-xs mt-0.5">卵胞期（絶好調）</div>
+                           </button>
+                           <button onclick="setManualCyclePhase('ovulation')" class="p-2.5 rounded-xl border ${cyclePhase.phaseKey === 'ovulation' ? 'bg-blue-100 border-blue-400 text-blue-900 font-bold shadow-xs' : 'bg-stone-50 border-stone-200 text-stone-700'} text-left transition">
+                               <div class="text-[10px] text-blue-700">🥚 排卵期あたり</div>
+                               <div class="font-bold text-xs mt-0.5">排卵期</div>
+                           </button>
+                           <button onclick="setManualCyclePhase('before_period')" class="p-2.5 rounded-xl border ${cyclePhase.phaseKey === 'before_period' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold shadow-xs' : 'bg-stone-50 border-stone-200 text-stone-700'} text-left transition">
+                               <div class="text-[10px] text-amber-700">🌙 そろそろ生理前</div>
+                               <div class="font-bold text-xs mt-0.5">黄体期（むくみ期）</div>
+                           </button>
+                       </div>
+                   </div>
+
+                   <!-- 現在のフェーズ表示 -->
                    <div class="bg-gradient-to-br from-pink-50 to-white p-4 rounded-2xl border border-pink-200/60 shadow-sm space-y-2">
                        <div class="flex items-center justify-between">
-                           <span class="text-xs font-bold text-pink-700">現在のフェーズ</span>
-                           <span class="text-[10px] text-pink-500 font-semibold">直近開始: ${appData.cycle.lastPeriodStart}</span>
+                           <span class="text-xs font-bold text-pink-700">適用中のフェーズ</span>
+                           <span class="text-[10px] ${isManual ? 'bg-pink-100 text-pink-800' : 'text-pink-500'} font-bold px-1.5 py-0.5 rounded">
+                               ${isManual ? '手動指定モード適用中' : '日付自動判定中'}
+                           </span>
                        </div>
                        <h3 class="text-lg font-bold text-stone-800">${cyclePhase.phaseName}</h3>
                        <p class="text-xs text-stone-600 leading-relaxed">${cyclePhase.adviceShort}</p>
                    </div>
                </div>
            `;
+       }
+
+       function setManualCyclePhase(phaseKey) {
+           appData.cycle.manualPhase = phaseKey;
+           // 生理中が選ばれた場合は、直近生理開始日も今日に更新
+           if (phaseKey === 'period') {
+               appData.cycle.lastPeriodStart = getTodayDateString();
+           }
+           saveState();
+           showToast('フェーズを手動設定しました。目標データが連動更新されます！');
+           switchTab('cycle');
+       }
+
+       function resetCycleManualMode() {
+           appData.cycle.manualPhase = null;
+           saveState();
+           showToast('自動判定モードに戻しました');
+           switchTab('cycle');
        }
 
        function showCycleConfigModal() {
@@ -1170,6 +1417,7 @@
            if (!ctx) return;
            const labels = appData.bodyLog.map(item => item.date);
            const weights = appData.bodyLog.map(item => item.weight);
+           const waists = appData.bodyLog.map(item => item.waist);
            const hips = appData.bodyLog.map(item => item.hip);
 
            new Chart(ctx, {
@@ -1178,6 +1426,7 @@
                    labels: labels,
                    datasets: [
                        { label: '体重(kg)', data: weights, borderColor: '#D4A373', backgroundColor: 'rgba(212, 163, 115, 0.1)', borderWidth: 2, tension: 0.3 },
+                       { label: 'ウエスト(cm)', data: waists, borderColor: '#566E66', backgroundColor: 'rgba(86, 110, 102, 0.1)', borderWidth: 2, tension: 0.3 },
                        { label: 'ヒップ(cm)', data: hips, borderColor: '#78938A', backgroundColor: 'rgba(120, 147, 138, 0.1)', borderWidth: 2, tension: 0.3 }
                    ]
                },
