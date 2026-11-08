@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Haru. - わたしを育てる、毎日の5分。</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        haruBg: '#F8F5EF',
+                        haruSage: '#A9B9A3',
+                        haruSageDark: '#8F9F89',
+                        haruPeach: '#E9B9A9',
+                        haruYellow: '#E9D99F',
+                        haruText: '#485448',
+                        haruSubText: '#899184',
+                        haruCard: '#FFFFFF',
+                        haruBorder: '#EFECE6'
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Helvetica Neue"', 'YakuHanJP', '"Hiragino Sans"', '"Hiragino Kaku Gothic ProN"', 'Meiryo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F8F5EF;
+            color: #485448;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bloom-anim {
+            animation: bloom 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes bloom {
+            0% { transform: scale(0.6); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex justify-center items-start pb-20">
+
+    <div class="w-full max-w-md min-h-screen bg-haruBg flex flex-col relative shadow-sm border-x border-haruBorder">
+        
+        <!-- ヘッダー -->
+        <header class="pt-6 pb-3 px-5 flex justify-between items-center bg-haruBg/90 backdrop-blur sticky top-0 z-10 border-b border-haruBorder/60">
+            <div>
+                <h1 class="text-2xl font-semibold tracking-wider text-haruText font-serif">Haru.</h1>
+                <p class="text-xs text-haruSubText mt-0.5">わたしを育てる、毎日の5分。</p>
+            </div>
+            <div id="todayDateDisplay" class="text-right text-xs text-haruSubText font-medium bg-white/70 px-3 py-1.5 rounded-full border border-haruBorder">
+                --/-- (--)
+            </div>
+        </header>
+
+        <!-- メインコンテンツ表示エリア -->
+        <main class="flex-1 px-4 py-4 space-y-4 no-scrollbar overflow-y-auto">
+
+            <!-- ===================== タブ1：今日の運動 ===================== -->
+            <section id="tab-workout" class="tab-content space-y-4 animate-fade-in">
+                
+                <!-- 体調選択 -->
+                <div class="bg-white rounded-2xl p-4 border border-haruBorder shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-sm font-bold text-haruText flex items-center gap-1.5">
+                            <span>🌱</span> 今日の体調
+                        </h2>
+                        <span class="text-[10px] text-haruSubText">選択するとメニュー・時間が自動調整されます</span>
+                    </div>
+
+                    <div>
+                        <div class="grid grid-cols-5 gap-1.5 text-xs">
+                            <button onclick="setPhysicalStatus('good')" id="p-good" class="status-btn p-2 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition">元気</button>
+                            <button onclick="setPhysicalStatus('normal')" id="p-normal" class="status-btn p-2 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition">ふつう</button>
+                            <button onclick="setPhysicalStatus('tired')" id="p-tired" class="status-btn p-2 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition">少し疲れた</button>
+                            <button onclick="setPhysicalStatus('very_tired')" id="p-very_tired" class="status-btn p-2 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition">かなり疲れた</button>
+                            <button onclick="setPhysicalStatus('bad')" id="p-bad" class="status-btn p-2 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition">痛み・不調</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- メインおまかせメニューカード -->
+                <div class="bg-white rounded-2xl p-5 border border-haruBorder shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-haruSage/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div class="flex items-center justify-between mb-2">
+                        <span id="weekProgramBadge" class="text-[11px] font-medium text-haruSageDark bg-haruSage/15 px-2.5 py-1 rounded-full">体調自動連動コース</span>
+                        <div class="flex items-center gap-2">
+                            <button id="changePresetBtn" onclick="changeWorkoutPreset()" class="text-[10px] bg-haruBg border border-haruBorder text-haruText px-2.5 py-1 rounded-full hover:bg-haruBorder/50 transition">別のメニューにする ✨</button>
+                            <span id="workoutDurationBadge" class="text-xs font-bold text-haruText bg-haruYellow/40 px-2.5 py-1 rounded-full">約 5分</span>
+                        </div>
+                    </div>
+
+                    <h3 id="workoutTitle" class="text-lg font-bold text-haruText mb-1">全身キュッと引き締め5分</h3>
+                    <p id="workoutSubtitle" class="text-xs text-haruSubText mb-4 leading-relaxed">体調・気分・前日の疲労感から自動選定されました。</p>
+
+                    <!-- ステップ構成リスト -->
+                    <div id="workoutStepsContainer" class="space-y-2 mb-5">
+                        <!-- JSで動的挿入 -->
+                    </div>
+
+                    <div id="workoutActionArea">
+                        <button onclick="startWorkoutTimer()" class="w-full py-3.5 bg-haruSage text-white font-bold rounded-xl text-sm shadow-sm hover:bg-haruSageDark active:scale-[0.99] transition duration-150 flex items-center justify-center gap-2">
+                            <span>運動を始める</span>
+                            <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full font-normal">スタート</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 今日の目標 ＆ ミニアドバイス -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white rounded-2xl p-3.5 border border-haruBorder shadow-sm">
+                        <p class="text-[11px] font-bold text-haruSubText mb-1">🎯 今日の小さな目標</p>
+                        <p id="dailyTargetText" class="text-xs font-medium text-haruText leading-relaxed">深呼吸を意識してゆっくり動く</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-3.5 border border-haruBorder shadow-sm">
+                        <p class="text-[11px] font-bold text-haruSubText mb-1">💡 からだへの優しさ</p>
+                        <p id="safetyAdviceText" class="text-xs font-medium text-haruText leading-relaxed">痛みや違和感がある時はいつでも中止してOK</p>
+                    </div>
+                </div>
+
+                <!-- 応援メッセージ枠 -->
+                <div class="bg-haruYellow/20 border border-haruYellow/50 rounded-2xl p-4 text-center">
+                    <p id="homeEncouragementText" class="text-xs text-haruText font-medium leading-relaxed">
+                        「完璧を目指さなくて大丈夫。たった5分でも自分の体を大切にできたことが素敵な一歩です。」
+                    </p>
+                </div>
+            </section>
+
+            <!-- ===================== タブ2：食事ノート ===================== -->
+            <section id="tab-meal" class="tab-content space-y-4 hidden animate-fade-in">
+                <!-- たんぱく質チェック -->
+                <div class="bg-white rounded-2xl p-4 border border-haruBorder shadow-sm space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-sm font-bold text-haruText flex items-center gap-1.5">
+                            <span>🍳</span> たんぱく質チェック
+                        </h2>
+                        <span class="text-[10px] text-haruSubText">意識できたものをタップ (毎日リセット)</span>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2 text-xs">
+                        <button onclick="toggleProtein('egg')" id="prot-egg" class="prot-btn p-2.5 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition flex flex-col items-center gap-1">
+                            <span class="text-base">🥚</span>
+                            <span>卵</span>
+                        </button>
+                        <button onclick="toggleProtein('fish')" id="prot-fish" class="prot-btn p-2.5 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition flex flex-col items-center gap-1">
+                            <span class="text-base">🐟</span>
+                            <span>魚</span>
+                        </button>
+                        <button onclick="toggleProtein('meat')" id="prot-meat" class="prot-btn p-2.5 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition flex flex-col items-center gap-1">
+                            <span class="text-base">🍗</span>
+                            <span>肉</span>
+                        </button>
+                        <button onclick="toggleProtein('natto')" id="prot-natto" class="prot-btn p-2.5 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition flex flex-col items-center gap-1">
+                            <span class="text-base">🫘</span>
+                            <span>納豆</span>
+                        </button>
+                        <button onclick="toggleProtein('tofu')" id="prot-tofu" class="prot-btn p-2.5 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition flex flex-col items-center gap-1">
+                            <span class="text-base">🧊</span>
+                            <span>豆腐</span>
+                        </button>
+                        <button onclick="toggleProtein('milk')" id="prot-milk" class="prot-btn p-2.5 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition flex flex-col items-center gap-1">
+                            <span class="text-base">🥛</span>
+                            <span>乳製品</span>
+                        </button>
+                        <button onclick="toggleProtein('yogurt')" id="prot-yogurt" class="prot-btn p-2.5 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition flex flex-col items-center gap-1">
+                            <span class="text-base">🥣</span>
+                            <span>ヨーグルト</span>
+                        </button>
+                        <button onclick="toggleProtein('other')" id="prot-other" class="prot-btn p-2.5 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition flex flex-col items-center gap-1">
+                            <span class="text-base">✨</span>
+                            <span>その他</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 食事バランス -->
+                <div class="bg-white rounded-2xl p-4 border border-haruBorder shadow-sm space-y-3">
+                    <h2 class="text-sm font-bold text-haruText flex items-center gap-1.5">
+                        <span>🥗</span> 食事バランス
+                    </h2>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <button onclick="toggleBalance('staple')" id="bal-staple" class="bal-btn p-2.5 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition font-medium">
+                            🍚 主食（ご飯・パン）
+                        </button>
+                        <button onclick="toggleBalance('main')" id="bal-main" class="bal-btn p-2.5 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition font-medium">
+                            🥩 主菜（肉・魚・卵）
+                        </button>
+                        <button onclick="toggleBalance('side')" id="bal-side" class="bal-btn p-2.5 rounded-xl border border-haruBorder text-center hover:bg-haruBg transition font-medium">
+                            🥦 野菜・海藻
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 間食ノート -->
+                <div class="bg-white rounded-2xl p-4 border border-haruBorder shadow-sm space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-sm font-bold text-haruText flex items-center gap-1.5">
+                            <span>🍪</span> 間食ノート
+                        </h2>
+                        <span class="text-[10px] text-haruSubText">自分責めはなしでOK</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <input type="text" id="snackItemInput" placeholder="食べたもの（例：クッキー2枚、焼き芋）" class="w-full text-xs p-2.5 border border-haruBorder rounded-xl focus:outline-none focus:border-haruSage">
+                        
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <label class="block text-[11px] text-haruSubText mb-1">食べた理由</label>
+                                <select id="snackReasonSelect" class="w-full p-2 border border-haruBorder rounded-xl bg-white focus:outline-none focus:border-haruSage">
+                                    <option value="お腹がすいた">お腹がすいた</option>
+                                    <option value="疲れていた">疲れていた</option>
+                                    <option value="気分転換したかった">気分転換したかった</option>
+                                    <option value="目の前にあった">目の前にあった</option>
+                                    <option value="なんとなく">なんとなく</option>
+                                    <option value="その他">その他</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-haruSubText mb-1">食べたあとの気持ち</label>
+                                <select id="snackFeelingSelect" class="w-full p-2 border border-haruBorder rounded-xl bg-white focus:outline-none focus:border-haruSage">
+                                    <option value="満足した">満足した</option>
+                                    <option value="ちょうどよかった">ちょうどよかった</option>
+                                    <option value="まだ食べたい">まだ食べたい</option>
+                                    <option value="よく分からない">よく分からない</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button onclick="saveSnackRecord()" class="w-full py-2 bg-haruPeach text-white font-bold rounded-xl text-xs hover:opacity-90 transition">
+                            間食を記録する
+                        </button>
+                    </div>
+
+                    <div id="snackHistoryContainer" class="pt-2 border-t border-haruBorder space-y-1.5 text-xs text-haruSubText">
+                        <!-- 履歴表示 -->
+                    </div>
+                </div>
+
+                <!-- 水分記録 -->
+                <div class="bg-white rounded-2xl p-4 border border-haruBorder shadow-sm space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-sm font-bold text-haruText flex items-center gap-1.5">
+                            <span>💧</span> 水分補給
+                        </h2>
+                        <span class="text-[10px] text-haruSubText">コップ1杯 ≒ 200ml (毎日リセット)</span>
+                    </div>
+
+                    <div class="flex items-center justify-between bg-haruBg p-3 rounded-xl">
+                        <div class="flex items-center gap-1 text-haruSageDark font-bold text-lg">
+                            <span id="waterGlassCount">0</span>
+                            <span class="text-xs font-normal text-haruSubText">杯 (約 <span id="waterMlCount">0</span> ml)</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="changeWater(-1)" class="w-8 h-8 bg-white border border-haruBorder rounded-lg font-bold text-haruText text-sm flex items-center justify-center hover:bg-haruBg active:scale-95 transition">-</button>
+                            <button onclick="changeWater(1)" class="w-8 h-8 bg-haruSage text-white rounded-lg font-bold text-sm flex items-center justify-center hover:bg-haruSageDark active:scale-95 transition">+</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== タブ3：成長の記録 ===================== -->
+            <section id="tab-record" class="tab-content space-y-4 hidden animate-fade-in">
+                
+                <!-- 概要サマリー -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white p-3.5 rounded-2xl border border-haruBorder text-center">
+                        <p class="text-[11px] text-haruSubText mb-0.5">運動した累計日数</p>
+                        <p id="summaryWorkoutDays" class="text-xl font-bold text-haruSageDark">0 <span class="text-xs text-haruSubText font-normal">日</span></p>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-2xl border border-haruBorder text-center">
+                        <p class="text-[11px] text-haruSubText mb-0.5">たんぱく質意識日数</p>
+                        <p id="summaryProteinDays" class="text-xl font-bold text-haruPeach">0 <span class="text-xs text-haruSubText font-normal">日</span></p>
+                    </div>
+                </div>
+
+                <!-- 1. 1週間の運動記録 (バー表示) -->
+                <div class="bg-white rounded-2xl p-4 border border-haruBorder shadow-sm space-y-2">
+                    <h3 class="text-xs font-bold text-haruText flex items-center gap-1.5">
+                        <span>📊</span> 過去7日間の運動・記録
+                    </h3>
+                    <div id="weeklyWorkoutChart" class="flex justify-between items-end h-28 pt-4 pb-1 border-b border-haruBorder">
+                        <!-- JSで7日分のバーを描画 -->
+                    </div>
+                    <p class="text-[10px] text-haruSubText text-center pt-1">「休む判断ができた」「再開できた」ことも立派な成果です</p>
+                </div>
+
+                <!-- 2. 運動後のきつさ & 日々の疲労感の変化 -->
+                <div class="bg-white rounded-2xl p-4 border border-haruBorder shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-haruText flex items-center gap-1.5">
+                        <span>📈</span> 体調・疲労感の推移
+                    </h3>
+                    <div id="fatigueTrendContainer" class="space-y-2 text-xs">
+                        <!-- JSで過去の疲労感推移を表示 -->
+                    </div>
+                </div>
+
+                <!-- 3. 任意測定（体重・ウエスト）-->
+                <div class="bg-white rounded-2xl p-4 border border-haruBorder shadow-sm space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-bold text-haruText flex items-center gap-1.5">
+                            <span>📐</span> 体重・ウエスト記録（任意）
+                        </h3>
+                        <span class="text-[10px] text-haruSubText">数値に捉われず目安として</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="block text-[10px] text-haruSubText mb-1">体重 (kg)</label>
+                            <input type="number" step="0.1" id="inputWeight" placeholder="例: 52.5" class="w-full p-2 border border-haruBorder rounded-xl focus:outline-none focus:border-haruSage">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-haruSubText mb-1">ウエスト (cm)</label>
+                            <input type="number" step="0.5" id="inputWaist" placeholder="例: 68.0" class="w-full p-2 border border-haruBorder rounded-xl focus:outline-none focus:border-haruSage">
+                        </div>
+                    </div>
+                    <button onclick="saveBodyMetrics()" class="w-full py-2 bg-haruSage text-white font-bold rounded-xl text-xs hover:bg-haruSageDark transition">
+                        測定値を記録する
+                    </button>
+
+                    <div id="bodyMetricsHistory" class="pt-2 border-t border-haruBorder space-y-1 text-xs text-haruSubText">
+                        <!-- 履歴表示 -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ===================== タブ4：応援広場 (全30パターン) ===================== -->
+            <section id="tab-encouragement" class="tab-content space-y-4 hidden animate-fade-in">
+                <div class="bg-white rounded-2xl p-5 border border-haruBorder shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">🌸</span>
+                            <h2 class="text-sm font-bold text-haruText">あなたへの寄り添いエール</h2>
+                        </div>
+                        <button onclick="shuffleEncouragement()" class="text-xs bg-haruSage/20 text-haruSageDark font-medium px-3 py-1.5 rounded-full hover:bg-haruSage/30 transition flex items-center gap-1">
+                            <span>🔄</span> 別の応援を見る
+                        </button>
+                    </div>
+
+                    <div id="dynamicEncouragementBox" class="bg-haruBg p-5 rounded-xl border border-haruBorder space-y-3 text-center">
+                        <p id="encouragementMainText" class="text-sm text-haruText leading-relaxed font-medium">
+                            「今日もアプリを開いてくれてありがとう。毎日完璧じゃなくて大丈夫。自分のペースで少しずつ進んでいこうね。」
+                        </p>
+                        <span id="encouragementTag" class="inline-block text-[10px] text-haruSageDark bg-haruSage/20 px-2.5 py-1 rounded-full">きょうの言葉</span>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <h3 class="text-xs font-bold text-haruSubText">Haru.からの温かいお約束</h3>
+                        <div class="space-y-2 text-xs text-haruText">
+                            <div class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-haruBorder">
+                                <span>🌿</span>
+                                <div>
+                                    <p class="font-bold">休むことも大切な前進</p>
+                                    <p class="text-[11px] text-haruSubText">疲れた日に無理をしない選択は、体を労わる立派な才能です。</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-haruBorder">
+                                <span>🍵</span>
+                                <div>
+                                    <p class="font-bold">人と比べない、昨日の自分とも比べない</p>
+                                    <p class="text-[11px] text-haruSubText">体調は波があって当たり前。今この瞬間の自分を一番に応援します。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- タイマーモーダル画面 (運動中 - 正確な秒数・全体残り時間連動) -->
+        <div id="timerModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white w-full max-w-sm rounded-3xl p-5 border border-haruBorder shadow-xl space-y-4 animate-fade-in text-center">
+                
+                <div class="flex justify-between items-center text-xs text-haruSubText">
+                    <span id="modalStepCount">STEP 1 / 5</span>
+                    <span id="modalTotalTimeRemaining">全体残り: 05:00</span>
+                </div>
+
+                <!-- タイマー表示 -->
+                <div class="py-2">
+                    <div id="modalTimerDisplay" class="text-4xl font-bold font-mono text-haruSageDark tracking-wider">01:00</div>
+                    <p id="modalStepName" class="text-sm font-bold text-haruText mt-2">ウォーミングアップ</p>
+                </div>
+
+                <!-- 動作説明 & 安全注意 -->
+                <div class="bg-haruBg p-3 rounded-2xl text-left border border-haruBorder space-y-1.5">
+                    <p class="text-[11px] font-bold text-haruSubText flex items-center gap-1">
+                        <span>💡</span> やり方
+                    </p>
+                    <p id="modalStepGuide" class="text-xs text-haruText leading-relaxed">
+                        腕を優しく振り、かかとから着地しましょう。
+                    </p>
+                    <p class="text-[11px] font-bold text-haruSageDark flex items-center gap-1 pt-1">
+                        <span>🎯</span> ここを意識するポイント
+                    </p>
+                    <p id="modalStepSafety" class="text-xs text-haruText font-medium">
+                        息を止めずにリズミカルに。
+                    </p>
+                </div>
+
+                <!-- コントロールボタン -->
+                <div class="grid grid-cols-3 gap-2 pt-1">
+                    <button onclick="toggleWorkoutTimer()" id="timerPauseBtn" class="py-2.5 bg-haruYellow text-haruText font-bold rounded-xl text-xs">
+                        一時停止
+                    </button>
+                    <button onclick="resetWorkoutTimer()" class="py-2.5 bg-haruBg border border-haruBorder text-haruSubText font-bold rounded-xl text-xs">
+                        リセット
+                    </button>
+                    <button onclick="stopWorkoutTimer()" class="py-2.5 bg-haruPeach/20 text-haruPeach font-bold rounded-xl text-xs">
+                        中止する
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 運動振り返りモーダル -->
+        <div id="reviewModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white w-full max-w-sm rounded-3xl p-5 border border-haruBorder shadow-xl space-y-4 animate-fade-in text-center">
+                <div class="text-3xl bloom-anim">🌸</div>
+                <h3 id="reviewModalTitle" class="text-base font-bold text-haruText">運動完了！超えらい！！完璧です！！</h3>
+                <p class="text-xs text-haruSubText">今日の感覚を教えてください。次回の運動に自動反映されます。</p>
+
+                <div class="space-y-3 text-left">
+                    <div>
+                        <label class="block text-xs font-bold text-haruText mb-1.5">運動のきつさ</label>
+                        <div class="grid grid-cols-4 gap-1.5 text-xs">
+                            <button onclick="selectReviewHardness('easy')" id="rh-easy" class="rh-btn p-2 rounded-xl border border-haruBorder text-center">楽だった</button>
+                            <button onclick="selectReviewHardness('good')" id="rh-good" class="rh-btn p-2 rounded-xl border border-haruBorder text-center">ちょうどよい</button>
+                            <button onclick="selectReviewHardness('slightly_hard')" id="rh-slightly_hard" class="rh-btn p-2 rounded-xl border border-haruBorder text-center">少しきつい</button>
+                            <button onclick="selectReviewHardness('hard')" id="rh-hard" class="rh-btn p-2 rounded-xl border border-haruBorder text-center">とてもきつい</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-haruText mb-1.5">運動後の状態</label>
+                        <div class="grid grid-cols-3 gap-1.5 text-xs">
+                            <button onclick="selectReviewCondition('refreshed')" id="rc-refreshed" class="rc-btn p-2 rounded-xl border border-haruBorder text-center">すっきり</button>
+                            <button onclick="selectReviewCondition('normal')" id="rc-normal" class="rc-btn p-2 rounded-xl border border-haruBorder text-center">変わらない</button>
+                            <button onclick="selectReviewCondition('tired')" id="rc-tired" class="rc-btn p-2 rounded-xl border border-haruBorder text-center">疲れた</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="submitWorkoutReview()" class="w-full py-3 bg-haruSage text-white font-bold rounded-xl text-xs hover:bg-haruSageDark transition">
+                    記録を保存する
+                </button>
+            </div>
+        </div>
+
+        <!-- ボトムナビゲーション -->
+        <nav class="fixed bottom-0 w-full max-w-md bg-white border-t border-haruBorder px-4 py-2 flex justify-around items-center z-40">
+            <button onclick="switchTab('workout')" id="nav-workout" class="nav-btn flex flex-col items-center gap-0.5 text-haruSageDark">
+                <span class="text-lg">🏃‍♀️</span>
+                <span class="text-[10px] font-bold">今日の運動</span>
+            </button>
+            <button onclick="switchTab('meal')" id="nav-meal" class="nav-btn flex flex-col items-center gap-0.5 text-haruSubText">
+                <span class="text-lg">🥗</span>
+                <span class="text-[10px] font-bold">食事ノート</span>
+            </button>
+            <button onclick="switchTab('record')" id="nav-record" class="nav-btn flex flex-col items-center gap-0.5 text-haruSubText">
+                <span class="text-lg">📈</span>
+                <span class="text-[10px] font-bold">成長の記録</span>
+            </button>
+            <button onclick="switchTab('encouragement')" id="nav-encouragement" class="nav-btn flex flex-col items-center gap-0.5 text-haruSubText">
+                <span class="text-lg">🌸</span>
+                <span class="text-[10px] font-bold">応援広場</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- アプリケーションロジック -->
+    <script>
+        // ==========================================
+        // 1. 定数定義 & 完全自動連動データベース
+        // ==========================================
+        const STORAGE_KEY = 'haru_app_data_v4';
+
+        // 応援メッセージ 全30パターン
+        const ENCOURAGEMENT_MESSAGES = [
+            { text: "「今日もアプリを開いてくれてありがとう。毎日完璧じゃなくて大丈夫。自分のペースで少しずつ進んでいこうね。」", tag: "きょうの言葉" },
+            { text: "「休むことも立派な体づくり！疲れたときは自分を一番に甘やかしてあげてね🌿」", tag: "休息のエール" },
+            { text: "「昨日できなかったことより、今日こうして向き合えた自分をめいっぱい褒めよう✨」", tag: "自己肯定感UP" },
+            { text: "「深呼吸ひとつできただけでも大正解。あなたのペースが一番素敵なペースだよ🍵」", tag: "リラックス" },
+            { text: "「小さな一歩の積み重ねが、未来のあなたを優しく支えてくれるよ。今日も本当によく頑張ってる！」", tag: "未来への一歩" },
+            { text: "「鏡に映る自分に『今日も生きてるだけでえらい！』って心の中でハグしてあげよう🌸」", tag: "自分をハグ" },
+            { text: "「肩の力を抜いて、ふーっと息を吐き出して。あなたはあなたのままで100点満点だよ。」", tag: "肩の力を抜いて" },
+            { text: "「完璧を目指さなくて大丈夫。途中で休んだって、また戻ってこられたらそれだけで素晴らしいことなんだよ。」", tag: "完璧じゃなくてOK" },
+            { text: "「今日という日を頑張っているあなたに、温かいお茶のようなエールを贈ります🍵」", tag: "温かいエール" },
+            { text: "「どんな小さな変化も、あなたがあなたを大切にしている証拠。誇らしく思ってね！」", tag: "大切な証拠" },
+            { text: "「比べなくていいんだよ。昨日の自分より少し優しくなれたら、それだけで大成功！」", tag: "比べない生き方" },
+            { text: "「心がざわつく日は、ただただ自分の心地よさだけを優先して過ごそうね。」", tag: "心地よさ優先" },
+            { text: "「今日もあなたが笑顔でいられる時間が少しでも多くありますように。」", tag: "笑顔の願い" },
+            { text: "「お腹がすいたら食べて、眠くなったら寝る。そんな当たり前の日常を愛おしく思えるあなたでいてね。」", tag: "日常の愛しさ" },
+            { text: "「運動できなくても、食事ノートを開くだけで自分を気遣う素敵な習慣ができてるよ🌱」", tag: "習慣化の天才" },
+            { text: "「波があるのは生きている証拠。落ち込む日があったって、ちゃんとまた上を向ける日が来るから大丈夫。」", tag: "波があってOK" },
+            { text: "「あなたがあなた自身の一番の応援団長だよ。今日もよくがんばったね、お疲れ様！」", tag: "一番の応援団" },
+            { text: "「深呼吸するたびに、体の中に優しいエネルギーが満ちていくのを感じてみてね。」", tag: "エネルギーチャージ" },
+            { text: "「誰かのためじゃなく、自分のために使った5分間。その優しさが未来のあなたを美しくするよ。」", tag: "自分のための時間" },
+            { text: "「焦らなくても大丈夫。あなたのペースで花を咲かせていけばいいんだから🌸」", tag: "マイペース" },
+            { text: "「今日できたことだけに目を向けよう。今日も一日、本当に良くやりきりました！」", tag: "できたことに注目" },
+            { text: "「疲れた足や体に『今日も支えてくれてありがとう』って心の中で声をかけてあげてね。」", tag: "体に感謝" },
+            { text: "「雨の日もあれば晴れの日もある。あなたの心にも穏やかな青空が戻ってくるからね。」", tag: "青空の心" },
+            { text: "「ふっと一息つける場所、それがこのアプリでありたいなと思っています🍵」", tag: "安心の場所" },
+            { text: "「自分の機嫌は自分でとる。今日はお気に入りの飲み物で自分を労わってあげよう！」", tag: "ご機嫌とり" },
+            { text: "「どんなに小さな前進も、止まっていない証拠。一歩ずつ、確実に進んでいるよ。」", tag: "止まっていない証拠" },
+            { text: "「夜はゆっくり体を休めて、朝になったらまた新しい気持ちではじめようね。」", tag: "おやすみのエール" },
+            { text: "「あなたが選ぶ選択肢、すべてが今のあなたにとって正解だよ。」", tag: "すべての選択が正解" },
+            { text: "「今日も本当によく生き抜いた！それだけで今日という日は大成功だよ✨」", tag: "生き抜いた大成功" },
+            { text: "「明日もあなたにとって、心あたたまる素敵な一日になりますように🌸」", tag: "明日への願い" }
+        ];
+
+        // 体調・前日の疲労度に応じた運動メニューデータベース（各種目秒数合算で合計時間が保証される構造）
+        const WORKOUT_CATALOG = {
+            // 1. 元気いっぱいコース（合計300秒 / 5分）
+            good_5min: [
+                {
+                    title: "全身キュッと引き締め5分",
+                    subtitle: "元気いっぱい！全身の筋力運動と軽い有酸素運動でしっかり代謝を上げます。",
+                    totalDuration: 300,
+                    intensity: "通常",
+                    targetStatus: "元気",
+                    steps: [
+                        { name: "ウォーミングアップ (背伸び＆肩甲骨回し)", duration: 60, guide: "両手を頭の上で組んで天井へグーンと背伸び！そのまま肩甲骨を大きく後ろへゆっくり円を描くように回します。", safety: "背中のコリがスッキリほぐれて代謝スイッチがONになります！" },
+                        { name: "メイン運動① (上半身ツイスト＆パタパタ)", duration: 60, guide: "腕を横に広げて手のひらを上下にパタパタ動かしながら、上半身を左右にゆっくりツイストします。", safety: "お腹の横肉（わき腹）を雑巾を絞るようにキュッと刺激！" },
+                        { name: "メイン運動② (お腹に力を入れた軽い上下運動)", duration: 60, guide: "お腹に軽く力を入れて、ゆっくり腰を上下させます。深いスクワットじゃなくてOK！", safety: "太もとお尻の大きな筋肉を動かして脂肪を燃やします。" },
+                        { name: "メイン運動③ (太ももリズミカル上げ)", duration: 60, guide: "背すじを伸ばして、太ももを無理のない高さまでリズミカルに上げ下げします。", safety: "お腹のインナーマッスルも一緒に刺激されます！" },
+                        { name: "クールダウン (深呼吸・全身リセット)", duration: 60, guide: "息を吸いながら両手を大きく上に伸ばし、吐きながらゆっくり下ろします。", safety: "酸素を全身に行き渡らせて呼吸を整えます。" }
+                    ]
+                },
+                {
+                    title: "くびれ＆美脚めざしコース",
+                    subtitle: "骨盤周りとウエストにアプローチしてメリハリをつくる5分コース。",
+                    totalDuration: 300,
+                    intensity: "通常",
+                    targetStatus: "元気",
+                    steps: [
+                        { name: "ウォーミングアップ (骨盤まわりの円回し)", duration: 60, guide: "足を肩幅に開き、両手を腰に置いて骨盤を大きな円を描くように左右へゆっくり回します。", safety: "下半身の血流が巡ってポカポカ温まってきます。" },
+                        { name: "メイン運動① (斜めツイスト運動)", duration: 60, guide: "手を頭の後ろに軽く組み、右肘と左ひざを近づけるように上体を斜めにツイストします（反対も同様に）。", safety: "ぽっこりお腹とくびれにダイレクトに効かせます！" },
+                        { name: "メイン運動② (ヒップリフトキープ)", duration: 60, guide: "仰向けに寝てひざを立て、お尻を天井に向けてギュッと持ち上げてキープして下ろします。", safety: "お尻と裏ももの引き締めに抜群の効果！" },
+                        { name: "メイン運動③ (ふくらはぎアップダウン)", duration: 60, guide: "まっすぐ立った状態でつま先立ちになり、ゆっくり下ろす動作を繰り返します。", safety: "ふくらはぎを刺激してすらっとした美脚ラインへ！" },
+                        { name: "クールダウン (ゆったり脇腹伸ばし)", duration: 60, guide: "頭上で手を組み、体を左右にゆっくり倒して脇腹の筋肉をしっかり伸ばします。", safety: "リンパの詰まりを流してスッキリボディに。" }
+                    ]
+                }
+            ],
+            // 2. ふつうコース（合計300秒 / 5分・やさしめ）
+            normal_5min: [
+                {
+                    title: "やさしい全身ストレッチ5分",
+                    subtitle: "無理のない全身運動で心地よく体をほぐす5分コース。",
+                    totalDuration: 300,
+                    intensity: "やさしめ",
+                    targetStatus: "ふつう",
+                    steps: [
+                        { name: "ウォーミングアップ (手首足首ブラブラ)", duration: 60, guide: "座ったままでもOK。手首足首を軽くブラブラさせて全身の力を抜きます。", safety: "滞っていた巡りをスムーズにします。" },
+                        { name: "メイン運動① (胸開き＆背中丸め)", duration: 60, guide: "胸を大きく開きながら息を吸い、吐きながら背中を丸めてゆっくり呼吸します。", safety: "縮こまった上半身を開いて姿勢美人へ！" },
+                        { name: "メイン運動② (肩甲骨寄せ引き)", duration: 60, guide: "肘を曲げて体の横に置き、後ろへぐっと引いて左右の肩甲骨を中央でピタッと寄せます。", safety: "背中の脂肪を燃やして猫背を根本からリセット！" },
+                        { name: "メイン運動③ (ふくらはぎのじわーっと伸ばし)", duration: 60, guide: "壁に手をついて、片足を後ろに引いてふくらはぎの筋肉をじわーっと気持ちよく伸ばします。", safety: "血行を促して足首のむくみをスッキリオフ。" },
+                        { name: "クールダウン (お腹のゆったり深呼吸)", duration: 60, guide: "お腹に両手をあて、お腹が大きく膨らむのを感じながら鼻から吸って口から細く吐きます。", safety: "自律神経が整ってリラックスモードに。" }
+                    ]
+                }
+            ],
+            // 3. 少し疲れているコース（合計180秒 / 約3分）
+            tired_3min: [
+                {
+                    title: "ゆったりリフレッシュ約3分",
+                    subtitle: "座ってできる運動、ゆっくりした足踏み、軽いストレッチで優しくケア。",
+                    totalDuration: 180,
+                    intensity: "低め",
+                    targetStatus: "少し疲れた",
+                    steps: [
+                        { name: "STEP 1 (首の横倒しストレッチ)", duration: 60, guide: "首をゆっくり横に倒し、気持ちいいと感じる位置でキープ。肩の力もストンと抜きます。", safety: "パソコンやスマホで凝り固まった首肩の緊張をオフ。" },
+                        { name: "STEP 2 (手足のブラブラ血行流し)", duration: 60, guide: "床やベッドに仰向けになり、手足を天井へ上げて優しくブラブラと揺らします。", safety: "一日中たまった足のむくみや水分をスッキリ流します。" },
+                        { name: "STEP 3 (お腹のゆったり深呼吸)", duration: 60, guide: "お腹に両手をあて、お腹が大きく膨らむのを感じながら鼻から吸って口から細く吐きます。", safety: "自律神経が整ってリラックスモードに。" }
+                    ]
+                }
+            ],
+            // 4. かなり疲れているコース（合計120秒 / 約2分）
+            very_tired_2min: [
+                {
+                    title: "やさしい回復ストレッチ約2分",
+                    subtitle: "座ったままの軽い動き、呼吸、やさしいストレッチで回復を最優先。",
+                    totalDuration: 120,
+                    intensity: "とても低め",
+                    targetStatus: "かなり疲れた",
+                    steps: [
+                        { name: "STEP 1 (ひざ抱え込みゴロゴロ)", duration: 60, guide: "仰向けのまま両ひざを両手で抱え込み、左右にゴロゴロと優しく揺れて腰をマッサージします。", safety: "腰や背中の緊張がほぐれてとっても気持ちいい！" },
+                        { name: "STEP 2 (大の字で全身リラックス呼吸)", duration: 60, guide: "手足を大きく広げて大の字になり、全身の力を完全に抜いてゆったり呼吸します。", safety: "今日も本当によくがんばりました。" }
+                    ]
+                }
+            ],
+            // 5. 痛み・不調コース（合計0秒 / 休息推奨）
+            rest_0min: [
+                {
+                    title: "今日は体を休める日",
+                    subtitle: "痛みや不調がある時は運動をお休みしましょう。医療機関への相談もご検討ください。",
+                    totalDuration: 0,
+                    intensity: "休息",
+                    targetStatus: "体調不良・痛み",
+                    steps: []
+                }
+            ]
+        };
+
+        // アプリ共通状態データ
+        let appState = {
+            today: new Date().toISOString().split('T')[0],
+            physicalStatus: 'normal',
+            logs: {},
+            reviewHardness: 'good',
+            reviewCondition: 'normal',
+            currentPresetIndex: 0,
+            currentEncouragementIndex: 0
+        };
+
+        // タイマー制御用変数
+        let timerInterval = null;
+        let currentStepIndex = 0;
+        let stepRemainingTime = 60;
+        let totalRemainingTime = 0;
+        let isTimerPaused = false;
+        let activeWorkoutPlan = null;
+
+        // ==========================================
+        // 2. 初期化 ＆ データ永続化
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            initDateHeader();
+            updateAutoWorkoutPreset();
+            renderAllViews();
+        });
+
+        function loadFromStorage() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    appState.logs = parsed.logs || {};
+                    const todayLog = appState.logs[appState.today];
+                    if (todayLog && todayLog.status) {
+                        appState.physicalStatus = todayLog.status.physical || 'normal';
+                    }
+                }
+            } catch (e) {
+                console.error("Storage load error:", e);
+            }
+        }
+
+        function saveToStorage() {
+            try {
+                ensureTodayLog();
+                appState.logs[appState.today].status = {
+                    physical: appState.physicalStatus
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ logs: appState.logs }));
+            } catch (e) {
+                console.error("Storage save error:", e);
+            }
+        }
+
+        function ensureTodayLog() {
+            if (!appState.logs[appState.today]) {
+                appState.logs[appState.today] = {
+                    workoutDone: false,
+                    workoutReview: null,
+                    proteins: [],
+                    balances: [],
+                    snacks: [],
+                    waterMl: 0,
+                    weight: null,
+                    waist: null,
+                    status: { physical: 'normal' }
+                };
+            }
+        }
+
+        function checkAndResetDailyData() {
+            const nowStr = new Date().toISOString().split('T')[0];
+            if (appState.today !== nowStr) {
+                appState.today = nowStr;
+                ensureTodayLog();
+            }
+        }
+
+        function initDateHeader() {
+            const now = new Date();
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            const dateStr = `${now.getMonth() + 1}/${now.getDate()} (${days[now.getDay()]})`;
+            const dateDisplay = document.getElementById('todayDateDisplay');
+            if (dateDisplay) dateDisplay.innerText = dateStr;
+        }
+
+        // ==========================================
+        // 3. タブ切り替え制御
+        // ==========================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if (targetTab) targetTab.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-haruSageDark');
+                btn.classList.add('text-haruSubText');
+            });
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.remove('text-haruSubText');
+                activeNav.classList.add('text-haruSageDark');
+            }
+
+            if (tabId === 'record') {
+                renderRecordTab();
+            } else if (tabId === 'encouragement') {
+                updateEncouragementTab();
+            }
+        }
+
+        // ==========================================
+        // 4. 体調・前日疲労度連動 自動メニュー選定ロジック
+        // ==========================================
+        function setPhysicalStatus(status) {
+            appState.physicalStatus = status;
+            appState.currentPresetIndex = 0;
+            saveToStorage();
+            updateAutoWorkoutPreset();
+            renderWorkoutTabUI();
+        }
+
+        function updateAutoWorkoutPreset() {
+            const phys = appState.physicalStatus;
+
+            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+            const yesterdayLog = appState.logs[yesterday];
+            let yesterdayHardness = null;
+            let yesterdayCondition = null;
+            if (yesterdayLog && yesterdayLog.workoutReview) {
+                yesterdayHardness = yesterdayLog.workoutReview.hardness;
+                yesterdayCondition = yesterdayLog.workoutReview.condition;
+            }
+
+            let list = WORKOUT_CATALOG.normal_5min;
+
+            if (phys === 'bad') {
+                list = WORKOUT_CATALOG.rest_0min;
+            } else if (phys === 'very_tired' || yesterdayCondition === 'tired' || yesterdayHardness === 'hard') {
+                list = WORKOUT_CATALOG.very_tired_2min;
+            } else if (phys === 'tired' || yesterdayHardness === 'slightly_hard') {
+                list = WORKOUT_CATALOG.tired_3min;
+            } else if (phys === 'normal') {
+                list = WORKOUT_CATALOG.normal_5min;
+            } else if (phys === 'good') {
+                list = WORKOUT_CATALOG.good_5min;
+            }
+
+            const idx = appState.currentPresetIndex % list.length;
+            activeWorkoutPlan = JSON.parse(JSON.stringify(list[idx]));
+        }
+
+        function changeWorkoutPreset() {
+            appState.currentPresetIndex++;
+            updateAutoWorkoutPreset();
+            renderWorkoutTabUI();
+        }
+
+        function renderWorkoutTabUI() {
+            document.querySelectorAll('.status-btn').forEach(b => {
+                b.classList.remove('bg-haruSage', 'text-white', 'border-haruSage');
+            });
+            const activePBtn = document.getElementById(`p-${appState.physicalStatus}`);
+            if (activePBtn) activePBtn.classList.add('bg-haruSage', 'text-white', 'border-haruSage');
+
+            // 体調に応じたカタログのリストを取得して、別メニューボタンの表示制御を行う
+            const phys = appState.physicalStatus;
+            let currentList = WORKOUT_CATALOG.normal_5min;
+            if (phys === 'bad') currentList = WORKOUT_CATALOG.rest_0min;
+            else if (phys === 'very_tired') currentList = WORKOUT_CATALOG.very_tired_2min;
+            else if (phys === 'tired') currentList = WORKOUT_CATALOG.tired_3min;
+            else if (phys === 'normal') currentList = WORKOUT_CATALOG.normal_5min;
+            else if (phys === 'good') currentList = WORKOUT_CATALOG.good_5min;
+
+            const changePresetBtn = document.getElementById('changePresetBtn');
+            if (changePresetBtn) {
+                if (currentList.length <= 1) {
+                    changePresetBtn.classList.add('hidden');
+                } else {
+                    changePresetBtn.classList.remove('hidden');
+                }
+            }
+
+            const titleEl = document.getElementById('workoutTitle');
+            const subtitleEl = document.getElementById('workoutSubtitle');
+            if (titleEl) titleEl.innerText = activeWorkoutPlan.title;
+            if (subtitleEl) subtitleEl.innerText = activeWorkoutPlan.subtitle;
+
+            const stepsContainer = document.getElementById('workoutStepsContainer');
+            if (stepsContainer) {
+                stepsContainer.innerHTML = '';
+                if (activeWorkoutPlan.totalDuration === 0) {
+                    stepsContainer.innerHTML = `
+                        <div class="p-3 bg-haruPeach/20 text-haruPeach rounded-xl text-xs font-bold text-center">
+                            ⚠️ 本日は痛みや不調があるため、運動をお休みしましょう。水分をとってゆっくりお休みください。
+                        </div>
+                    `;
+                } else {
+                    activeWorkoutPlan.steps.forEach((st, idx) => {
+                        const item = document.createElement('div');
+                        item.className = 'flex items-center justify-between text-xs bg-haruBg p-2.5 rounded-xl border border-haruBorder';
+                        item.innerHTML = `
+                            <span class="font-medium text-haruText">${st.name}</span>
+                            <span class="text-[10px] text-haruSubText font-mono">${st.duration}秒</span>
+                        `;
+                        stepsContainer.appendChild(item);
+                    });
+                }
+
+                const durationBadge = document.getElementById('workoutDurationBadge');
+                if (durationBadge) {
+                    const mins = Math.floor(activeWorkoutPlan.totalDuration / 60);
+                    durationBadge.innerText = mins > 0 ? `約 ${mins}分` : `約 ${activeWorkoutPlan.totalDuration}秒`;
+                }
+            }
+
+            ensureTodayLog();
+            const todayLog = appState.logs[appState.today];
+            const actionArea = document.getElementById('workoutActionArea');
+
+            if (actionArea) {
+                if (activeWorkoutPlan.totalDuration === 0) {
+                    actionArea.innerHTML = `
+                        <div class="w-full py-3 bg-haruBg text-haruSubText font-bold rounded-xl text-xs text-center border border-haruBorder">
+                            今日は休息日として記録されます 🌿
+                        </div>
+                    `;
+                } else if (todayLog && todayLog.workoutDone) {
+                    actionArea.innerHTML = `
+                        <div class="w-full py-3 bg-haruYellow/30 text-haruText font-bold rounded-xl text-xs text-center border border-haruYellow/50 flex items-center justify-center gap-1.5">
+                            <span>✨</span>
+                            <span>本日の運動は完了しています！お見事です。</span>
+                        </div>
+                    `;
+                } else {
+                    actionArea.innerHTML = `
+                        <button onclick="startWorkoutTimer()" class="w-full py-3.5 bg-haruSage text-white font-bold rounded-xl text-sm shadow-sm hover:bg-haruSageDark active:scale-[0.99] transition duration-150 flex items-center justify-center gap-2">
+                            <span>運動を始める</span>
+                            <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full font-normal">スタート</span>
+                        </button>
+                    `;
+                }
+            }
+        }
+
+        // ==========================================
+        // 5. タイマー機能 (ステップ別正確な秒数 & 全体残り時間連動)
+        // ==========================================
+        function startWorkoutTimer() {
+            if (!activeWorkoutPlan || activeWorkoutPlan.totalDuration === 0) {
+                alert("本日は休息日です。無理せずお体を休めてくださいね🌿");
+                return;
+            }
+            currentStepIndex = 0;
+            isTimerPaused = false;
+            
+            // 合計残り時間を計算
+            totalRemainingTime = activeWorkoutPlan.steps.reduce((acc, cur) => acc + cur.duration, 0);
+
+            const pauseBtn = document.getElementById('timerPauseBtn');
+            if (pauseBtn) pauseBtn.innerText = '一時停止';
+            const modal = document.getElementById('timerModal');
+            if (modal) modal.classList.remove('hidden');
+            loadStepTimer();
+        }
+
+        function loadStepTimer() {
+            if (!activeWorkoutPlan.steps || activeWorkoutPlan.steps.length === 0) return;
+            const step = activeWorkoutPlan.steps[currentStepIndex];
+            stepRemainingTime = step.duration;
+
+            const stepCountEl = document.getElementById('modalStepCount');
+            const stepNameEl = document.getElementById('modalStepName');
+            const stepGuideEl = document.getElementById('modalStepGuide');
+            const stepSafetyEl = document.getElementById('modalStepSafety');
+
+            if (stepCountEl) stepCountEl.innerText = `STEP ${currentStepIndex + 1} / ${activeWorkoutPlan.steps.length}`;
+            if (stepNameEl) stepNameEl.innerText = step.name;
+            if (stepGuideEl) stepGuideEl.innerText = step.guide;
+            if (stepSafetyEl) stepSafetyEl.innerText = step.safety;
+
+            updateTimerDisplays();
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!isTimerPaused) {
+                    stepRemainingTime--;
+                    totalRemainingTime = Math.max(0, totalRemainingTime - 1);
+                    updateTimerDisplays();
+
+                    if (stepRemainingTime <= 0) {
+                        clearInterval(timerInterval);
+                        nextStepOrFinish();
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplays() {
+            // ステップ個別タイマー
+            const sm = Math.floor(stepRemainingTime / 60).toString().padStart(2, '0');
+            const ss = (stepRemainingTime % 60).toString().padStart(2, '0');
+            const displayEl = document.getElementById('modalTimerDisplay');
+            if (displayEl) displayEl.innerText = `${sm}:${ss}`;
+
+            // 全体残り時間
+            const tm = Math.floor(totalRemainingTime / 60).toString().padStart(2, '0');
+            const ts = (totalRemainingTime % 60).toString().padStart(2, '0');
+            const totalEl = document.getElementById('modalTotalTimeRemaining');
+            if (totalEl) totalEl.innerText = `全体残り: ${tm}:${ts}`;
+        }
+
+        function toggleWorkoutTimer() {
+            isTimerPaused = !isTimerPaused;
+            const pauseBtn = document.getElementById('timerPauseBtn');
+            if (pauseBtn) pauseBtn.innerText = isTimerPaused ? '再開' : '一時停止';
+        }
+
+        function resetWorkoutTimer() {
+            const step = activeWorkoutPlan.steps[currentStepIndex];
+            if (step) {
+                // 全体残りを再計算してリセット
+                totalRemainingTime = 0;
+                for (let i = currentStepIndex; i < activeWorkoutPlan.steps.length; i++) {
+                    totalRemainingTime += activeWorkoutPlan.steps[i].duration;
+                }
+                stepRemainingTime = step.duration;
+                updateTimerDisplays();
+            }
+        }
+
+        function stopWorkoutTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            const modal = document.getElementById('timerModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function nextStepOrFinish() {
+            currentStepIndex++;
+            if (currentStepIndex < activeWorkoutPlan.steps.length) {
+                loadStepTimer();
+            } else {
+                if (timerInterval) clearInterval(timerInterval);
+                const modal = document.getElementById('timerModal');
+                if (modal) modal.classList.add('hidden');
+
+                ensureTodayLog();
+                appState.logs[appState.today].workoutDone = true;
+                saveToStorage();
+
+                openReviewModal();
+            }
+        }
+
+        // ==========================================
+        // 6. 振り返りモーダル
+        // ==========================================
+        function openReviewModal() {
+            appState.reviewHardness = 'good';
+            appState.reviewCondition = 'normal';
+            updateReviewModalUI();
+            const modal = document.getElementById('reviewModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function selectReviewHardness(val) {
+            appState.reviewHardness = val;
+            updateReviewModalUI();
+        }
+
+        function selectReviewCondition(val) {
+            appState.reviewCondition = val;
+            updateReviewModalUI();
+        }
+
+        function updateReviewModalUI() {
+            document.querySelectorAll('.rh-btn').forEach(b => b.classList.remove('bg-haruSage', 'text-white'));
+            const hb = document.getElementById(`rh-${appState.reviewHardness}`);
+            if (hb) hb.classList.add('bg-haruSage', 'text-white');
+
+            document.querySelectorAll('.rc-btn').forEach(b => b.classList.remove('bg-haruSage', 'text-white'));
+            const cb = document.getElementById(`rc-${appState.reviewCondition}`);
+            if (cb) cb.classList.add('bg-haruSage', 'text-white');
+        }
+
+        function submitWorkoutReview() {
+            ensureTodayLog();
+            appState.logs[appState.today].workoutReview = {
+                hardness: appState.reviewHardness,
+                condition: appState.reviewCondition
+            };
+            saveToStorage();
+            const modal = document.getElementById('reviewModal');
+            if (modal) modal.classList.add('hidden');
+            renderWorkoutTabUI();
+            renderAllViews();
+        }
+
+        // ==========================================
+        // 7. 食事ノート機能 (毎日自動リセット対応)
+        // ==========================================
+        function toggleProtein(type) {
+            checkAndResetDailyData();
+            ensureTodayLog();
+            const list = appState.logs[appState.today].proteins;
+            const idx = list.indexOf(type);
+            if (idx >= 0) {
+                list.splice(idx, 1);
+            } else {
+                list.push(type);
+            }
+            saveToStorage();
+            renderMealTabUI();
+        }
+
+        function toggleBalance(type) {
+            checkAndResetDailyData();
+            ensureTodayLog();
+            const list = appState.logs[appState.today].balances;
+            const idx = list.indexOf(type);
+            if (idx >= 0) {
+                list.splice(idx, 1);
+            } else {
+                list.push(type);
+            }
+            saveToStorage();
+            renderMealTabUI();
+        }
+
+        function saveSnackRecord() {
+            checkAndResetDailyData();
+            const input = document.getElementById('snackItemInput');
+            if (!input) return;
+            const itemText = input.value.trim();
+            if (!itemText) return;
+
+            const reason = document.getElementById('snackReasonSelect').value;
+            const feeling = document.getElementById('snackFeelingSelect').value;
+
+            ensureTodayLog();
+            appState.logs[appState.today].snacks.push({
+                item: itemText,
+                reason: reason,
+                feeling: feeling
+            });
+            input.value = '';
+            saveToStorage();
+            renderMealTabUI();
+        }
+
+        function changeWater(delta) {
+            checkAndResetDailyData();
+            ensureTodayLog();
+            let current = appState.logs[appState.today].waterMl || 0;
+            current = Math.max(0, current + (delta * 200));
+            appState.logs[appState.today].waterMl = current;
+            saveToStorage();
+            renderMealTabUI();
+        }
+
+        function renderMealTabUI() {
+            checkAndResetDailyData();
+            ensureTodayLog();
+            const todayLog = appState.logs[appState.today];
+
+            document.querySelectorAll('.prot-btn').forEach(btn => {
+                btn.classList.remove('bg-haruPeach/30', 'border-haruPeach', 'font-bold');
+            });
+            todayLog.proteins.forEach(p => {
+                const btn = document.getElementById(`prot-${p}`);
+                if (btn) btn.classList.add('bg-haruPeach/30', 'border-haruPeach', 'font-bold');
+            });
+
+            document.querySelectorAll('.bal-btn').forEach(btn => {
+                btn.classList.remove('bg-haruYellow/40', 'border-haruYellow', 'font-bold');
+            });
+            todayLog.balances.forEach(b => {
+                const btn = document.getElementById(`bal-${b}`);
+                if (btn) btn.classList.add('bg-haruYellow/40', 'border-haruYellow', 'font-bold');
+            });
+
+            const snackContainer = document.getElementById('snackHistoryContainer');
+            if (snackContainer) {
+                snackContainer.innerHTML = '';
+                if (todayLog.snacks.length === 0) {
+                    snackContainer.innerHTML = `<p class="text-[11px] text-haruSubText text-center py-1">本日の間食記録はありません</p>`;
+                } else {
+                    todayLog.snacks.forEach(s => {
+                        const div = document.createElement('div');
+                        div.className = 'bg-haruBg p-2 rounded-xl flex justify-between items-center';
+                        div.innerHTML = `
+                            <span class="font-medium text-haruText">${s.item}</span>
+                            <span class="text-[10px] text-haruSubText">${s.reason} / ${s.feeling}</span>
+                        `;
+                        snackContainer.appendChild(div);
+                    });
+                }
+            }
+
+            const ml = todayLog.waterMl || 0;
+            const glasses = Math.round(ml / 200);
+            const glassEl = document.getElementById('waterGlassCount');
+            const mlEl = document.getElementById('waterMlCount');
+            if (glassEl) glassEl.innerText = glasses;
+            if (mlEl) mlEl.innerText = ml;
+        }
+
+        // ==========================================
+        // 8. 成長の記録タブ & リアルグラフ作成
+        // ==========================================
+        function saveBodyMetrics() {
+            const wInput = document.getElementById('inputWeight');
+            const waistInput = document.getElementById('inputWaist');
+            const wVal = wInput ? parseFloat(wInput.value) : NaN;
+            const waistVal = waistInput ? parseFloat(waistInput.value) : NaN;
+
+            ensureTodayLog();
+            if (!isNaN(wVal)) appState.logs[appState.today].weight = wVal;
+            if (!isNaN(waistVal)) appState.logs[appState.today].waist = waistVal;
+
+            saveToStorage();
+            renderRecordTab();
+            alert("測定値を保存しました。");
+        }
+
+        function renderRecordTab() {
+            let totalWorkoutDays = 0;
+            let totalProteinDays = 0;
+
+            Object.keys(appState.logs).forEach(date => {
+                const log = appState.logs[date];
+                if (log.workoutDone) totalWorkoutDays++;
+                if (log.proteins && log.proteins.length > 0) totalProteinDays++;
+            });
+
+            const wDaysEl = document.getElementById('summaryWorkoutDays');
+            const pDaysEl = document.getElementById('summaryProteinDays');
+            if (wDaysEl) wDaysEl.innerHTML = `${totalWorkoutDays} <span class="text-xs text-haruSubText font-normal">日</span>`;
+            if (pDaysEl) pDaysEl.innerHTML = `${totalProteinDays} <span class="text-xs text-haruSubText font-normal">日</span>`;
+
+            const chartContainer = document.getElementById('weeklyWorkoutChart');
+            if (chartContainer) {
+                chartContainer.innerHTML = '';
+                const daysArr = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(Date.now() - i * 86400000);
+                    const dStr = d.toISOString().split('T')[0];
+                    const dayLabel = `${d.getMonth()+1}/${d.getDate()}`;
+                    const log = appState.logs[dStr];
+                    const isDone = log && log.workoutDone;
+                    daysArr.push({ label: dayLabel, isDone: isDone });
+                }
+
+                daysArr.forEach(item => {
+                    const col = document.createElement('div');
+                    col.className = 'flex flex-col items-center gap-1.5 flex-1';
+                    const barHeight = item.isDone ? 'h-16 bg-haruSage' : 'h-3 bg-haruBorder';
+                    const icon = item.isDone ? '🌸' : '';
+
+                    col.innerHTML = `
+                        <span class="text-[10px] text-haruSageDark">${icon}</span>
+                        <div class="w-5 ${barHeight} rounded-t-lg transition-all duration-300"></div>
+                        <span class="text-[10px] text-haruSubText">${item.label}</span>
+                    `;
+                    chartContainer.appendChild(col);
+                });
+            }
+
+            const fatigueContainer = document.getElementById('fatigueTrendContainer');
+            if (fatigueContainer) {
+                fatigueContainer.innerHTML = '';
+                const recentDates = Object.keys(appState.logs).sort().slice(-5);
+                if (recentDates.length === 0) {
+                    fatigueContainer.innerHTML = `<p class="text-center text-haruSubText py-2">記録を始めてみましょう</p>`;
+                } else {
+                    recentDates.forEach(dStr => {
+                        const log = appState.logs[dStr];
+                        let score = 3;
+                        let label = "ふつう";
+
+                        if (log.status) {
+                            if (log.status.physical === 'good') { score = 1; label = "元気"; }
+                            else if (log.status.physical === 'normal') { score = 2; label = "ふつう"; }
+                            else if (log.status.physical === 'tired') { score = 3; label = "少し疲れた"; }
+                            else if (log.status.physical === 'very_tired') { score = 4; label = "かなり疲れた"; }
+                            else if (log.status.physical === 'bad') { score = 5; label = "痛み・不調"; }
+                        }
+
+                        const row = document.createElement('div');
+                        row.className = 'flex items-center justify-between bg-haruBg p-2 rounded-xl';
+                        row.innerHTML = `
+                            <span class="text-[11px] text-haruSubText font-mono">${dStr}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-haruText">${label}</span>
+                                <div class="w-16 h-2 bg-haruBorder rounded-full overflow-hidden">
+                                    <div class="bg-haruPeach h-full" style="width: ${score * 20}%"></div>
+                                </div>
+                            </div>
+                        `;
+                        fatigueContainer.appendChild(row);
+                    });
+                }
+            }
+
+            const metricsHistory = document.getElementById('bodyMetricsHistory');
+            if (metricsHistory) {
+                metricsHistory.innerHTML = '';
+                let count = 0;
+                const recentDatesRev = Object.keys(appState.logs).sort().reverse().slice(0, 5);
+                recentDatesRev.forEach(dStr => {
+                    const log = appState.logs[dStr];
+                    if (log && (log.weight || log.waist)) {
+                        count++;
+                        const div = document.createElement('div');
+                        div.className = 'flex justify-between items-center py-1 border-b border-haruBorder/50';
+                        div.innerHTML = `
+                            <span class="font-mono text-[10px] text-haruSubText">${dStr}</span>
+                            <span class="text-haruText font-medium">
+                                ${log.weight ? `体重: ${log.weight}kg ` : ''}
+                                ${log.waist ? `ウエスト: ${log.waist}cm` : ''}
+                            </span>
+                        `;
+                        metricsHistory.appendChild(div);
+                    }
+                });
+
+                if (count === 0) {
+                    metricsHistory.innerHTML = `<p class="text-center text-haruSubText py-1">記録はまだありません（任意入力）</p>`;
+                }
+            }
+        }
+
+        // ==========================================
+        // 9. 応援広場機能 (全30パターン＆シャッフル)
+        // ==========================================
+        function shuffleEncouragement() {
+            appState.currentEncouragementIndex = (appState.currentEncouragementIndex + 1) % ENCOURAGEMENT_MESSAGES.length;
+            updateEncouragementTab();
+        }
+
+        function updateEncouragementTab() {
+            const mainText = document.getElementById('encouragementMainText');
+            const tag = document.getElementById('encouragementTag');
+            const homeEncouragementText = document.getElementById('homeEncouragementText');
+
+            const item = ENCOURAGEMENT_MESSAGES[appState.currentEncouragementIndex % ENCOURAGEMENT_MESSAGES.length];
+
+            if (mainText) mainText.innerText = item.text;
+            if (tag) tag.innerText = item.tag;
+            if (homeEncouragementText) homeEncouragementText.innerText = item.text;
+        }
+
+        // 全体表示レンダリング
+        function renderAllViews() {
+            renderWorkoutTabUI();
+            renderMealTabUI();
+            updateEncouragementTab();
+        }
+    </script>
+</body>
+</html>
