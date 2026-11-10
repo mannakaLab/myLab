@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WORLD SOUND JOURNEY - 世界10言語の音を習得する冒険</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <!-- Custom Font: Plus Jakarta Sans & Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            sky: '#3B82F6',
+                            mint: '#10B981',
+                            lavender: '#8B5CF6',
+                            coral: '#F43F5E',
+                            cream: '#FFFBEB',
+                            lightBg: '#F8FAFC',
+                            cardBg: '#FFFFFF'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Noto Sans JP', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F1F5F9;
+            color: #1E293B;
+            font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            user-select: none;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+        .ipa-char {
+            font-family: 'Times New Roman', 'Gentium Plus', 'Lucida Sans Unicode', serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+        .tab-active {
+            color: #3B82F6;
+            border-bottom: 3px solid #3B82F6;
+            font-weight: 700;
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(0.98); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-20 md:pb-0 md:pl-64">
+
+    <!-- SIDEBAR NAV (Desktop) -->
+    <aside class="hidden md:flex flex-col fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200 z-30 p-4 justify-between">
+        <div>
+            <div class="flex items-center space-x-3 p-2 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                    <i data-lucide="globe-2" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-slate-800 tracking-tight leading-none text-base">WORLD SOUND</h1>
+                    <span class="text-xs font-bold text-blue-600 tracking-widest uppercase">JOURNEY</span>
+                </div>
+            </div>
+
+            <nav class="space-y-1">
+                <button onclick="switchTab('home')" id="nav-home" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-colors">
+                    <i data-lucide="compass" class="w-5 h-5"></i>
+                    <span>ホーム & 旅の道標</span>
+                </button>
+                <button onclick="switchTab('map')" id="nav-map" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-colors">
+                    <i data-lucide="map" class="w-5 h-5"></i>
+                    <span>世界マップ (10言語)</span>
+                </button>
+                <button onclick="switchTab('ipa')" id="nav-ipa" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-colors">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                    <span>IPA 音声図鑑</span>
+                </button>
+                <button onclick="switchTab('game')" id="nav-game" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-colors">
+                    <i data-lucide="headphones" class="w-5 h-5"></i>
+                    <span>音当てゲーム</span>
+                </button>
+                <button onclick="switchTab('stats')" id="nav-stats" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-colors">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                    <span>成長と分析</span>
+                </button>
+                <button onclick="switchTab('collection')" id="nav-collection" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-colors">
+                    <i data-lucide="award" class="w-5 h-5"></i>
+                    <span>コレクション & 称号</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-2xl border border-blue-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-blue-700 uppercase tracking-wider">探検者ステータス</span>
+                <span id="user-level" class="text-xs font-extrabold bg-blue-600 text-white px-2 py-0.5 rounded-full">Lv.1</span>
+            </div>
+            <p id="user-title" class="text-sm font-bold text-slate-800 truncate">音の初心者探検家</p>
+            <div class="w-full bg-slate-200 h-2 rounded-full mt-2 overflow-hidden">
+                <div id="exp-bar" class="bg-blue-600 h-full w-1/4 transition-all duration-300"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MOBILE TOP HEADER -->
+    <header class="md:hidden flex items-center justify-between bg-white px-4 py-3 border-b border-slate-200 sticky top-0 z-20">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+                <i data-lucide="globe-2" class="w-5 h-5"></i>
+            </div>
+            <span class="font-extrabold text-slate-800 text-sm tracking-tight">WORLD SOUND JOURNEY</span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span id="mobile-user-level" class="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Lv.1</span>
+        </div>
+    </header>
+
+    <!-- BOTTOM NAV (Mobile) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-30 flex justify-around py-2 px-1">
+        <button onclick="switchTab('home')" class="mobile-nav-btn flex flex-col items-center p-1 text-blue-600">
+            <i data-lucide="compass" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1 font-medium">ホーム</span>
+        </button>
+        <button onclick="switchTab('map')" class="mobile-nav-btn flex flex-col items-center p-1 text-slate-500">
+            <i data-lucide="map" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1 font-medium">マップ</span>
+        </button>
+        <button onclick="switchTab('ipa')" class="mobile-nav-btn flex flex-col items-center p-1 text-slate-500">
+            <i data-lucide="book-open" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1 font-medium">IPA</span>
+        </button>
+        <button onclick="switchTab('game')" class="mobile-nav-btn flex flex-col items-center p-1 text-slate-500">
+            <i data-lucide="headphones" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1 font-medium">音当て</span>
+        </button>
+        <button onclick="switchTab('stats')" class="mobile-nav-btn flex flex-col items-center p-1 text-slate-500">
+            <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+            <span class="text-[10px] mt-1 font-medium">分析</span>
+        </button>
+    </nav>
+
+    <!-- MAIN CONTENT WRAPPER -->
+    <main class="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full">
+
+        <!-- ==================== 1. HOME TAB ==================== -->
+        <section id="tab-home" class="tab-content space-y-6">
+            <!-- Mood / Energy selector -->
+            <div class="glass-card rounded-3xl p-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="relative z-10 space-y-4">
+                    <div class="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span>本日のコンディション設定</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">今日の体調・気分はいかがですか？</h2>
+                    <p class="text-blue-100 text-sm max-w-xl">あなたの状態に合わせて、1日10〜15分の最適な学習メニューを自動設計します。</p>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+                        <button onclick="setCondition('energetic')" class="condition-btn bg-white/10 hover:bg-white/20 border border-white/20 p-3 rounded-2xl flex flex-col items-center text-center transition-all">
+                            <span class="text-2xl mb-1">🔥</span>
+                            <span class="font-bold text-sm">元気いっぱい</span>
+                            <span class="text-[11px] text-blue-100 mt-1">新音＋聞き分け＋発音</span>
+                        </button>
+                        <button onclick="setCondition('normal')" class="condition-btn bg-white/10 hover:bg-white/20 border border-white/20 p-3 rounded-2xl flex flex-col items-center text-center transition-all border-2 border-white">
+                            <span class="text-2xl mb-1">😊</span>
+                            <span class="font-bold text-sm">普通・標準</span>
+                            <span class="text-[11px] text-blue-100 mt-1">新音1〜2個＋復習</span>
+                        </button>
+                        <button onclick="setCondition('tired')" class="condition-btn bg-white/10 hover:bg-white/20 border border-white/20 p-3 rounded-2xl flex flex-col items-center text-center transition-all">
+                            <span class="text-2xl mb-1">☕</span>
+                            <span class="font-bold text-sm">少し疲れている</span>
+                            <span class="text-[11px] text-blue-100 mt-1">既習音の聞き比べのみ</span>
+                        </button>
+                        <button onclick="setCondition('exhausted')" class="condition-btn bg-white/10 hover:bg-white/20 border border-white/20 p-3 rounded-2xl flex flex-col items-center text-center transition-all">
+                            <span class="text-2xl mb-1">🌙</span>
+                            <span class="font-bold text-sm">かなり疲れている</span>
+                            <span class="text-[11px] text-blue-100 mt-1">3分お手軽音当てクイズ</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROADMAP OVERVIEW -->
+            <div class="glass-card rounded-3xl p-6 space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-extrabold text-slate-800">音探検のロードマップ</h3>
+                        <p class="text-xs text-slate-500">18〜24ヶ月で世界10言語の音の仕組みをマスター</p>
+                    </div>
+                    <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">フェーズ <span id="current-phase-num">0</span> / 2</span>
+                </div>
+
+                <!-- Phase Cards Container -->
+                <div class="space-y-4">
+                    <!-- Phase 0 -->
+                    <div id="phase-0-card" class="border border-emerald-200 bg-emerald-50/50 p-4 rounded-2xl flex items-start justify-between">
+                        <div class="flex space-x-4">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shrink-0 shadow-md shadow-emerald-500/20">
+                                0
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-base">PHASE 0：中国語の音を確認（既習土台）</h4>
+                                <p class="text-xs text-slate-600 mt-0.5">四声・声母韻母・そり舌音・無気音の確認テストを行い、即座にクリア可能。</p>
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    <span class="text-[11px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">四声・トーン</span>
+                                    <span class="text-[11px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">そり舌 [ʈʂ] [ʂ]</span>
+                                    <span class="text-[11px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">有気・無気 [p] [pʰ]</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="startLesson('phase0')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-md shadow-emerald-600/30 shrink-0">
+                            確認テストへ
+                        </button>
+                    </div>
+
+                    <!-- Phase 1 -->
+                    <div id="phase-1-card" class="border border-slate-200 bg-white p-4 rounded-2xl flex items-start justify-between opacity-80">
+                        <div class="flex space-x-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center font-bold shrink-0 shadow-md shadow-blue-500/20">
+                                1
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-base">PHASE 1：IPA (国際音声記号) の基礎体系</h4>
+                                <p class="text-xs text-slate-600 mt-0.5">母音台形・調音位置・調音方法・声帯振動のメカニズムを4〜8週間で修得。</p>
+                                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
+                                    <div id="phase-1-progress" class="bg-blue-500 h-full w-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="startLesson('phase1')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-md shadow-blue-600/30 shrink-0">
+                            学習を始める
+                        </button>
+                    </div>
+
+                    <!-- Phase 2 -->
+                    <div id="phase-2-card" class="border border-slate-200 bg-white p-4 rounded-2xl flex items-start justify-between opacity-80">
+                        <div class="flex space-x-4">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-500 text-white flex items-center justify-center font-bold shrink-0 shadow-md shadow-indigo-500/20">
+                                2
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-base">PHASE 2：世界10言語の音を巡る大冒険</h4>
+                                <p class="text-xs text-slate-600 mt-0.5">中国語から始まり、スペイン語・英語・フランス語・ロシア語・タイ語等10言語を攻略。</p>
+                                <p class="text-[11px] text-slate-400 mt-1">進捗: <span id="unlocked-langs-count">1</span> / 10 言語解放中</p>
+                            </div>
+                        </div>
+                        <button onclick="switchTab('map')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-md shadow-indigo-600/30 shrink-0">
+                            マップを見る
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TODAY'S MISSION BANNER -->
+            <div class="glass-card rounded-3xl p-6 bg-white border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="play-circle" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">本日のデイリーステップ</span>
+                        <h3 class="text-lg font-extrabold text-slate-800">5ステップ音体験セッション</h3>
+                        <p class="text-xs text-slate-500">【今日のテーマ音】吸気音 vs 吸気破裂音 / 有声音と無声音の境界線</p>
+                    </div>
+                </div>
+                <button onclick="startInteractiveSession()" class="w-full md:w-auto px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-105 transition-all">
+                    本日のミッションをスタート (約10分)
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== 2. MAP TAB ==================== -->
+        <section id="tab-map" class="tab-content hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800">世界10言語 サウンドマップ</h2>
+                        <p class="text-xs text-slate-500">言語ごとに独自の音韻構造とIPA解説を探索できます。</p>
+                    </div>
+                    <div class="text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl">
+                        探索済み言語: <span id="map-progress-str" class="font-bold text-blue-600">1 / 10</span>
+                    </div>
+                </div>
+
+                <!-- World Grid -->
+                <div id="languages-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamic rendering by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 3. IPA ENCYCLOPEDIA TAB ==================== -->
+        <section id="tab-ipa" class="tab-content hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6 space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800">国際音声記号 (IPA) 体系図鑑</h2>
+                        <p class="text-xs text-slate-500">記号をタップすると合成音・調音メカニズム・該当言語例を確認できます。</p>
+                    </div>
+                    <div class="flex bg-slate-100 p-1 rounded-xl">
+                        <button onclick="switchIpaSubtab('vowel')" id="ipa-subtab-vowel" class="px-4 py-1.5 rounded-lg text-xs font-bold text-blue-600 bg-white shadow-sm">母音チャート (Vowels)</button>
+                        <button onclick="switchIpaSubtab('consonant')" id="ipa-subtab-consonant" class="px-4 py-1.5 rounded-lg text-xs font-bold text-slate-600">子音チャート (Consonants)</button>
+                    </div>
+                </div>
+
+                <!-- Vowel Chart Section -->
+                <div id="ipa-vowel-container" class="space-y-4">
+                    <h3 class="text-sm font-bold text-slate-700 flex items-center space-x-2">
+                        <i data-lucide="grid" class="w-4 h-4 text-blue-500"></i>
+                        <span>標準IPA母音台形 (Vowel Trapezoid)</span>
+                    </h3>
+                    <p class="text-xs text-slate-500">縦軸：舌の高さ（高・中・低） / 横軸：舌の前後の位置（前舌・中舌・後舌）</p>
+
+                    <!-- Interactive Vowel Trapezoid Visualization -->
+                    <div class="bg-gradient-to-br from-slate-50 to-blue-50/30 p-6 rounded-2xl border border-slate-200 relative overflow-hidden">
+                        <div class="grid grid-cols-3 gap-4 text-center text-xs font-bold text-slate-400 mb-2">
+                            <div>前舌 (Front)</div>
+                            <div>中舌 (Central)</div>
+                            <div>後舌 (Back)</div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                            <!-- High -->
+                            <div class="space-y-2">
+                                <div class="text-[10px] font-bold text-slate-400">狭母音 (High)</div>
+                                <div class="flex gap-2">
+                                    <button onclick="playAndDetailIPA('i')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-blue-600">[ i ]</span>
+                                        <span class="text-[10px] text-slate-500">非円唇</span>
+                                    </button>
+                                    <button onclick="playAndDetailIPA('y')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-indigo-600">[ y ]</span>
+                                        <span class="text-[10px] text-slate-500">円唇</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="text-[10px] font-bold text-slate-400">狭母音 (High)</div>
+                                <div class="flex gap-2">
+                                    <button onclick="playAndDetailIPA('ɨ')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-blue-600">[ ɨ ]</span>
+                                        <span class="text-[10px] text-slate-500">非円唇</span>
+                                    </button>
+                                    <button onclick="playAndDetailIPA('ʉ')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-indigo-600">[ ʉ ]</span>
+                                        <span class="text-[10px] text-slate-500">円唇</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="text-[10px] font-bold text-slate-400">狭母音 (High)</div>
+                                <div class="flex gap-2">
+                                    <button onclick="playAndDetailIPA('ɯ')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-blue-600">[ ɯ ]</span>
+                                        <span class="text-[10px] text-slate-500">非円唇</span>
+                                    </button>
+                                    <button onclick="playAndDetailIPA('u')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-indigo-600">[ u ]</span>
+                                        <span class="text-[10px] text-slate-500">円唇</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Mid -->
+                            <div class="space-y-2 pt-2">
+                                <div class="text-[10px] font-bold text-slate-400">半狭 (Close-mid)</div>
+                                <div class="flex gap-2">
+                                    <button onclick="playAndDetailIPA('e')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-blue-600">[ e ]</span>
+                                    </button>
+                                    <button onclick="playAndDetailIPA('ø')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-indigo-600">[ ø ]</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-2 pt-2">
+                                <div class="text-[10px] font-bold text-slate-400">中央 (Mid)</div>
+                                <div class="flex gap-2">
+                                    <button onclick="playAndDetailIPA('ə')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-emerald-600">[ ə ]</span>
+                                        <span class="text-[10px] text-slate-500">シュワ</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-2 pt-2">
+                                <div class="text-[10px] font-bold text-slate-400">半狭 (Close-mid)</div>
+                                <div class="flex gap-2">
+                                    <button onclick="playAndDetailIPA('ɤ')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-blue-600">[ ɤ ]</span>
+                                    </button>
+                                    <button onclick="playAndDetailIPA('o')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-indigo-600">[ o ]</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Open Mid / Open -->
+                            <div class="space-y-2 pt-2">
+                                <div class="text-[10px] font-bold text-slate-400">広母音 (Low)</div>
+                                <div class="flex gap-2">
+                                    <button onclick="playAndDetailIPA('a')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-blue-600">[ a ]</span>
+                                    </button>
+                                    <button onclick="playAndDetailIPA('æ')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-indigo-600">[ æ ]</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-2 pt-2">
+                                <div class="text-[10px] font-bold text-slate-400">開母音 (Open)</div>
+                                <div class="flex gap-2">
+                                    <button onclick="playAndDetailIPA('ɐ')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-emerald-600">[ ɐ ]</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-2 pt-2">
+                                <div class="text-[10px] font-bold text-slate-400">広母音 (Low)</div>
+                                <div class="flex gap-2">
+                                    <button onclick="playAndDetailIPA('ɑ')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-blue-600">[ ɑ ]</span>
+                                    </button>
+                                    <button onclick="playAndDetailIPA('ɒ')" class="flex-1 p-3 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                                        <span class="text-xl font-bold ipa-char text-indigo-600">[ ɒ ]</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consonants Section (Hidden default) -->
+                <div id="ipa-consonant-container" class="space-y-4 hidden">
+                    <h3 class="text-sm font-bold text-slate-700 flex items-center space-x-2">
+                        <i data-lucide="sliders" class="w-4 h-4 text-indigo-500"></i>
+                        <span>調音位置×調音方法 子音マトリックス</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left text-slate-600 border-collapse">
+                            <thead class="text-[11px] text-slate-500 uppercase bg-slate-100 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2">調音方法 \ 位置</th>
+                                    <th class="p-2">両唇</th>
+                                    <th class="p-2">唇歯</th>
+                                    <th class="p-2">歯・歯茎</th>
+                                    <th class="p-2">そり舌</th>
+                                    <th class="p-2">硬口蓋</th>
+                                    <th class="p-2">軟口蓋</th>
+                                    <th class="p-2">声門</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="p-2 font-bold bg-slate-50">破裂音 (Plosive)</td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('p')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">p</button> <button onclick="playAndDetailIPA('b')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">b</button></td>
+                                    <td class="p-2">-</td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('t')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">t</button> <button onclick="playAndDetailIPA('d')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">d</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('ʈ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">ʈ</button> <button onclick="playAndDetailIPA('ɖ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ɖ</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('c')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">c</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('k')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">k</button> <button onclick="playAndDetailIPA('g')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ɡ</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('ʔ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-slate-700">ʔ</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 font-bold bg-slate-50">鼻音 (Nasal)</td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('m')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">m</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('ɱ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ɱ</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('n')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">n</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('ɳ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ɳ</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('ɲ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ɲ</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('ŋ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ŋ</button></td>
+                                    <td class="p-2">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 font-bold bg-slate-50">摩擦音 (Fricative)</td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('ɸ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">ɸ</button> <button onclick="playAndDetailIPA('β')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">β</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('f')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">f</button> <button onclick="playAndDetailIPA('v')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">v</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('s')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">s</button> <button onclick="playAndDetailIPA('z')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">z</button> <button onclick="playAndDetailIPA('θ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">θ</button> <button onclick="playAndDetailIPA('ð')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ð</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('ʂ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">ʂ</button> <button onclick="playAndDetailIPA('ʐ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ʐ</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('ç')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">ç</button> <button onclick="playAndDetailIPA('ʝ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ʝ</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('x')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">x</button> <button onclick="playAndDetailIPA('ɣ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ɣ</button></td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('h')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-blue-600">h</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 font-bold bg-slate-50">ふるえ・弾き音</td>
+                                    <td class="p-2">-</td>
+                                    <td class="p-2">-</td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('r')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">r</button> <button onclick="playAndDetailIPA('ɾ')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ɾ</button></td>
+                                    <td class="p-2">-</td>
+                                    <td class="p-2">-</td>
+                                    <td class="p-2"><button onclick="playAndDetailIPA('R')" class="px-2 py-1 bg-white border border-slate-200 rounded font-bold ipa-char text-indigo-600">ʀ/ʁ</button></td>
+                                    <td class="p-2">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- IPA Detail Drawer Modal Area -->
+                <div id="ipa-detail-card" class="bg-slate-900 text-white p-6 rounded-2xl space-y-4 transition-all">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <span id="detail-symbol" class="text-4xl font-extrabold ipa-char text-blue-400">[ i ]</span>
+                            <div>
+                                <h4 id="detail-name" class="font-bold text-base">非円唇前舌狭母音</h4>
+                                <span id="detail-type" class="text-xs text-slate-400">Vowel • Front Close Unrounded</span>
+                            </div>
+                        </div>
+                        <button onclick="playSynthesizedSound(currentDetailSymbol)" class="p-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-white flex items-center space-x-2 shadow-lg shadow-blue-500/30">
+                            <i data-lucide="volume-2" class="w-5 h-5"></i>
+                            <span class="text-xs font-bold">音を再生</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                            <span class="text-blue-300 font-bold block mb-1">👄 口・舌・唇のフォーム</span>
+                            <p id="detail-form" class="text-slate-300 leading-relaxed">唇を左右に引っ張り、舌の1番盛り上がる部分を前歯のすぐ近くまで高く持ち上げます。日本語の「い」よりも口を横に広く引きます。</p>
+                        </div>
+                        <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                            <span class="text-indigo-300 font-bold block mb-1">🌍 代表的な採用言語例</span>
+                            <p id="detail-examples" class="text-slate-300 leading-relaxed">日本語: 「位(い)」 / 英語: see [siː] / 中国語: 一 [i˥] / フランス語: lit [li]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 4. GAME / QUIZ TAB ==================== -->
+        <section id="tab-game" class="tab-content hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6 max-w-2xl mx-auto space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800">音当て・聞き分けチャレンジ</h2>
+                        <p class="text-xs text-slate-500">再生された音を聞き取り、正しいIPA記号を選択してください。</p>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1">
+                        <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
+                        <span>スコア: <span id="quiz-score">0</span></span>
+                    </div>
+                </div>
+
+                <!-- Quiz Card -->
+                <div class="bg-gradient-to-b from-slate-50 to-indigo-50/20 p-6 rounded-2xl border border-slate-200 text-center space-y-6">
+                    <span class="text-xs font-bold text-slate-400 tracking-widest uppercase">Question</span>
+                    <div class="flex justify-center">
+                        <button onclick="playQuizTargetAudio()" class="w-24 h-24 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex flex-col items-center justify-center shadow-xl shadow-blue-500/30 hover:scale-105 transition-all">
+                            <i data-lucide="volume-2" class="w-10 h-10"></i>
+                            <span class="text-[10px] font-bold mt-1">音を聴く</span>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500">（もう一度タップすると何度でも聴き直せます）</p>
+
+                    <div id="quiz-options-container" class="grid grid-cols-2 gap-3 pt-4">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Feedback area -->
+                <div id="quiz-feedback" class="hidden p-4 rounded-xl text-xs font-bold text-center"></div>
+            </div>
+        </section>
+
+        <!-- ==================== 5. STATS & ANALYTICS TAB ==================== -->
+        <section id="tab-stats" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="glass-card p-5 rounded-2xl flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                        <i data-lucide="calendar" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 block">総探検日数</span>
+                        <span id="stat-days" class="text-2xl font-extrabold text-slate-800">1日目</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                        <i data-lucide="clock" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 block">総学習時間</span>
+                        <span id="stat-time" class="text-2xl font-extrabold text-slate-800">15 分</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+                        <i data-lucide="target" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 block">聞き分け平均正答率</span>
+                        <span id="stat-accuracy" class="text-2xl font-extrabold text-slate-800">85 %</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Container -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card p-6 rounded-3xl space-y-4">
+                    <h3 class="text-base font-extrabold text-slate-800">言語別習得度 (10言語)</h3>
+                    <div class="h-64">
+                        <canvas id="langChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-3xl space-y-4">
+                    <h3 class="text-base font-extrabold text-slate-800">エビングハウス忘却曲線に基づく要復習リスト</h3>
+                    <p class="text-xs text-slate-500">正答率と時間経過から自動生成された復習推奨音節</p>
+                    <div id="review-list" class="space-y-2">
+                        <!-- Dynamic rendering -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 6. COLLECTION & TROPHY TAB ==================== -->
+        <section id="tab-collection" class="tab-content hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6 space-y-6">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-800">マスター音節 & 獲得称号コレクション</h2>
+                    <p class="text-xs text-slate-500">旅の過程で習得した音と獲得した探検家の証です。</p>
+                </div>
+
+                <!-- Badges / Titles -->
+                <div class="space-y-3">
+                    <h3 class="text-sm font-bold text-slate-700">🏆 獲得した称号</h3>
+                    <div id="badges-container" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Collected IPA Sounds -->
+                <div class="space-y-3 pt-4 border-t border-slate-100">
+                    <h3 class="text-sm font-bold text-slate-700">🎙️ 図鑑登録済みIPA音節コレクション (<span id="collected-count">0</span>)</h3>
+                    <div id="collected-sounds-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== LESSON MODAL / OVERLAY ==================== -->
+        <div id="lesson-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+            <div class="glass-card bg-white w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                <!-- Modal Header -->
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <span id="lesson-step-badge" class="bg-blue-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase">STEP 1</span>
+                        <h3 id="lesson-title" class="font-extrabold text-slate-800 text-sm">本日の音を知る</h3>
+                    </div>
+                    <button onclick="closeLessonModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body (Dynamic Steps) -->
+                <div id="lesson-body" class="p-6 overflow-y-auto space-y-6 flex-1">
+                    <!-- Dynamic Step Render -->
+                </div>
+
+                <!-- Modal Footer Controls -->
+                <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+                    <button id="lesson-prev-btn" onclick="prevLessonStep()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">
+                        前へ
+                    </button>
+                    <div class="flex space-x-1" id="lesson-step-dots">
+                        <!-- Dots rendered by JS -->
+                    </div>
+                    <button id="lesson-next-btn" onclick="nextLessonStep()" class="px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md hover:bg-blue-500">
+                        次へ進む
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        /* ==========================================================================
+           1. DATA STRUCTURES & CONFIGURATION
+           ========================================================================== */
+        const APP_DATA = {
+            user: {
+                level: 1,
+                exp: 30,
+                title: "音の探検ビギナー",
+                days: 3,
+                totalMinutes: 35,
+                condition: "normal", // energetic, normal, tired, exhausted
+                currentPhase: 1,
+                collectedSounds: ['i', 'u', 'a', 'p', 't', 'k', 's'],
+                unlockedLanguages: ['cn', 'es'],
+                quizScore: 120,
+                quizCount: 15,
+                quizCorrect: 13
+            },
+            languages: [
+                { id: 'cn', name: '中国語 (普通話)', flag: '🇨🇳', unlocked: true, desc: '四声（声調）・そり舌音 [ʈʂ, ʂ]・有気音/無気音の明確な対立。', traits: ['そり舌音', '四声', '有気・無気'] },
+                { id: 'es', name: 'スペイン語', flag: '🇪🇸', unlocked: true, desc: 'クリアな5純母音 [a, e, i, o, u]・舌尖ふるえ音 [r]・軟口蓋摩擦音 [x]。', traits: ['5音体系母音', '舌尖ふるえ音 [r]', '無気破裂音'] },
+                { id: 'it', name: 'イタリア語', flag: '🇮🇹', unlocked: false, desc: '開口度による7母音体系・重子音 (発音の長短) の特徴。', traits: ['7母音体系', '重子音', '美しい開音節'] },
+                { id: 'kr', name: '韓国語', flag: '🇰🇷', unlocked: false, desc: '平音・激音・濃音の3重対立・濃母音と多様なパッチム終音。', traits: ['平・激・濃音3重対立', 'パッチム [k̚, t̚, p̚]', '平唇・円唇の区別'] },
+                { id: 'en', name: '英語 (米/英)', flag: '🇺🇸', unlocked: false, desc: '曖昧母音シュワ [ə]・歯摩擦音 [θ, ð]・複雑な二重母音。', traits: ['シュワ [ə]', '歯摩擦音 [θ, ð]', '音節強勢アクセント'] },
+                { id: 'fr', name: 'フランス語', flag: '🇫🇷', unlocked: false, desc: '鼻母音 [ɑ̃, ɔ̃, ɛ̃]・懸垂軟口蓋/小舌摩擦音 [ʁ]・前舌円唇母音。', traits: ['鼻母音', '小舌摩擦音 [ʁ]', 'リエゾンとアンシェヌマン'] },
+                { id: 'de', name: 'ドイツ語', flag: '🇩🇪', unlocked: false, desc: '硬口蓋摩擦音 [ç] (Ich-Laut) と軟口蓋摩擦音 [x] (Ach-Laut)。', traits: ['Ich/Ach音の交代', '語末子音の無声化', '前舌円唇母音'] },
+                { id: 'pt', name: 'ポルトガル語', flag: '🇵🇹', unlocked: false, desc: '豊かな鼻母音と母音減衰・歯茎硬口蓋摩擦音 [ʃ, ʒ]。', traits: ['多様な鼻母音', '母音の弱化減衰', '強烈なアクセント'] },
+                { id: 'ru', name: 'ロシア語', flag: '🇷🇺', unlocked: false, desc: '硬子音 vs 軟子音 (口蓋化 [ʲ]) の対立・アクセントのない母音の弱化。', traits: ['口蓋化 (軟子音)', '非円唇後舌母音 [ɨ]', '母音減衰イーカーニエ'] },
+                { id: 'th', name: 'タイ語', flag: '🇹🇭', unlocked: false, desc: '5つの複雑な声調・無気無声/有声/有気無声の3対立子音。', traits: ['5声調体系', '声門破裂音 [ʔ]', '長短母音の厳密区別'] }
+            ],
+            ipaDictionary: {
+                'i': { name: '非円唇前舌狭母音', type: '母音 (Front Close)', form: '口を横に広く引き、舌の盛り上がりを前歯に接近させます。', ex: '日本語「位」/ 英 see [siː] / 中 一 [i˥]', freq: 440 },
+                'y': { name: '円唇前舌狭母音', type: '母音 (Front Close Rounded)', form: '舌の位置は [i] のまま、唇を口笛のように強く丸めます。', ex: '中 魚 [y˧˥] / 仏 tu [ty] / 独 über [ˈyːbɐ]', freq: 380 },
+                'ɨ': { name: '非円唇中舌狭母音', type: '母音 (Central Close)', form: '舌の中央部を持ち上げ、「い」と「う」の中間の音を出します。', ex: '露 сын [sɨn] / 中 資 [tʂɨ]', freq: 320 },
+                'u': { name: '円唇後舌狭母音', type: '母音 (Back Close Rounded)', form: '舌の後ろを持ち上げ、唇を丸く突き出します。', ex: '中 五 [u˨˩˦] / 西 uno [ˈuno]', freq: 300 },
+                'e': { name: '非円唇前舌半狭母音', type: '母音 (Front Close-Mid)', form: '日本語の「え」よりも少し口を狭くし、明確に発音します。', ex: '西 que [ke] / 仏 été [ete]', freq: 500 },
+                'ə': { name: '中舌中央母音 (シュワ)', type: '母音 (Schwa)', form: '口と舌の力を完全に抜き、脱力した状態で「ア」と「エ」の中間音を発します。', ex: '英 about [əˈbaʊt] / 独 bitte [ˈbɪtə]', freq: 550 },
+                'a': { name: '非円唇前舌開母音', type: '母音 (Front Open)', form: '口を大きめに開け、舌を平らにして明るく発声します。', ex: '西 padre [ˈpaðɾe] / 中 啊 [a]', freq: 800 },
+                'p': { name: '無声両唇破裂音', type: '子音 (Voiceless Bilabial Plosive)', form: '上下の唇を閉じ、空気を一時止めてからパッと破裂させます（息を強く出さない無気音）。', ex: '日 パ行 / 中 八 [pa˥] / 西 pan [pan]', freq: 600 },
+                'b': { name: '有声両唇破裂音', type: '子音 (Voiced Bilabial Plosive)', form: '両唇を閉じて破裂させると同時に、声帯を振動させます。', ex: '日 バ行 / 英 book [bʊk]', freq: 220 },
+                't': { name: '無声歯茎破裂音', type: '子音 (Voiceless Alveolar Plosive)', form: '舌尖を上の歯茎につけて息を止め、弾きます。', ex: '日 タ行 / 西 taco [ˈtako]', freq: 700 },
+                'd': { name: '有声歯茎破裂音', type: '子音 (Voiced Alveolar Plosive)', form: '舌尖を歯茎につけて弾くと同時に声帯を鳴らします。', ex: '日 ダ行 / 英 day [deɪ]', freq: 250 },
+                'r': { name: '歯茎ふるえ音', type: '子音 (Alveolar Trill)', form: '舌尖の力を抜き、呼気によって上歯茎で連続して「ガラガラ/タタタ」と振動させます。', ex: '西 perro [ˈpero] / 伊 Roma [ˈroːma]', freq: 450 },
+                'ɾ': { name: '歯茎弾き音', type: '子音 (Alveolar Tap)', form: '舌尖で上歯茎を1回だけ軽くサッと叩きます（日本語のラ行に酷似）。', ex: '日 ラ行 / 西 pero [ˈpeɾo]', freq: 480 },
+                'θ': { name: '無声歯摩擦音', type: '子音 (Voiceless Dental Fricative)', form: '上下の歯で舌先を軽く挟むか近づけ、隙間から息を擦り出します。', ex: '英 think [θɪŋk] / 西 zapato [θaˈpato]', freq: 1200 },
+                'ð': { name: '有声歯摩擦音', type: '子音 (Voiced Dental Fricative)', form: '舌先を歯に接近させ、隙間から息を出しながら声帯を振動させます。', ex: '英 this [ðɪs] / 西 cada [ˈkaða]', freq: 350 },
+                'ʈ': { name: '無声そり舌破裂音', type: '子音 (Voiceless Retroflex Plosive)', form: '舌先を上顎の硬口蓋に向かって後ろにそり返し、息を弾きます。', ex: '中 知 [ʈʂɨ˥] / ヒンディー語', freq: 650 },
+                'ʂ': { name: '無声そり舌摩擦音', type: '子音 (Voiceless Retroflex Fricative)', form: '舌先をそり返した状態のまま、隙間から「シュー」と息を摩擦させます。', ex: '中 獅 [ʂɨ˥] / 露 sh [ʂ]', freq: 1400 },
+                'ʁ': { name: '有声小舌摩擦音', type: '子音 (Voiced Uvular Fricative)', form: '喉奥の「のどちんこ（小舌）」の近くで息を摩擦させ、うがいをするような声を発します。', ex: '仏 rouge [ʁuʒ] / 独 rot [ʁoːt]', freq: 280 }
+            ],
+            titles: [
+                { reqExp: 0, title: "音の初心者探検家" },
+                { reqExp: 50, title: "IPAビギナー" },
+                { reqExp: 120, title: "耳良き音素アナリスト" },
+                { reqExp: 250, title: "母音&子音マスター" },
+                { reqExp: 500, title: "多言語サウンドマスター" }
+            ]
+        };
+
+        let currentDetailSymbol = 'i';
+        let audioCtx = null;
+        let chartInstance = null;
+        let activeLessonStep = 0;
+
+        /* ==========================================================================
+           2. WEB AUDIO API SYNTHESIZER (For Clean Pure Acoustic Tone Generation)
+           ========================================================================== */
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSynthesizedSound(symbol) {
+            initAudioContext();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const info = APP_DATA.ipaDictionary[symbol] || { freq: 440 };
+            const baseFreq = info.freq;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            // Distinct timbre for vowels vs consonants
+            if (['i','y','ɨ','u','e','ə','a'].includes(symbol)) {
+                osc.type = 'sine';
+                // Add sub-harmonic for vowel resonance
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(baseFreq * 1.5, audioCtx.currentTime);
+                gain2.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.start();
+                osc2.stop(audioCtx.currentTime + 0.6);
+            } else if (['s','θ','ʂ','x'].includes(symbol)) {
+                // Friction / Noise simulation
+                osc.type = 'sawtooth';
+            } else {
+                osc.type = 'triangle';
+            }
+
+            osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+            
+            // Envelope
+            gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.4, audioCtx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.55);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.6);
+        }
+
+        /* ==========================================================================
+           3. UI NAVIGATION & TAB SWITCHING
+           ========================================================================== */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Desktop Nav highlight
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'text-blue-600', 'font-bold');
+            });
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.add('bg-blue-50', 'text-blue-600', 'font-bold');
+            }
+
+            // Init specific visualizations
+            if (tabId === 'stats') {
+                renderCharts();
+                renderReviewList();
+            } else if (tabId === 'map') {
+                renderLanguageGrid();
+            } else if (tabId === 'collection') {
+                renderCollection();
+            } else if (tabId === 'game') {
+                generateQuizQuestion();
+            }
+        }
+
+        function switchIpaSubtab(sub) {
+            const vContainer = document.getElementById('ipa-vowel-container');
+            const cContainer = document.getElementById('ipa-consonant-container');
+            const vBtn = document.getElementById('ipa-subtab-vowel');
+            const cBtn = document.getElementById('ipa-subtab-consonant');
+
+            if (sub === 'vowel') {
+                vContainer.classList.remove('hidden');
+                cContainer.classList.add('hidden');
+                vBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold text-blue-600 bg-white shadow-sm";
+                cBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold text-slate-600";
+            } else {
+                vContainer.classList.add('hidden');
+                cContainer.classList.remove('hidden');
+                cBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold text-indigo-600 bg-white shadow-sm";
+                vBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold text-slate-600";
+            }
+        }
+
+        function playAndDetailIPA(symbol) {
+            currentDetailSymbol = symbol;
+            playSynthesizedSound(symbol);
+
+            const info = APP_DATA.ipaDictionary[symbol] || {
+                name: 'IPA音素記号',
+                type: '音素分類',
+                form: '調音器官（舌・唇・声帯）の位置関係を調整します。',
+                ex: '各国の主要単語に登場'
+            };
+
+            document.getElementById('detail-symbol').textContent = `[ ${symbol} ]`;
+            document.getElementById('detail-name').textContent = info.name;
+            document.getElementById('detail-type').textContent = info.type;
+            document.getElementById('detail-form').textContent = info.form;
+            document.getElementById('detail-examples').textContent = info.ex;
+
+            // Highlight collected status
+            if (!APP_DATA.user.collectedSounds.includes(symbol)) {
+                APP_DATA.user.collectedSounds.push(symbol);
+                addExp(10);
+            }
+        }
+
+        /* ==========================================================================
+           4. DYNAMIC LESSON SYSTEM (5-STEP DAILY WORKFLOW)
+           ========================================================================== */
+        const LESSON_STEPS = [
+            {
+                step: "STEP 1：今日の音を知る",
+                title: "スペイン語・日本語の [r] vs [ɾ] （巻き舌と弾き音）",
+                content: `
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-3xl font-extrabold ipa-char text-blue-600">[ r ] vs [ ɾ ]</span>
+                                <div>
+                                    <h4 class="font-bold text-slate-800">歯茎ふるえ音 vs 歯茎弾き音</h4>
+                                    <p class="text-xs text-slate-500">スペイン語 pero (しかし) と perro (犬) を分ける運命の音</p>
+                                </div>
+                            </div>
+                            <button onclick="playSynthesizedSound('r')" class="p-3 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-500">
+                                <i data-lucide="volume-2" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            日本語の「ラ行」は舌先で上歯茎を1回ポンと弾く<strong>[ ɾ ] (弾き音)</strong>です。
+                            一方、スペイン語やイタリア語の強烈な巻き舌は、呼気で舌先をガラガラと連続振動させる<strong>[ r ] (ふるえ音)</strong>です。
+                        </p>
+                    </div>
+                `
+            },
+            {
+                step: "STEP 2：音の仕組みを見る",
+                title: "口・舌のダイナミクス構造",
+                content: `
+                    <div class="space-y-4">
+                        <div class="bg-slate-900 text-white p-5 rounded-2xl space-y-3">
+                            <h4 class="font-bold text-sm text-blue-400 flex items-center space-x-2">
+                                <i data-lucide="activity" class="w-4 h-4"></i>
+                                <span>調音器官メカニズムイラスト解説</span>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                                    <span class="font-bold text-amber-300 block mb-1">[ ɾ ] 弾き音</span>
+                                    <p class="text-slate-300">舌先の筋肉を固め、上の前歯の根元（歯茎）を「スナップ」をきかせて1打叩いて通り過ぎる。</p>
+                                </div>
+                                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                                    <span class="font-bold text-emerald-300 block mb-1">[ r ] ふるえ音</span>
+                                    <p class="text-slate-300">舌先の力を適度に抜き、息の流速（ Bernoulli効果 ）によって自動的に振動させる。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                step: "STEP 3：音を聞き比べる",
+                title: "リアルタイム音響聞き分けテスト",
+                content: `
+                    <div class="space-y-4 text-center">
+                        <p class="text-xs text-slate-600">下の2つの音を順番に鳴らして、空気感と振動数の違いを耳で感じ取ってください。</p>
+                        <div class="flex justify-center space-x-4">
+                            <button onclick="playSynthesizedSound('ɾ')" class="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-blue-500 flex flex-col items-center">
+                                <span class="text-2xl font-bold ipa-char text-blue-600">[ ɾ ]</span>
+                                <span class="text-[10px] text-slate-500 mt-1">pero (単振動)</span>
+                            </button>
+                            <button onclick="playSynthesizedSound('r')" class="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-indigo-500 flex flex-col items-center">
+                                <span class="text-2xl font-bold ipa-char text-indigo-600">[ r ]</span>
+                                <span class="text-[10px] text-slate-500 mt-1">perro (多振動)</span>
+                            </button>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                step: "STEP 4：発音してみる",
+                title: "マイク録音・自声波形確認シミュレーター",
+                content: `
+                    <div class="space-y-4 text-center">
+                        <p class="text-xs text-slate-600">お手本に倣って「perro [ˈpero]」と発音してみましょう。</p>
+                        <div class="bg-slate-100 p-6 rounded-2xl flex flex-col items-center justify-center space-y-3">
+                            <button id="mic-btn" onclick="toggleRecord()" class="w-16 h-16 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center shadow-lg shadow-rose-500/30">
+                                <i data-lucide="mic" class="w-8 h-8"></i>
+                            </button>
+                            <span id="record-status" class="text-xs font-bold text-slate-500">ボタンを押して録音開始</span>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                step: "STEP 5：本日のまとめ",
+                title: "ミッションクリア！新しい音を獲得",
+                content: `
+                    <div class="text-center space-y-4">
+                        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                            <i data-lucide="check-circle-2" class="w-10 h-10"></i>
+                        </div>
+                        <h4 class="text-lg font-extrabold text-slate-800">素晴らしい探検でした！</h4>
+                        <p class="text-xs text-slate-500">「[ r ] 歯茎ふるえ音」があなたの図鑑コレクションに追加されました。</p>
+                    </div>
+                `
+            }
+        ];
+
+        function startInteractiveSession() {
+            activeLessonStep = 0;
+            renderLessonStep();
+            document.getElementById('lesson-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeLessonModal() {
+            document.getElementById('lesson-modal').classList.add('hidden');
+        }
+
+        function renderLessonStep() {
+            const stepData = LESSON_STEPS[activeLessonStep];
+            document.getElementById('lesson-step-badge').textContent = stepData.step;
+            document.getElementById('lesson-title').textContent = stepData.title;
+            document.getElementById('lesson-body').innerHTML = stepData.content;
+
+            // Render Dots
+            const dotsContainer = document.getElementById('lesson-step-dots');
+            dotsContainer.innerHTML = '';
+            LESSON_STEPS.forEach((_, idx) => {
+                const dot = document.createElement('div');
+                dot.className = `w-2 h-2 rounded-full ${idx === activeLessonStep ? 'bg-blue-600 w-4' : 'bg-slate-300'} transition-all`;
+                dotsContainer.appendChild(dot);
+            });
+
+            // Button label logic
+            document.getElementById('lesson-prev-btn').style.visibility = activeLessonStep === 0 ? 'hidden' : 'visible';
+            const nextBtn = document.getElementById('lesson-next-btn');
+            if (activeLessonStep === LESSON_STEPS.length - 1) {
+                nextBtn.textContent = "学習を完了して報酬GET";
+                nextBtn.className = "px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-md hover:bg-emerald-500";
+            } else {
+                nextBtn.textContent = "次へ進む";
+                nextBtn.className = "px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md hover:bg-blue-500";
+            }
+            lucide.createIcons();
+        }
+
+        function nextLessonStep() {
+            if (activeLessonStep < LESSON_STEPS.length - 1) {
+                activeLessonStep++;
+                renderLessonStep();
+            } else {
+                // Complete session
+                closeLessonModal();
+                addExp(50);
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        function prevLessonStep() {
+            if (activeLessonStep > 0) {
+                activeLessonStep--;
+                renderLessonStep();
+            }
+        }
+
+        let isRecording = false;
+        function toggleRecord() {
+            isRecording = !isRecording;
+            const btn = document.getElementById('mic-btn');
+            const status = document.getElementById('record-status');
+            if (isRecording) {
+                btn.className = "w-16 h-16 rounded-full bg-slate-800 text-rose-500 flex items-center justify-center shadow-lg animate-pulse";
+                status.textContent = "録音中... お手本の音を意識して！";
+            } else {
+                btn.className = "w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg";
+                status.textContent = "録音完了！クリアな調音です！";
+            }
+        }
+
+        /* ==========================================================================
+           5. GAME / QUIZ GENERATOR
+           ========================================================================== */
+        let currentTargetQuizSymbol = 'i';
+
+        function generateQuizQuestion() {
+            const symbols = Object.keys(APP_DATA.ipaDictionary);
+            currentTargetQuizSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+            
+            // Generate 4 options
+            const options = new Set([currentTargetQuizSymbol]);
+            while (options.size < 4) {
+                options.add(symbols[Math.floor(Math.random() * symbols.length)]);
+            }
+
+            const optionsArr = Array.from(options).sort(() => Math.random() - 0.5);
+            const container = document.getElementById('quiz-options-container');
+            container.innerHTML = '';
+
+            optionsArr.forEach(sym => {
+                const btn = document.createElement('button');
+                btn.onclick = () => checkQuizAnswer(sym);
+                btn.className = "p-4 bg-white hover:bg-blue-50 border border-slate-200 rounded-2xl font-extrabold text-xl ipa-char text-slate-800 shadow-sm transition-all";
+                btn.textContent = `[ ${sym} ]`;
+                container.appendChild(btn);
+            });
+
+            document.getElementById('quiz-feedback').classList.add('hidden');
+        }
+
+        function playQuizTargetAudio() {
+            playSynthesizedSound(currentTargetQuizSymbol);
+        }
+
+        function checkQuizAnswer(selectedSymbol) {
+            const feedback = document.getElementById('quiz-feedback');
+            feedback.classList.remove('hidden');
+
+            if (selectedSymbol === currentTargetQuizSymbol) {
+                feedback.className = "p-4 rounded-xl text-xs font-bold text-center bg-emerald-100 text-emerald-800 border border-emerald-200";
+                feedback.textContent = "🎉 正解です！音韻の聞き分けが見事です。";
+                APP_DATA.user.quizScore += 10;
+                document.getElementById('quiz-score').textContent = APP_DATA.user.quizScore;
+                addExp(15);
+                setTimeout(generateQuizQuestion, 1500);
+            } else {
+                feedback.className = "p-4 rounded-xl text-xs font-bold text-center bg-rose-100 text-rose-800 border border-rose-200";
+                feedback.textContent = `❌ おしい！ 正解は [ ${currentTargetQuizSymbol} ] (${APP_DATA.ipaDictionary[currentTargetQuizSymbol].name}) でした。`;
+            }
+        }
+
+        /* ==========================================================================
+           6. MAP & LANGUAGE CARDS
+           ========================================================================== */
+        function renderLanguageGrid() {
+            const grid = document.getElementById('languages-grid');
+            grid.innerHTML = '';
+
+            APP_DATA.languages.forEach(lang => {
+                const card = document.createElement('div');
+                card.className = `glass-card p-5 rounded-2xl border transition-all ${lang.unlocked ? 'border-blue-200 bg-white' : 'border-slate-200 bg-slate-50/60 opacity-75'}`;
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-3xl">${lang.flag}</span>
+                            <div>
+                                <h4 class="font-extrabold text-slate-800 text-base">${lang.name}</h4>
+                                <span class="text-[10px] ${lang.unlocked ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'} font-bold px-2 py-0.5 rounded-full">
+                                    ${lang.unlocked ? '解放済み' : 'ロック中'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3 leading-relaxed">${lang.desc}</p>
+                    <div class="flex flex-wrap gap-1 mb-4">
+                        ${lang.traits.map(t => `<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">${t}</span>`).join('')}
+                    </div>
+                    <button onclick="playSynthesizedSound('i')" class="w-full py-2 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700 text-xs font-bold rounded-xl transition">
+                        音の特徴をプレビュー
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        /* ==========================================================================
+           7. STATS & CHARTS (Chart.js)
+           ========================================================================== */
+        function renderCharts() {
+            const ctx = document.getElementById('langChart').getContext('2d');
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: APP_DATA.languages.map(l => l.name.split(' ')[0]),
+                    datasets: [{
+                        label: '音素理解度 (%)',
+                        data: [90, 65, 40, 30, 20, 15, 10, 10, 5, 5],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: '#3B82F6',
+                        pointBackgroundColor: '#3B82F6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#E2E8F0' },
+                            grid: { color: '#E2E8F0' },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderReviewList() {
+            const container = document.getElementById('review-list');
+            const items = [
+                { symbol: 'y', name: '円唇前舌狭母音', days: '3日前', status: '優先度：高' },
+                { symbol: 'θ', name: '無声歯摩擦音', days: '7日前', status: '優先度：中' },
+                { symbol: 'ʂ', name: '無声そり舌摩擦音', days: '14日前', status: '復習推奨' }
+            ];
+
+            container.innerHTML = items.map(item => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xl font-bold ipa-char text-blue-600">[ ${item.symbol} ]</span>
+                        <div>
+                            <span class="text-xs font-bold text-slate-800 block">${item.name}</span>
+                            <span class="text-[10px] text-slate-400">前回学習: ${item.days}</span>
+                        </div>
+                    </div>
+                    <button onclick="playAndDetailIPA('${item.symbol}')" class="text-xs font-bold bg-white text-blue-600 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-blue-50">
+                        復習する
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        /* ==========================================================================
+           8. COLLECTION & USER EXP LOGIC
+           ========================================================================== */
+        function renderCollection() {
+            // Badges
+            const badgeContainer = document.getElementById('badges-container');
+            badgeContainer.innerHTML = APP_DATA.titles.map(t => {
+                const acquired = APP_DATA.user.exp >= t.reqExp;
+                return `
+                    <div class="p-3 rounded-2xl border ${acquired ? 'bg-amber-50/50 border-amber-200 text-amber-900' : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60'} flex items-center space-x-3">
+                        <i data-lucide="award" class="w-6 h-6 ${acquired ? 'text-amber-500' : 'text-slate-400'}"></i>
+                        <div>
+                            <span class="text-xs font-bold block">${t.title}</span>
+                            <span class="text-[10px]">${acquired ? '獲得済み' : `必要Exp: ${t.reqExp}`}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Sounds
+            const soundsGrid = document.getElementById('collected-sounds-grid');
+            document.getElementById('collected-count').textContent = APP_DATA.user.collectedSounds.length;
+            soundsGrid.innerHTML = APP_DATA.user.collectedSounds.map(sym => `
+                <button onclick="playAndDetailIPA('${sym}')" class="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col items-center hover:border-blue-500 transition">
+                    <span class="text-lg font-bold ipa-char text-blue-600">[ ${sym} ]</span>
+                </button>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function addExp(amount) {
+            APP_DATA.user.exp += amount;
+            // Level calc
+            const newLevel = Math.floor(APP_DATA.user.exp / 100) + 1;
+            APP_DATA.user.level = newLevel;
+
+            // Current title
+            let currentTitle = APP_DATA.titles[0].title;
+            APP_DATA.titles.forEach(t => {
+                if (APP_DATA.user.exp >= t.reqExp) currentTitle = t.title;
+            });
+            APP_DATA.user.title = currentTitle;
+
+            // Update UI
+            document.getElementById('user-level').textContent = `Lv.${newLevel}`;
+            document.getElementById('mobile-user-level').textContent = `Lv.${newLevel}`;
+            document.getElementById('user-title').textContent = currentTitle;
+            
+            const expProgress = (APP_DATA.user.exp % 100);
+            document.getElementById('exp-bar').style.width = `${expProgress}%`;
+        }
+
+        function setCondition(cond) {
+            APP_DATA.user.condition = cond;
+            document.querySelectorAll('.condition-btn').forEach(btn => btn.classList.remove('border-2', 'border-white'));
+            event.currentTarget.classList.add('border-2', 'border-white');
+        }
+
+        /* ==========================================================================
+           9. INITIALIZATION
+           ========================================================================== */
+        window.onload = function() {
+            lucide.createIcons();
+            switchTab('home');
+            addExp(0);
+        };
+    </script>
+</body>
+</html>
