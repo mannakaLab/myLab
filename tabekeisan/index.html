@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>食べ計算帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Zen+Maru+Gothic:wght@400;500;700&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --bg: #F4F2ED;
+  --surface: #FFFFFF;
+  --sel: #EAF3EC;
+  --fg: #2F3A4A;
+  --muted: #667385;
+  --line: #E4E0D8;
+  --track: #B9C2CC;
+  --kcal: #4A6E99;
+  --protein: #4C7F62;
+  --iron: #B84A60;
+  --warn: #8A6414;
+  --kcal-f: #9DB9DA;
+  --protein-f: #9CCBAF;
+  --iron-f: #F0A3B2;
+  --warn-f: #EBC05E;
+  --kcal-t: #E7EEF7;
+  --protein-t: #E3F0E7;
+  --iron-t: #FCE8EC;
+  --warn-t: #FBF1D8;
+  --btn-bg: #3D5A80;
+  --btn-fg: #FFFFFF;
+  --shadow: 0 2px 10px rgba(47, 58, 74, .07);
+  --font-body: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", Meiryo, system-ui, sans-serif;
+  --font-num: "Fredoka", "Zen Maru Gothic", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1D2430; --surface: #273041; --sel: #25382F; --fg: #ECEFF4; --muted: #A5B0BF;
+    --line: #3A4558; --track: #586579;
+    --kcal: #92B6E6; --protein: #8FCFA7; --iron: #F59DB0; --warn: #EBC272;
+    --kcal-f: #5F82B0; --protein-f: #5E9A78; --iron-f: #C4687E; --warn-f: #C99A3C;
+    --kcal-t: #2B3A57; --protein-t: #24392E; --iron-t: #432A35; --warn-t: #40351D;
+    --btn-bg: #A9C4E8; --btn-fg: #1D2430;
+    --shadow: 0 2px 12px rgba(0, 0, 0, .28);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #1D2430; --surface: #273041; --sel: #25382F; --fg: #ECEFF4; --muted: #A5B0BF;
+  --line: #3A4558; --track: #586579;
+  --kcal: #92B6E6; --protein: #8FCFA7; --iron: #F59DB0; --warn: #EBC272;
+  --kcal-f: #5F82B0; --protein-f: #5E9A78; --iron-f: #C4687E; --warn-f: #C99A3C;
+  --kcal-t: #2B3A57; --protein-t: #24392E; --iron-t: #432A35; --warn-t: #40351D;
+  --btn-bg: #A9C4E8; --btn-fg: #1D2430;
+  --shadow: 0 2px 12px rgba(0, 0, 0, .28);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+img { max-width: 100%; }
+[hidden]:not([hidden=until-found i]) { display: none !important; }
+
+body {
+  margin: 0;
+  font: 15px/1.55 var(--font-body);
+  background: var(--bg);
+  color: var(--fg);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 10; background: var(--bg);
+}
+body.lock { overflow: hidden; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; touch-action: manipulation; }
+:focus-visible { outline: 2px solid var(--kcal); outline-offset: 2px; }
+h2 { margin: 0; font-size: 14px; letter-spacing: .04em; }
+
+.app { max-width: 560px; margin: 0 auto; padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+
+/* ブランドロゴ */
+.brand { display: flex; align-items: center; gap: 10px; padding: 12px 0 2px; }
+.mark { width: 34px; height: 34px; flex: none; }
+.m-bg { fill: var(--protein-t); }
+.m-stem { stroke: var(--protein); stroke-width: 2; stroke-linecap: round; fill: none; }
+.m-leaf { fill: var(--protein); }
+.brand span { font-size: 19px; font-weight: 700; letter-spacing: .05em; }
+
+/* 日付ナビゲーション */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0 2px; }
+.datenav { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ic { width: 40px; height: 40px; border: 1.5px solid var(--line); background: var(--surface); border-radius: 50%; font-size: 22px; line-height: 1; box-shadow: var(--shadow); }
+.datetxt { min-width: 7.6em; text-align: center; font-size: 16px; }
+.datetxt b { font-weight: 700; }
+.tdy { margin-left: 6px; padding: 1px 9px; border-radius: 999px; background: var(--btn-bg); color: var(--btn-fg); font-size: 11px; font-weight: 700; vertical-align: 2px; }
+
+/* だるい日モードスイッチ */
+.switch { position: relative; display: flex; align-items: center; gap: 12px; padding: 8px 0 2px; cursor: pointer; }
+.switch input { position: absolute; left: 0; top: 10px; width: 46px; height: 28px; margin: 0; opacity: 0; cursor: pointer; }
+.track { width: 46px; height: 28px; border-radius: 14px; background: var(--track); position: relative; flex: none; }
+.track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.switch input:checked + .track { background: var(--iron); }
+.switch input:checked + .track::after { transform: translateX(18px); }
+.switch input:focus-visible + .track { outline: 2px solid var(--kcal); outline-offset: 2px; }
+.swtxt b { display: block; font-size: 14px; line-height: 1.3; }
+.swtxt small { color: var(--muted); font-size: 12px; }
+@media (prefers-reduced-motion: no-preference) {
+  .track, .track::after { transition: transform .18s, background .18s; }
+  .bar i { transition: width .3s ease; }
+}
+
+/* 栄養サマリー（上部固定） */
+.stickywrap { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding: 16px 0 8px; }
+.label { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); }
+.label::before {
+  content: attr(data-cap); position: absolute; top: -11px; left: 16px; padding: 0 11px;
+  border-radius: 999px; border: 1px solid var(--warn-f); background: var(--warn-t); color: var(--warn);
+  font-size: 11px; font-weight: 700; letter-spacing: .03em; line-height: 20px;
+}
+.lrow { --c: var(--kcal); --cf: var(--kcal-f); display: grid; grid-template-columns: 6.2em minmax(0, 1fr) auto; align-items: baseline; column-gap: 6px; padding: 5px 14px 0; border-bottom: 1.5px dotted var(--line); }
+.lrow:first-child { padding-top: 13px; border-radius: 21px 21px 0 0; }
+.lrow:last-child { border-bottom: 0; border-radius: 0 0 21px 21px; }
+.lrow.p { --c: var(--protein); --cf: var(--protein-f); }
+.lrow.fe { --c: var(--iron); --cf: var(--iron-f); }
+body.tired .lrow.fe { background: var(--iron-t); }
+.lname { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.lname::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--cf); flex: none; }
+.lname em { padding: 0 6px; border-radius: 999px; background: var(--iron); color: var(--surface); font-size: 10px; font-style: normal; line-height: 16px; }
+.lval { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 5px; font: 600 24px/1.15 var(--font-num); color: var(--c); }
+.lval span { font: 500 11px var(--font-body); color: var(--muted); white-space: nowrap; }
+.lrem { text-align: right; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.lrem b { margin-left: 2px; font: 600 19px var(--font-num); color: var(--fg); }
+.lrem .ok { color: var(--protein); font-weight: 700; font-size: 13px; }
+.lrow.fe .lrem .ok { color: var(--iron); }
+.lrem .warn, .lrem .warn b { color: var(--warn); font-weight: 700; }
+.bar { grid-column: 1 / -1; height: 7px; margin: 3px 0 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 999px; background: var(--cf); }
+.lrow.over .bar i { background: var(--warn-f); }
+
+/* 共通パーツ */
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border: 1.5px solid var(--btn-bg); border-radius: 999px; background: var(--btn-bg); color: var(--btn-fg); font-weight: 700; font-size: 15px; }
+.btn.ghost { background: var(--surface); color: var(--fg); border-color: var(--line); }
+.btn.danger { background: var(--surface); color: var(--iron); border-color: var(--iron-f); }
+.btn.sm { min-height: 40px; padding: 0 16px; font-size: 13px; }
+.btn.xs { min-height: 32px; padding: 0 12px; font-size: 12px; }
+.btn.block { width: 100%; }
+.note { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
+.sechead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1.5px dotted var(--track); }
+.sechead h2 { display: flex; align-items: center; gap: 8px; }
+.sechead h2::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--warn-f); flex: none; }
+.sechead span { font-size: 12px; color: var(--muted); }
+
+/* 計算画面（メイン） */
+.tip { margin: 6px 0 12px; padding: 12px 14px; background: var(--iron-t); border: 1px solid var(--iron-f); border-radius: 18px; font-size: 13px; }
+.tip b { color: var(--iron); }
+.tip ul { margin: 6px 0 0; padding-left: 1.2em; }
+.tip li + li { margin-top: 3px; }
+
+/* ルーティンバー */
+.routine-box { margin: 8px 0 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+.routine-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.routine-title { font-size: 13px; font-weight: 700; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.routine-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.routine-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: var(--sel); border: 1.5px solid var(--protein-f); border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--protein); cursor: pointer; }
+.routine-chip:active { transform: scale(.96); }
+
+/* 選択中サマリーバー */
+.picked-box { margin: 8px 0 14px; padding: 12px 14px; background: var(--sel); border: 1px solid var(--protein-f); border-radius: 18px; }
+.picked-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.picked-title { font-size: 13px; font-weight: 700; color: var(--protein); display: flex; align-items: center; gap: 6px; }
+.picked-title b { padding: 1px 8px; border-radius: 999px; background: var(--protein); color: var(--surface); font: 600 12px var(--font-num); }
+.picked-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.picked-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; font-size: 12.5px; }
+.picked-pill b { font: 600 13px var(--font-num); color: var(--protein); }
+.picked-pill button { width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: var(--line); color: var(--fg); font-size: 13px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+
+.search { width: 100%; height: 48px; padding: 0 18px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 16px; box-shadow: var(--shadow); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.chip { height: 36px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 13px; }
+.chip[aria-pressed="true"] { background: var(--btn-bg); color: var(--btn-fg); border-color: var(--btn-bg); font-weight: 700; }
+.sortrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; font-size: 13px; color: var(--muted); }
+.sortrow > * { min-width: 0; }
+.sortrow select { height: 40px; max-width: 100%; padding: 0 12px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 14px; }
+
+.foods { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.food { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+.food.on { background: var(--sel); border-color: var(--protein-f); }
+.fname { font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.fper { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.nums { display: flex; flex-wrap: wrap; gap: 0 12px; margin-top: 3px; font: 600 16px/1.3 var(--font-num); }
+.nums i { margin: 0 2px; font: 500 11px var(--font-body); font-style: normal; color: var(--muted); }
+.n.k { color: var(--kcal); } .n.p { color: var(--protein); } .n.e { color: var(--iron); }
+.sub { font-size: 12px; color: var(--protein); font-weight: 700; margin-top: 2px; }
+.tag { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 18px; vertical-align: 1px; }
+.tag.fe { background: var(--iron-t); color: var(--iron); border: 1px solid var(--iron-f); }
+.tag.vc { background: var(--warn-t); color: var(--warn); border: 1px solid var(--warn-f); }
+.side { display: flex; flex-direction: column; align-items: flex-end; }
+.stepper { display: flex; align-items: center; gap: 2px; }
+.stepper button { width: 40px; height: 40px; border: 1.5px solid var(--line); border-radius: 50%; background: var(--surface); font-size: 20px; line-height: 1; }
+.stepper button[data-act="inc"] { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-fg); }
+.stepper button:active { transform: scale(.94); }
+.stepper input { width: 44px; height: 40px; padding: 0; border: 0; border-radius: 12px; background: transparent; text-align: center; font: 600 20px var(--font-num); }
+.link { min-height: 32px; padding: 4px 4px 0; border: 0; background: none; color: var(--muted); font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.empty { padding: 20px 12px; list-style: none; color: var(--muted); font-size: 13px; text-align: center; }
+.addwrap { margin-top: 14px; }
+
+/* 直近7日テーブル */
+.tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+.week { width: 100%; border-collapse: collapse; }
+.week th { padding: 9px 10px 6px; text-align: right; font-size: 11px; font-weight: 700; color: var(--muted); border-bottom: 1.5px dotted var(--track); white-space: nowrap; }
+.week td { padding: 4px 10px; text-align: right; border-bottom: 1px dotted var(--line); font: 600 16px var(--font-num); white-space: nowrap; }
+.week tr:last-child td { border-bottom: 0; }
+.week th:first-child, .week td:first-child { text-align: left; }
+.week tr.cur td { background: var(--sel); }
+.week tr.avg td { border-top: 1.5px dotted var(--track); font-weight: 700; }
+.week td.good { color: var(--protein); }
+.week td.over { color: var(--warn); }
+.week td.none { color: var(--muted); font-weight: 400; }
+.datebtn { min-height: 34px; padding: 0; border: 0; background: none; font: 500 13px var(--font-body); text-decoration: underline; text-underline-offset: 3px; }
+
+/* 設定画面 */
+.goalgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.field { display: grid; gap: 4px; align-content: start; min-width: 0; }
+.field label { font-size: 12px; font-weight: 700; }
+.field input, .field select { width: 100%; height: 48px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); font-size: 16px; }
+.setblock { margin-top: 18px; }
+.setblock p { margin: 6px 0 10px; font-size: 13px; color: var(--muted); }
+
+/* モーダルシート */
+.scrim { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; justify-content: center; background: rgba(29, 36, 48, .5); }
+.sheet { width: 100%; max-width: 560px; max-height: 92%; overflow-y: auto; background: var(--surface); border-radius: 26px 26px 0 0; padding-top: 12px; padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px; }
+.sheet::before { content: ""; justify-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--line); }
+.sheet h2 { font-size: 17px; letter-spacing: 0; }
+.sheet h2::before { display: none; }
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.check { display: flex; align-items: center; gap: 10px; font-size: 14px; min-height: 40px; }
+.check input { width: 22px; height: 22px; margin: 0; accent-color: var(--btn-bg); }
+.err { margin: 0; padding: 9px 12px; border: 1px solid var(--iron-f); border-radius: 14px; background: var(--iron-t); color: var(--iron); font-size: 13px; font-weight: 700; }
+.sheetbtns { display: grid; gap: 8px; }
+
+/* 下部タブ */
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(47, 58, 74, .06); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.nav div { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 6px 0; }
+.nav button { position: relative; min-height: 52px; border: 0; border-radius: 18px; background: none; display: grid; justify-items: center; align-content: center; gap: 2px; font-size: 12px; font-weight: 500; color: var(--muted); }
+.nav button[aria-current="page"] { background: var(--kcal-t); color: var(--fg); font-weight: 700; }
+.nav svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.badge { position: absolute; top: 4px; left: calc(50% + 12px); min-width: 18px; padding: 0 5px; border-radius: 9px; background: var(--iron); color: var(--surface); font: 700 11px/18px var(--font-body); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <header class="brand">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="16" class="m-bg"/><path d="M16 25v-9" class="m-stem"/><path d="M16 17c0-4 3-6 7-6 0 4-3 6-7 6z" class="m-leaf"/><path d="M16 20c0-3-2-5-6-5 0 3 2 5 6 5z" class="m-leaf"/></svg>
+    <span>食べ計算帳</span>
+  </header>
+
+  <div class="topbar">
+    <div class="datenav">
+      <button type="button" class="ic" data-act="prev" aria-label="前の日">‹</button>
+      <div class="datetxt" id="dateTxt" aria-live="polite"></div>
+      <button type="button" class="ic" data-act="next" aria-label="次の日">›</button>
+    </div>
+    <button type="button" class="btn ghost sm" data-act="today" id="todayBtn" hidden>今日へ</button>
+  </div>
+
+  <label class="switch" for="tired">
+    <input type="checkbox" id="tired" role="switch">
+    <span class="track" aria-hidden="true"></span>
+    <span class="swtxt"><b>だるい日モード</b><small>鉄分を優先して見る</small></span>
+  </label>
+
+  <div class="stickywrap"><section class="label" id="label" aria-label="合計と目標"></section></div>
+
+  <!-- メイン：計算画面 -->
+  <main id="v-calc">
+    <div class="tip" id="tip" hidden>
+      <b>鉄を意識する日のメモ</b>
+      <ul>
+        <li>「鉄◎」の食品から選ぶと近道です。レバー、あさり、豆腐、納豆、豆乳などが入っています。</li>
+        <li>肉や魚の鉄は吸収されやすく、野菜や豆の鉄はビタC(ビタミンC)と一緒だと吸収されやすくなります。</li>
+        <li>コーヒー、紅茶、緑茶は食事中を避けて、1時間ほどあけます。</li>
+        <li>だるさが続くときは、医療機関で血液検査を受けてください。</li>
+      </ul>
+    </div>
+
+    <!-- ルーティンセットバー -->
+    <div class="routine-box" id="routineBox">
+      <div class="routine-head">
+        <span class="routine-title">⚡ ルーティンセット</span>
+        <button type="button" class="btn ghost xs" data-act="save-routine">今の食事を登録</button>
+      </div>
+      <div class="routine-list" id="routineList"></div>
+    </div>
+
+    <!-- 選択中の食事まとめ -->
+    <div class="picked-box" id="pickedBox" hidden>
+      <div class="picked-head">
+        <div class="picked-title">この日の食事 <b id="pickedCount"></b></div>
+        <button type="button" class="btn ghost xs" data-act="clear-day">記録をクリア</button>
+      </div>
+      <div class="picked-list" id="pickedList"></div>
+    </div>
+
+    <input id="q" class="search" type="search" placeholder="食品名で探す（ひらがなでも）" autocomplete="off" enterkeyhint="search" aria-label="食品名で探す">
+    <div class="chips" id="cats" role="group" aria-label="分類"></div>
+    <div class="sortrow">
+      <span id="count"></span>
+      <select id="sort" aria-label="並び順">
+        <option value="std">標準の順</option>
+        <option value="picked">選択中を上に</option>
+        <option value="p">たんぱく質が多い順</option>
+        <option value="dens">たんぱく質の効率順（kcalあたり）</option>
+        <option value="fe">鉄が多い順</option>
+        <option value="k">kcalが低い順</option>
+      </select>
+    </div>
+
+    <ul class="foods" id="foodList"></ul>
+    <div class="addwrap"><button type="button" class="btn block" data-act="add-food">＋ 食品を登録する</button></div>
+
+    <div class="sechead"><h2>直近7日</h2><span>日付を押すと開きます</span></div>
+    <div class="tablewrap"><table class="week" id="week"></table></div>
+  </main>
+
+  <!-- 設定画面 -->
+  <main id="v-set" hidden>
+    <div class="sechead"><h2>1日の目標</h2></div>
+    <div class="goalgrid">
+      <div class="field"><label for="gK">熱量 kcal</label><input id="gK" type="text" inputmode="decimal" autocomplete="off"></div>
+      <div class="field"><label for="gP">たんぱく質 g</label><input id="gP" type="text" inputmode="decimal" autocomplete="off"></div>
+      <div class="field"><label for="gF">鉄 mg</label><input id="gF" type="text" inputmode="decimal" autocomplete="off"></div>
+    </div>
+    <p class="note">鉄の初期値は10mgです。日本人の食事摂取基準（2020年版）の推奨量は、18〜64歳で男性7.5mg、女性は月経ありで10.5mg、月経なしで6.5mgです。</p>
+
+    <div class="sechead"><h2>ルーティン管理</h2></div>
+    <div class="setblock" style="margin-top:0">
+      <p>よく食べる食事の組み合わせを管理・削除できます。</p>
+      <div id="routineManageList" style="display: grid; gap: 8px; margin-top: 8px;"></div>
+    </div>
+
+    <div class="sechead"><h2>食品データ</h2></div>
+    <div class="setblock" style="margin-top:0">
+      <p>初期の食品の数値は、食品成分表などをもとにした目安です。市販品はパッケージの表示に合わせて、各食品の「編集」から直してください。</p>
+      <button type="button" class="btn ghost sm" id="resetFoods" data-act="reset-foods">初期の食品を入れ直す</button>
+    </div>
+
+    <div class="sechead"><h2>保存</h2></div>
+    <p class="note" id="syncTxt" style="margin-top:0"></p>
+  </main>
+</div>
+
+<nav class="nav" aria-label="画面の切り替え"><div>
+  <button type="button" data-act="tab" data-tab="calc" aria-current="page">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg>計算<span class="badge" id="badge" hidden></span>
+  </button>
+  <button type="button" data-act="tab" data-tab="set">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>設定
+  </button>
+</div></nav>
+
+<div class="scrim" id="scrim" hidden>
+  <form class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" novalidate>
+    <h2 id="sheetTitle">食品を登録</h2>
+    <div class="field"><label for="fName">名前</label><input id="fName" type="text" maxlength="40" autocomplete="off" placeholder="例：蒸し鶏 ハーブ"></div>
+    <div class="field"><label for="fPer">ひとつの量</label><input id="fPer" type="text" maxlength="30" autocomplete="off" placeholder="例：1パック 100g"></div>
+    <div class="trio">
+      <div class="field"><label for="fK">熱量 kcal</label><input id="fK" type="text" inputmode="decimal" autocomplete="off"></div>
+      <div class="field"><label for="fP">たんぱく質 g</label><input id="fP" type="text" inputmode="decimal" autocomplete="off"></div>
+      <div class="field"><label for="fFe">鉄 mg</label><input id="fFe" type="text" inputmode="decimal" autocomplete="off" placeholder="空欄で0"></div>
+    </div>
+    <div class="field"><label for="fCat">分類</label><select id="fCat"></select></div>
+    <label class="check" id="fAddRow"><input type="checkbox" id="fAdd" checked> この日の食事にも1つ追加する</label>
+    <p class="err" id="fErr" role="alert" hidden></p>
+    <div class="sheetbtns">
+      <button type="submit" class="btn">保存</button>
+      <button type="button" class="btn ghost" data-act="sheet-cancel">キャンセル</button>
+      <button type="button" class="btn danger" id="fDel" data-act="sheet-delete" hidden>この食品を削除</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+
+  const pad = n => String(n).padStart(2, '0');
+  const keyOf = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const fromKey = k => { const a = k.split('-').map(Number); return new Date(a[0], a[1] - 1, a[2]); };
+  const addDays = (k, n) => { const d = fromKey(k); d.setDate(d.getDate() + n); return keyOf(d); };
+  const r1 = x => Math.round(x * 10) / 10;
+  const f1 = x => r1(x).toFixed(1);
+  const fmtK = x => Number.isInteger(x) ? String(x) : String(r1(x));
+  const fmtQty = q => Number.isInteger(q) ? String(q) : String(Math.round(q * 100) / 100);
+
+  function parseNum(s) {
+    s = String(s == null ? '' : s)
+      .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+      .replace(/[．。]/g, '.').replace(/[,，\s]/g, '').replace(/[−ー－]/g, '-');
+    if (s === '') return NaN;
+    const n = Number(s);
+    return isFinite(n) ? n : NaN;
+  }
+
+  function norm(s) {
+    return String(s).toLowerCase()
+      .replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60))
+      .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  }
+
+  function calc(foods, day) {
+    const m = new Map(foods.map(f => [f.id, f]));
+    let k = 0, p = 0, fe = 0, n = 0;
+    for (const id in day) {
+      const f = m.get(id), q = Number(day[id]);
+      if (!f || !(q > 0)) continue;
+      k += f.k * q; p += f.p * q; fe += f.fe * q; n++;
+    }
+    return { k: Math.round(k), p: r1(p), fe: r1(fe), n: n };
+  }
+
+  const WD = ['日', '月', '火', '水', '木', '金', '土'];
+  const todayKey = () => keyOf(new Date());
+  const md = k => { const d = fromKey(k); return (d.getMonth() + 1) + '/' + d.getDate() + '(' + WD[d.getDay()] + ')'; };
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  var CATS = [['milk', 'ヨーグルト・乳'], ['prot', '肉・魚・卵'], ['bean', '豆・大豆'], ['veg', '野菜・果物'], ['staple', '主食・パン'], ['soup', '汁物・飲み物']];
+  var CHIPS = [['all', 'すべて'], ['fe', '鉄◎']].concat(CATS, [['mine', '登録した食品']]);
+  var SORTS = ['std', 'picked', 'p', 'dens', 'fe', 'k'];
+  var IRON_RICH = 1.5;
+
+  var BASE_RAW = [
+    ['b_oikos', 'オイコス 脂肪0', '1個 113g', 55, 10, 0.1, 'milk'],
+    ['b_yogurt', 'プレーンヨーグルト 無糖', '100g', 62, 3.6, 0.1, 'milk'],
+    ['b_milk', '牛乳', '200ml', 134, 6.6, 0, 'milk'],
+    ['b_cheese', '6Pチーズ', '1個 17g', 58, 3.8, 0, 'milk'],
+    ['b_chicken', 'サラダチキン', '1パック 115g', 115, 24, 0.3, 'prot'],
+    ['b_stick', 'ささみスティック', '1本', 45, 8, 0.1, 'prot'],
+    ['b_egg', 'ゆで卵', '1個', 75, 7, 0.8, 'prot'],
+    ['b_yakitori', '焼き鳥 もも塩', '1本', 90, 8, 0.3, 'prot'],
+    ['b_liver', '焼き鳥 レバー', '1本 約30g', 35, 5.7, 2.7, 'prot'],
+    ['b_karaage', '鶏の唐揚げ', '1個 約40g', 100, 6.5, 0.3, 'prot'],
+    ['b_beef', 'ローストビーフ', '80g', 140, 17, 1.9, 'prot'],
+    ['b_salmon', '焼き鮭', '1切れ 約70g', 140, 15.5, 0.3, 'prot'],
+    ['b_saba', 'さば水煮缶', '1缶 190g', 360, 40, 3.0, 'prot'],
+    ['b_tuna', 'ツナ水煮缶', '1缶 70g', 65, 12, 0.4, 'prot'],
+    ['b_asari', 'あさり水煮缶', '固形30g（約1/2缶）', 31, 5.9, 9.0, 'prot'],
+    ['b_natto', '納豆', '1パック 40g', 80, 6.6, 1.3, 'bean'],
+    ['b_momen', '木綿豆腐', '1/2丁 150g', 110, 10.5, 2.3, 'bean'],
+    ['b_kinu', '絹ごし豆腐', '1/3丁 100g', 56, 5.3, 1.2, 'bean'],
+    ['b_edamame', '枝豆', '可食部 80g', 105, 9, 2.2, 'bean'],
+    ['b_soymilk', '無調整豆乳', '200ml', 92, 7.4, 2.4, 'bean'],
+    ['b_spinach', 'ほうれん草のおひたし', '1パック 70g', 20, 1.8, 0.6, 'veg', 1],
+    ['b_broccoli', 'ブロッコリー ゆで', '100g', 30, 4, 0.8, 'veg', 1],
+    ['b_salad', '野菜サラダ', '1カップ 100g', 20, 1, 0.4, 'veg', 1],
+    ['b_hijiki', 'ひじき煮', '1パック 60g', 55, 2, 0.9, 'veg'],
+    ['b_kiwi', 'キウイ', '1個 85g', 45, 0.8, 0.2, 'veg', 1],
+    ['b_mikan', 'みかん', '1個', 35, 0.5, 0.1, 'veg', 1],
+    ['b_banana', 'バナナ', '1本 可食100g', 86, 1.1, 0.3, 'veg'],
+    ['b_rice', 'ごはん', '茶碗1杯 150g', 234, 3.8, 0.2, 'staple'],
+    ['b_onigiri', 'おにぎり 鮭', '1個', 180, 4.5, 0.2, 'staple'],
+    ['b_bread', '自家製パン', '1切れ 60g（目安）', 150, 5.3, 0.3, 'staple'],
+    ['b_oat', 'オートミール', '30g', 114, 4.1, 1.2, 'staple'],
+    ['b_miso', '味噌汁', '1杯', 40, 3, 0.6, 'soup'],
+    ['b_tonjiru', '豚汁', '1杯', 100, 6, 0.8, 'soup'],
+    ['b_protein', 'プロテイン', '1杯 約30g', 115, 22, 0.4, 'soup']
+  ];
+
+  function baseFoods() {
+    return BASE_RAW.map(function (r) {
+      var f = { id: r[0], name: r[1], per: r[2], k: r[3], p: r[4], fe: r[5], cat: r[6] };
+      if (r[7]) f.vc = true;
+      return f;
+    });
+  }
+
+  var LS_KEY = 'tabe-keisan-cho-v1';
+  function posNum(v, d) { var n = Number(v); return n > 0 ? n : d; }
+  function validFood(f) {
+    return f && typeof f === 'object' && typeof f.id === 'string' && typeof f.name === 'string' &&
+      isFinite(f.k) && isFinite(f.p) && isFinite(f.fe);
+  }
+  function migrate(s) {
+    if (!s || typeof s !== 'object') return null;
+    var g = s.goals || {};
+    var out = {
+      v: 1, updatedAt: Number(s.updatedAt) || 0,
+      goals: { k: posNum(g.k, 1300), p: posNum(g.p, 75), fe: posNum(g.fe, 10) },
+      foods: Array.isArray(s.foods) ? s.foods.filter(validFood) : baseFoods(),
+      days: (s.days && typeof s.days === 'object') ? s.days : {},
+      routines: Array.isArray(s.routines) ? s.routines : [
+        { id: 'r1', name: 'いつもの朝食', items: { b_oikos: 1, b_bread: 1 } },
+        { id: 'r2', name: '定番ランチ', items: { b_chicken: 1, b_natto: 1, b_rice: 1 } }
+      ],
+      tired: !!s.tired, sort: SORTS.indexOf(s.sort) >= 0 ? s.sort : 'std'
+    };
+    var cut = addDays(todayKey(), -800);
+    Object.keys(out.days).forEach(function (k) { if (k < cut) delete out.days[k]; });
+    return out;
+  }
+  function seed() {
+    return {
+      v: 1, updatedAt: 0, goals: { k: 1300, p: 75, fe: 10 }, foods: baseFoods(), days: {},
+      routines: [
+        { id: 'r1', name: 'いつもの朝食', items: { b_oikos: 1, b_bread: 1 } },
+        { id: 'r2', name: '定番ランチ', items: { b_chicken: 1, b_natto: 1, b_rice: 1 } }
+      ],
+      tired: false, sort: 'std'
+    };
+  }
+  function loadLocal() {
+    try { var r = localStorage.getItem(LS_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; }
+  }
+  function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {} }
+
+  var S = migrate(loadLocal()) || seed();
+  var cur = todayKey(), tab = 'calc', catSel = 'all', query = '';
+
+  var dbDoc = null, syncState = 'local', wTimer = 0, writing = false, dirty = false;
+  function touch() { S.updatedAt = Date.now(); saveLocal(); queueRemote(); }
+  function queueRemote() {
+    if (!dbDoc) return;
+    dirty = true; clearTimeout(wTimer); wTimer = setTimeout(flush, 900);
+  }
+  async function flush() {
+    if (writing || !dbDoc || !dirty) return;
+    writing = true; dirty = false;
+    try { await dbDoc.set(JSON.parse(JSON.stringify(S))); syncState = 'synced'; }
+    catch (e) { syncState = 'error'; }
+    writing = false; renderSync();
+    if (dirty) queueRemote();
+  }
+  async function pull() {
+    if (!dbDoc || writing || dirty) return;
+    try {
+      var snap = await dbDoc.get();
+      if (snap.exists) {
+        var r = migrate(JSON.parse(JSON.stringify(snap.data())));
+        if (r && r.updatedAt > S.updatedAt) { S = r; saveLocal(); render(); }
+        else if (S.updatedAt > (r ? r.updatedAt : 0)) queueRemote();
+      } else if (S.updatedAt > 0) queueRemote();
+      syncState = 'synced';
+    } catch (e) { syncState = 'error'; }
+    renderSync();
+  }
+  async function initDb() {
+    try {
+      if (!(window.claude && window.claude.use)) return;
+      var db = await window.claude.use('db');
+      var user = await window.claude.use('user');
+      if (!db || !user) return;
+      var id = await user.id();
+      if (!id) return;
+      dbDoc = db.doc('data/users/' + id + '/app');
+      await pull();
+    } catch (e) {}
+  }
+  function renderSync() {
+    var el = $('syncTxt'); if (!el) return;
+    el.textContent = dbDoc
+      ? (syncState === 'error'
+        ? 'アカウントへの保存に失敗しました。この端末には保存されています。'
+        : '記録はこの端末とアカウントに保存されます。')
+      : 'アカウントとの同期が使えない状態です。記録はこの端末のブラウザにだけ保存されます。';
+  }
+
+  function dayOf(k) { return S.days[k] || {}; }
+  function qtyOf(id) { return Number(dayOf(cur)[id]) || 0; }
+  function setQty(id, q) {
+    q = Math.max(0, Math.min(30, Math.round(q * 100) / 100));
+    if (!S.days[cur]) S.days[cur] = {};
+    if (q > 0) S.days[cur][id] = q; else delete S.days[cur][id];
+    if (!Object.keys(S.days[cur]).length) delete S.days[cur];
+    touch(); refreshAfterQty();
+  }
+  function refreshAfterQty() {
+    renderLabel(); renderBadge();
+    if (tab === 'calc') {
+      renderPickedSummary();
+      renderList();
+      renderWeek();
+    }
+  }
+  function armed(btn, ask, run) {
+    if (btn.dataset.armed) {
+      clearTimeout(Number(btn.dataset.t)); delete btn.dataset.armed;
+      btn.textContent = btn.dataset.idle; run(); return;
+    }
+    btn.dataset.idle = btn.textContent; btn.dataset.armed = '1'; btn.textContent = ask;
+    btn.dataset.t = String(setTimeout(function () {
+      delete btn.dataset.armed; btn.textContent = btn.dataset.idle;
+    }, 4000));
+  }
+
+  function renderTop() {
+    var d = fromKey(cur), isToday = cur === todayKey();
+    $('dateTxt').innerHTML = '<b>' + (d.getMonth() + 1) + '月' + d.getDate() + '日</b> (' + WD[d.getDay()] + ')' +
+      (isToday ? '<span class="tdy">今日</span>' : '');
+    $('todayBtn').hidden = isToday;
+    $('tired').checked = S.tired;
+    document.body.classList.toggle('tired', S.tired);
+  }
+
+  function renderBadge() {
+    var n = calc(S.foods, dayOf(cur)).n, b = $('badge');
+    b.hidden = n === 0; b.textContent = n;
+  }
+
+  function renderLabel() {
+    var t = calc(S.foods, dayOf(cur)), g = S.goals;
+    var rows = [
+      { c: 'k', name: '熱量', unit: 'kcal', v: t.k, goal: g.k, kcal: true },
+      { c: 'p', name: 'たんぱく質', unit: 'g', v: t.p, goal: g.p },
+      { c: 'fe', name: '鉄', unit: 'mg', v: t.fe, goal: g.fe }
+    ];
+    var html = rows.map(function (r) {
+      var pct = Math.max(0, Math.min(100, r.v / r.goal * 100));
+      var over = r.kcal && r.v > r.goal;
+      var val = r.kcal ? String(r.v) : f1(r.v);
+      var goalTxt = r.kcal ? fmtK(r.goal) : fmtK(r1(r.goal));
+      var rem;
+      if (r.kcal) {
+        rem = over ? '<span class="warn">超過 <b>+' + (r.v - r.goal) + '</b></span>'
+          : 'あと <b>' + fmtK(r.goal - r.v) + '</b>';
+      } else {
+        rem = r.v >= r.goal ? '<span class="ok">達成</span>'
+          : 'あと <b>' + f1(Math.ceil((r.goal - r.v) * 10 - 1e-9) / 10) + '</b>';
+      }
+      var pr = (S.tired && r.c === 'fe') ? '<em>優先</em>' : '';
+      return '<div class="lrow ' + r.c + (over ? ' over' : '') + '">' +
+        '<div class="lname">' + r.name + pr + '</div>' +
+        '<div class="lval">' + val + '<span>/ ' + goalTxt + ' ' + r.unit + '</span></div>' +
+        '<div class="lrem">' + rem + '</div>' +
+        '<div class="bar"><i style="width:' + pct.toFixed(1) + '%"></i></div></div>';
+    }).join('');
+    var lb = $('label');
+    lb.dataset.cap = '栄養成分表示 ・ ' + (cur === todayKey() ? '今日の合計' : md(cur) + 'の合計');
+    lb.innerHTML = html;
+  }
+
+  function renderPickedSummary() {
+    var day = dayOf(cur);
+    var items = S.foods.filter(function (f) { return day[f.id] > 0; });
+    $('pickedBox').hidden = items.length === 0;
+    if (!items.length) return;
+    $('pickedCount').textContent = items.length + '品';
+    $('pickedList').innerHTML = items.map(function (f) {
+      var q = Number(day[f.id]);
+      return '<span class="picked-pill">' +
+        '<span>' + esc(f.name) + '</span>' +
+        '<b>×' + fmtQty(q) + '</b>' +
+        '<button type="button" data-act="rm-picked" data-id="' + esc(f.id) + '" aria-label="' + esc(f.name) + 'を外す">×</button>' +
+      '</span>';
+    }).join('');
+  }
+
+  function foodRow(f, q) {
+    var tags = '';
+    if (f.fe >= IRON_RICH) tags += '<span class="tag fe">鉄◎</span>';
+    if (S.tired && f.vc) tags += '<span class="tag vc">ビタC</span>';
+    var sub = q > 0
+      ? '<div class="sub">小計：' + Math.round(f.k * q) + ' kcal ・ P ' + f1(f.p * q) + ' g ・ Fe ' + f1(f.fe * q) + ' mg</div>' : '';
+    return '<li class="food' + (q > 0 ? ' on' : '') + '" data-id="' + esc(f.id) + '">' +
+      '<div class="finfo">' +
+        '<div class="fname">' + esc(f.name) + tags + '</div>' +
+        '<div class="fper">' + esc(f.per) + '</div>' +
+        '<div class="nums"><span class="n k">' + fmtK(f.k) + '<i>kcal</i></span>' +
+        '<span class="n p"><i>P</i>' + f1(f.p) + '<i>g</i></span>' +
+        '<span class="n e"><i>Fe</i>' + f1(f.fe) + '<i>mg</i></span></div>' + sub +
+      '</div>' +
+      '<div class="side"><div class="stepper">' +
+        '<button type="button" data-act="dec" aria-label="' + esc(f.name) + 'を減らす">−</button>' +
+        '<input class="qty" type="text" inputmode="decimal" value="' + fmtQty(q) + '" aria-label="' + esc(f.name) + 'の数量" autocomplete="off">' +
+        '<button type="button" data-act="inc" aria-label="' + esc(f.name) + 'を増やす">＋</button>' +
+      '</div><button type="button" class="link" data-act="edit">編集</button></div></li>';
+  }
+
+  function renderList() {
+    var nq = norm(query.trim());
+    var list = S.foods.filter(function (f) {
+      if (catSel === 'fe') return f.fe >= IRON_RICH;
+      if (catSel === 'mine') return !!f.custom;
+      if (catSel !== 'all') return f.cat === catSel;
+      return true;
+    });
+    if (nq) list = list.filter(function (f) { return norm(f.name + ' ' + f.per).indexOf(nq) >= 0; });
+    var dens = function (f) { return f.k > 0 ? f.p / f.k : (f.p > 0 ? 99 : 0); };
+
+    if (S.sort === 'picked') {
+      list = list.slice().sort(function (a, b) {
+        var qa = qtyOf(a.id) > 0 ? 1 : 0, qb = qtyOf(b.id) > 0 ? 1 : 0;
+        return qb - qa;
+      });
+    } else if (S.sort === 'p') {
+      list = list.slice().sort(function (a, b) { return b.p - a.p; });
+    } else if (S.sort === 'fe') {
+      list = list.slice().sort(function (a, b) { return b.fe - a.fe; });
+    } else if (S.sort === 'dens') {
+      list = list.slice().sort(function (a, b) { return dens(b) - dens(a); });
+    } else if (S.sort === 'k') {
+      list = list.slice().sort(function (a, b) { return a.k - b.k; });
+    }
+
+    $('count').textContent = list.length + '品';
+    $('foodList').innerHTML = list.length
+      ? list.map(function (f) { return foodRow(f, qtyOf(f.id)); }).join('')
+      : '<li class="empty">見つかりませんでした。「食品を登録する」から追加できます。</li>';
+  }
+
+  function renderWeek() {
+    var g = S.goals, sum = { k: 0, p: 0, fe: 0, n: 0 }, rows = '';
+    for (var i = 6; i >= 0; i--) {
+      var key = addDays(cur, -i), d = S.days[key], t = d ? calc(S.foods, d) : null;
+      var has = t && t.n > 0;
+      if (has) { sum.k += t.k; sum.p += t.p; sum.fe += t.fe; sum.n++; }
+      rows += '<tr class="' + (key === cur ? 'cur' : '') + '"><td><button type="button" class="datebtn" data-act="goto" data-date="' + key + '">' + md(key) + '</button></td>' +
+        (has
+          ? '<td class="' + (t.k > g.k ? 'over' : '') + '">' + t.k + '</td><td class="' + (t.p >= g.p ? 'good' : '') + '">' + f1(t.p) + '</td><td class="' + (t.fe >= g.fe ? 'good' : '') + '">' + f1(t.fe) + '</td>'
+          : '<td class="none">–</td><td class="none">–</td><td class="none">–</td>') + '</tr>';
+    }
+    if (sum.n) {
+      rows += '<tr class="avg"><td>平均</td><td>' + Math.round(sum.k / sum.n) + '</td><td>' + f1(sum.p / sum.n) + '</td><td>' + f1(sum.fe / sum.n) + '</td></tr>';
+    }
+    $('week').innerHTML = '<thead><tr><th>日付</th><th>kcal</th><th>たんぱく質 g</th><th>鉄 mg</th></tr></thead><tbody>' + rows + '</tbody>';
+  }
+
+  function renderRoutineBar() {
+    var box = $('routineBox');
+    if (!S.routines || !S.routines.length) {
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    $('routineList').innerHTML = S.routines.map(function (r) {
+      return '<button type="button" class="routine-chip" data-act="apply-routine" data-id="' + esc(r.id) + '">' +
+        '<span>⚡ ' + esc(r.name) + '</span>' +
+      '</button>';
+    }).join('');
+  }
+
+  function renderCalc() {
+    $('tip').hidden = !S.tired;
+    $('cats').innerHTML = CHIPS.map(function (c) {
+      return '<button type="button" class="chip" data-act="chip" data-cat="' + c[0] + '" aria-pressed="' + (catSel === c[0]) + '">' + c[1] + '</button>';
+    }).join('');
+    $('sort').value = S.sort;
+    renderRoutineBar();
+    renderPickedSummary();
+    renderList();
+    renderWeek();
+  }
+
+  function renderRoutineManage() {
+    var el = $('routineManageList');
+    if (!el) return;
+    if (!S.routines || !S.routines.length) {
+      el.innerHTML = '<p class="note">登録されているルーティンはありません。</p>';
+      return;
+    }
+    el.innerHTML = S.routines.map(function (r) {
+      return '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 14px; background:var(--surface); border:1px solid var(--line); border-radius:14px;">' +
+        '<div><b>' + esc(r.name) + '</b></div>' +
+        '<button type="button" class="btn danger sm" data-act="del-routine" data-id="' + esc(r.id) + '">削除</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderSet() {
+    $('gK').value = fmtK(S.goals.k); $('gP').value = fmtK(S.goals.p); $('gF').value = fmtK(S.goals.fe);
+    renderRoutineManage();
+    renderSync();
+  }
+
+  function showTab() {
+    ['calc', 'set'].forEach(function (t) { $('v-' + t).hidden = t !== tab; });
+    Array.prototype.forEach.call(document.querySelectorAll('.nav button'), function (b) {
+      if (b.dataset.tab === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    if (tab === 'calc') renderCalc(); else renderSet();
+  }
+
+  function render() { renderTop(); renderLabel(); renderBadge(); showTab(); }
+
+  var editId = null, lastFocus = null;
+  $('fCat').innerHTML = CATS.map(function (c) { return '<option value="' + c[0] + '">' + c[1] + '</option>'; }).join('');
+  function openSheet(id) {
+    editId = id || null; lastFocus = document.activeElement;
+    var f = id ? S.foods.find(function (x) { return x.id === id; }) : null;
+    $('sheetTitle').textContent = f ? '食品を編集' : '食品を登録';
+    $('fName').value = f ? f.name : ''; $('fPer').value = f ? f.per : '';
+    $('fK').value = f ? fmtK(f.k) : ''; $('fP').value = f ? String(r1(f.p)) : ''; $('fFe').value = f ? String(Math.round(f.fe * 100) / 100) : '';
+    $('fCat').value = f ? f.cat : 'prot';
+    $('fAddRow').hidden = !!f; $('fAdd').checked = true;
+    var del = $('fDel'); del.hidden = !f; del.textContent = 'この食品を削除'; delete del.dataset.armed;
+    $('fErr').hidden = true;
+    $('scrim').hidden = false; document.body.classList.add('lock');
+    setTimeout(function () { $('fName').focus(); }, 30);
+  }
+  function closeSheet() {
+    $('scrim').hidden = true; document.body.classList.remove('lock');
+    if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) {} }
+  }
+  function sheetErr(m) { var el = $('fErr'); el.textContent = m; el.hidden = false; }
+
+  $('sheet').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = $('fName').value.trim(), per = $('fPer').value.trim() || '1回分';
+    var k = parseNum($('fK').value);
+    var opt = function (el) { var s = el.value.trim(); return s === '' ? 0 : parseNum(s); };
+    var p = opt($('fP')), fe = opt($('fFe'));
+    if (!name) return sheetErr('名前を入れてください。');
+    if (isNaN(k) || k < 0) return sheetErr('熱量（kcal）を数字で入れてください。');
+    if (isNaN(p) || p < 0) return sheetErr('たんぱく質は0以上の数字で入れてください。');
+    if (isNaN(fe) || fe < 0) return sheetErr('鉄は0以上の数字で入れてください。');
+    var cat = $('fCat').value;
+    if (editId) {
+      var f = S.foods.find(function (x) { return x.id === editId; });
+      if (f) { f.name = name; f.per = per; f.k = k; f.p = p; f.fe = fe; f.cat = cat; }
+    } else {
+      var id = 'c_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      S.foods.unshift({ id: id, name: name, per: per, k: k, p: p, fe: fe, cat: cat, custom: true });
+      if ($('fAdd').checked) {
+        if (!S.days[cur]) S.days[cur] = {};
+        S.days[cur][id] = 1;
+      }
+    }
+    touch(); closeSheet(); render();
+  });
+  $('scrim').addEventListener('click', function (e) { if (e.target === $('scrim')) closeSheet(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !$('scrim').hidden) closeSheet();
+  });
+
+  function applyGoals() {
+    var k = parseNum($('gK').value), p = parseNum($('gP').value), f = parseNum($('gF').value);
+    if (k > 0) S.goals.k = k; if (p > 0) S.goals.p = p; if (f > 0) S.goals.fe = f;
+    touch(); renderSet(); renderLabel();
+  }
+  ['gK', 'gP', 'gF'].forEach(function (id) { $(id).addEventListener('change', applyGoals); });
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var act = b.dataset.act, li = b.closest('.food'), id = li ? li.dataset.id : (b.dataset.id || null);
+    switch (act) {
+      case 'inc': setQty(id, qtyOf(id) + 1); break;
+      case 'dec': setQty(id, qtyOf(id) - 1); break;
+      case 'rm-picked': setQty(id, 0); break;
+      case 'edit': openSheet(id); break;
+      case 'add-food': openSheet(null); break;
+      case 'apply-routine':
+        var rt = S.routines.find(function(x) { return x.id === id; });
+        if (rt && rt.items) {
+          if (!S.days[cur]) S.days[cur] = {};
+          for (var fid in rt.items) {
+            S.days[cur][fid] = (Number(S.days[cur][fid]) || 0) + Number(rt.items[fid]);
+          }
+          touch(); refreshAfterQty();
+        }
+        break;
+      case 'save-routine':
+        var curDay = dayOf(cur);
+        var keys = Object.keys(curDay);
+        if (!keys.length) {
+          alert('この日の食事が記録されていません。');
+          break;
+        }
+        var rName = prompt('ルーティンセットの名前を入力してください:', 'お気に入りセット');
+        if (!rName) break;
+        if (!S.routines) S.routines = [];
+        S.routines.push({
+          id: 'r_' + Date.now().toString(36),
+          name: rName.trim(),
+          items: JSON.parse(JSON.stringify(curDay))
+        });
+        touch(); renderRoutineBar();
+        if (tab === 'set') renderRoutineManage();
+        break;
+      case 'del-routine':
+        armed(b, 'もう一度押すと削除', function () {
+          S.routines = S.routines.filter(function(x) { return x.id !== id; });
+          touch(); renderRoutineBar(); renderRoutineManage();
+        });
+        break;
+      case 'tab': tab = b.dataset.tab; showTab(); window.scrollTo(0, 0); break;
+      case 'prev': cur = addDays(cur, -1); render(); break;
+      case 'next': cur = addDays(cur, 1); render(); break;
+      case 'today': cur = todayKey(); render(); break;
+      case 'goto': cur = b.dataset.date; render(); window.scrollTo(0, 0); break;
+      case 'chip': catSel = b.dataset.cat; renderCalc(); break;
+      case 'clear-day':
+        armed(b, 'もう一度押すとクリア', function () { delete S.days[cur]; touch(); render(); }); break;
+      case 'reset-foods':
+        armed(b, 'もう一度押すと入れ直す', function () {
+          S.foods = S.foods.filter(function (f) { return f.custom; }).concat(baseFoods());
+          touch(); render();
+        }); break;
+      case 'sheet-cancel': closeSheet(); break;
+      case 'sheet-delete':
+        armed(b, 'もう一度押すと削除', function () {
+          var del = editId;
+          S.foods = S.foods.filter(function (f) { return f.id !== del; });
+          Object.keys(S.days).forEach(function (k) {
+            delete S.days[k][del];
+            if (!Object.keys(S.days[k]).length) delete S.days[k];
+          });
+          touch(); closeSheet(); render();
+        }); break;
+    }
+  });
+
+  document.addEventListener('change', function (e) {
+    var el = e.target;
+    if (el.classList && el.classList.contains('qty')) {
+      var li = el.closest('.food'); if (!li) return;
+      var n = parseNum(el.value);
+      setQty(li.dataset.id, isNaN(n) ? qtyOf(li.dataset.id) : n);
+    }
+  });
+  document.addEventListener('focusin', function (e) {
+    if (e.target.classList && e.target.classList.contains('qty')) {
+      var el = e.target; setTimeout(function () { try { el.select(); } catch (x) {} }, 0);
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.classList && (e.target.classList.contains('qty') || e.target.id === 'q')) e.target.blur();
+  });
+  $('q').addEventListener('input', function (e) { query = e.target.value; renderList(); });
+  $('sort').addEventListener('change', function (e) { S.sort = e.target.value; touch(); renderList(); });
+  $('tired').addEventListener('change', function (e) {
+    S.tired = e.target.checked;
+    if (S.tired) S.sort = 'fe'; else if (S.sort === 'fe') S.sort = 'std';
+    touch(); render();
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) { renderTop(); pull(); }
+  });
+
+  render();
+  initDb();
+})();
+</script>
+</body>
+</html>
