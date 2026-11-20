@@ -24,6 +24,9 @@
                            sage: '#78938A',     // くすみグリーン (アクセント)
                            sageDark: '#566E66', // 濃いくすみグリーン
                            sageLight: '#E8EFEA',// 明るいくすみグリーン
+                           pastelPink: '#FBE8EB', // 優しいパステルピンク
+                           pastelMint: '#E6F4F1', // 優しいパステルミント
+                           pastelLavender: '#EFEBF7', // 優しいパステルラベンダー
                            text: '#333333',     // メインテキスト
                            subtext: '#767676',  // サブテキスト
                            accent: '#D4A373',   // ぬくもりのあるアクセントカラー
@@ -50,9 +53,16 @@
            from { opacity: 0; transform: translateY(4px); }
            to { opacity: 1; transform: translateY(0); }
        }
+       @keyframes pulseSoft {
+           0%, 100% { transform: scale(1); }
+           50% { transform: scale(1.03); }
+       }
+       .pulse-soft {
+           animation: pulseSoft 2s infinite ease-in-out;
+       }
    </style>
 </head>
-<body class="bg-luna-bg min-h-screen text-luna-text pb-20">
+<body class="bg-luna-bg min-h-screen text-luna-text pb-24">
 
    <!-- ヘッダー -->
    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-stone-200 px-4 py-3 shadow-xs">
@@ -61,7 +71,7 @@
                <span class="text-xl">🌙</span>
                <h1 class="font-bold text-stone-800 text-base tracking-wide">LUNA BODY</h1>
            </div>
-           <button onclick="triggerKatsu()" class="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs rounded-full border border-amber-300 shadow-xs transition flex items-center space-x-1">
+           <button onclick="triggerKatsu()" class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs rounded-full border border-amber-300 shadow-xs transition flex items-center space-x-1">
                <span>🔥</span>
                <span>喝を入れる</span>
            </button>
@@ -76,23 +86,23 @@
    <!-- 下部固定ナビゲーションバー -->
    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-stone-200 py-2 shadow-lg">
        <div class="max-w-md mx-auto flex justify-around items-center text-stone-500">
-           <button id="nav-home" onclick="switchTab('home')" class="flex flex-col items-center space-y-0.5 w-1/5 py-1">
+           <button id="nav-home" onclick="switchTab('home')" class="flex flex-col items-center space-y-0.5 w-1/5 py-1.5">
                <i class="fas fa-home text-lg"></i>
                <span class="text-[10px]">ホーム</span>
            </button>
-           <button id="nav-workout" onclick="switchTab('workout')" class="flex flex-col items-center space-y-0.5 w-1/5 py-1">
+           <button id="nav-workout" onclick="switchTab('workout')" class="flex flex-col items-center space-y-0.5 w-1/5 py-1.5">
                <i class="fas fa-dumbbell text-lg"></i>
                <span class="text-[10px]">運動</span>
            </button>
-           <button id="nav-meal" onclick="switchTab('meal')" class="flex flex-col items-center space-y-0.5 w-1/5 py-1">
+           <button id="nav-meal" onclick="switchTab('meal')" class="flex flex-col items-center space-y-0.5 w-1/5 py-1.5">
                <i class="fas fa-utensils text-lg"></i>
                <span class="text-[10px]">食事</span>
            </button>
-           <button id="nav-cycle" onclick="switchTab('cycle')" class="flex flex-col items-center space-y-0.5 w-1/5 py-1">
+           <button id="nav-cycle" onclick="switchTab('cycle')" class="flex flex-col items-center space-y-0.5 w-1/5 py-1.5">
                <i class="fas fa-calendar-alt text-lg"></i>
                <span class="text-[10px]">周期</span>
            </button>
-           <button id="nav-progress" onclick="switchTab('progress')" class="flex flex-col items-center space-y-0.5 w-1/5 py-1">
+           <button id="nav-progress" onclick="switchTab('progress')" class="flex flex-col items-center space-y-0.5 w-1/5 py-1.5">
                <i class="fas fa-chart-line text-lg"></i>
                <span class="text-[10px]">記録</span>
            </button>
@@ -104,7 +114,7 @@
        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl fade-in max-h-[85vh] overflow-y-auto">
            <div class="flex justify-between items-center border-b pb-2">
                <h3 id="modal-title" class="font-bold text-stone-800 text-sm">タイトル</h3>
-               <button onclick="closeModal()" class="text-stone-400 hover:text-stone-600 text-lg">&times;</button>
+               <button onclick="closeModal()" class="text-stone-400 hover:text-stone-600 text-xl px-2">&times;</button>
            </div>
            <div id="modal-body" class="space-y-3">
                <!-- 動的コンテンツ -->
@@ -113,133 +123,262 @@
    </div>
 
    <!-- トースト通知 -->
-   <div id="toast" class="fixed bottom-16 left-1/2 -translate-x-1/2 z-50 bg-stone-800/90 text-white text-xs py-2 px-4 rounded-full shadow-lg hidden fade-in transition">
+   <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-stone-800/95 text-white text-xs py-2.5 px-5 rounded-full shadow-lg hidden fade-in transition text-center max-w-[90vw]">
        <span id="toast-msg">メッセージ</span>
    </div>
 
    <!-- スクリプト定義 -->
    <script>
+       // 既存データの互換性を保つため同じストレージキーを使用
        const APP_STORAGE_KEY = 'lunabody_state_v2';
 
-       const WORKOUT_PROGRAMS = {
-           '3': {
-               title: '3分コース（前ももリリース＆ドローイン）',
-               desc: '前ももの張り・緊張を解放し、お腹のインナーマッスルにスイッチを入れる超短時間ケア。',
+       // 新しい「内腿すっきり・美脚プログラム」定義
+       const INNER_THIGH_PROGRAMS = {
+           'mon': {
+               id: 'mon',
+               dayLabel: '月曜日',
+               badge: '週2メイン①・約10分',
+               badgeColor: 'bg-pink-100 text-pink-800',
+               title: '月曜日：内腿＋お尻の横',
+               subtitle: '内転筋・中臀筋・大臀筋の土台づくり',
+               desc: '外腿の張りを抑えながら、内腿の筋力とお尻の横（中臀筋）をバランスよく目覚めさせる約10分のプログラムです。',
+               estimatedMinutes: 10,
                exercises: [
                    {
-                       name: '前ももほぐし＆ストレッチ',
-                       target: '大腿四頭筋（前もも）の緊張緩和',
-                       durationSec: 90,
-                       posture: '片足を後ろに引いて正座のように倒し、前ももをじわーっと伸ばします。',
-                       respiration: '息を吐きながらリラックス。反り腰にならないように注意。',
-                       mistakes: '腰を反らしすぎると腰痛の原因になります。',
-                       precautions: '膝に痛みがある場合は角度を浅くしてください。',
-                       alternative: '立って足首を後ろで持ち、太もも前を伸ばすストレッチ。',
-                       svg: '<svg class="w-16 h-16 text-luna-sage mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>'
+                       id: 'mon_1',
+                       name: '① 内腿レッグリフト',
+                       target: '内転筋（内腿の引き締め）',
+                       repsText: '左右各15回',
+                       totalReps: 30, // 左右15回ずつ
+                       hasHoldTimer: false,
+                       holdSeconds: 0,
+                       explanation: '横向きに寝て上の足を前に倒し、下側の脚をまっすぐ伸ばしたままゆっくり天井方向へ持ち上げます。',
+                       points: '反動を使わず、内腿の筋肉がキュッと縮まるのを意識してゆっくり動かしましょう。',
+                       cautions: '腰が後ろに倒れないように骨盤を床と垂直に保ちます。股関節や鼠径部に痛みが出たらすぐに中止してください。',
+                       svg: `
+                           <svg viewBox="0 0 200 100" class="w-44 h-24 mx-auto">
+                               <rect width="200" height="100" rx="12" fill="#FDF7F8"/>
+                               <!-- マット -->
+                               <line x1="20" y1="82" x2="180" y2="82" stroke="#E2D4D8" stroke-width="3" stroke-linecap="round"/>
+                               <!-- 胴体・腕 -->
+                               <circle cx="42" cy="68" r="8" fill="#D4A373"/>
+                               <path d="M50 72 L95 72" stroke="#78938A" stroke-width="8" stroke-linecap="round"/>
+                               <!-- 上の脚（前に曲げる） -->
+                               <path d="M95 72 L115 58 L120 78" fill="none" stroke="#A3B8B0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                               <!-- 下の脚（持ち上げる） -->
+                               <path d="M95 74 L158 56" stroke="#E07A8C" stroke-width="6" stroke-linecap="round"/>
+                               <!-- 矢印とターゲット強調 -->
+                               <path d="M148 74 L148 61" stroke="#E07A8C" stroke-width="2" stroke-linecap="round"/>
+                               <polygon points="148,57 144,63 152,63" fill="#E07A8C"/>
+                               <text x="125" y="45" font-size="9" fill="#B85064" font-weight="bold">内腿を意識!</text>
+                           </svg>
+                       `
                    },
                    {
-                       name: '腹横筋ドローイン（体幹スイッチ）',
-                       target: '腹横筋・骨盤底筋群の強化',
-                       durationSec: 90,
-                       posture: '仰向けになり、息を完全に吐ききりながらお腹を凹ませます。',
-                       respiration: '細く長く息を吐ききり、凹ませた状態をキープして浅く呼吸。',
-                       mistakes: '肩に力が入ったり、息を止めてしまうこと。',
-                       precautions: '気分が悪くなった場合は通常の呼吸に戻してください。',
-                       alternative: '椅子に座った状態でお腹を凹ませるドローイン。',
-                       svg: '<svg class="w-16 h-16 text-luna-sage mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>'
+                       id: 'mon_2',
+                       name: '② クラムシェル',
+                       target: '中臀筋（お尻の横・骨盤安定）',
+                       repsText: '左右各15回',
+                       totalReps: 30,
+                       hasHoldTimer: false,
+                       holdSeconds: 0,
+                       explanation: '横向きで両膝を軽く曲げ、左右のかかと同士をぴったり合わせたまま、貝が開くように上の膝をゆっくり開きます。',
+                       points: '骨盤を動かさず、お尻の横（えくぼができる辺り）の筋肉を使って膝を開きましょう。',
+                       cautions: '膝を高く上げようとして骨盤が後ろに開かないよう注意。無理な開脚は避け、痛みのない範囲で行います。',
+                       svg: `
+                           <svg viewBox="0 0 200 100" class="w-44 h-24 mx-auto">
+                               <rect width="200" height="100" rx="12" fill="#F4F9F7"/>
+                               <line x1="20" y1="82" x2="180" y2="82" stroke="#CFE0DA" stroke-width="3" stroke-linecap="round"/>
+                               <!-- 頭・胴体 -->
+                               <circle cx="42" cy="68" r="8" fill="#D4A373"/>
+                               <path d="M50 72 L95 72" stroke="#78938A" stroke-width="8" stroke-linecap="round"/>
+                               <!-- 下の脚（曲げ） -->
+                               <path d="M95 74 L125 76 L105 78" fill="none" stroke="#A3B8B0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                               <!-- 上の脚（開く） -->
+                               <path d="M95 72 L125 48 L105 78" fill="none" stroke="#566E66" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                               <!-- 開く矢印 -->
+                               <path d="M132 68 Q138 58 130 50" fill="none" stroke="#D4A373" stroke-width="2" stroke-linecap="round"/>
+                               <polygon points="128,47 134,50 129,54" fill="#D4A373"/>
+                               <text x="135" y="42" font-size="9" fill="#566E66" font-weight="bold">かかと固定</text>
+                           </svg>
+                       `
+                   },
+                   {
+                       id: 'mon_3',
+                       name: '③ ヒップリフト',
+                       target: '大臀筋（お尻全体の引き上げ）',
+                       repsText: '15回',
+                       totalReps: 15,
+                       hasHoldTimer: false,
+                       holdSeconds: 0,
+                       explanation: '仰向けになり両膝を腰幅に立て、かかとで床を押しながらお尻をゆっくり持ち上げます。肩から膝まで一直線になったらゆっくり下ろします。',
+                       points: 'お尻の穴をキュッと締めるイメージで、お尻の筋肉を使ってゆっくり動きましょう。',
+                       cautions: '腰を反らしすぎると腰痛の原因になります。前ももばかり張る場合は、かかとの位置を少しお尻から遠ざけてみてください。',
+                       svg: `
+                           <svg viewBox="0 0 200 100" class="w-44 h-24 mx-auto">
+                               <rect width="200" height="100" rx="12" fill="#FDF8F2"/>
+                               <line x1="20" y1="82" x2="180" y2="82" stroke="#E6DCCF" stroke-width="3" stroke-linecap="round"/>
+                               <!-- 頭・肩 -->
+                               <circle cx="40" cy="72" r="7" fill="#D4A373"/>
+                               <!-- 肩〜腰〜膝の一直線 -->
+                               <path d="M48 75 L95 48 L135 48 L145 78" fill="none" stroke="#78938A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+                               <!-- 矢印 -->
+                               <path d="M95 72 L95 57" stroke="#D4A373" stroke-width="2.5" stroke-linecap="round"/>
+                               <polygon points="95,52 91,58 99,58" fill="#D4A373"/>
+                               <text x="72" y="36" font-size="9" fill="#9C6B3B" font-weight="bold">肩〜膝を一直線</text>
+                           </svg>
+                       `
                    }
                ]
            },
-           '8': {
-               title: '8分コース（横ももスッキリ＆室内足踏み）',
-               desc: '横ももの張りをケアしつつ、室内エアウォークでおうちの中で有酸素運動を行います。',
+           'wed': {
+               id: 'wed',
+               dayLabel: '水曜日',
+               badge: '週2メイン②・約10分',
+               badgeColor: 'bg-teal-100 text-teal-800',
+               title: '水曜日：内腿全体＋脚のライン',
+               subtitle: '内転筋・大臀筋・中臀筋のライン整形',
+               desc: '立ち姿勢と寝姿勢を組み合わせ、内腿全体からヒップラインまで綺麗に整える約10分のプログラムです。',
+               estimatedMinutes: 10,
                exercises: [
                    {
-                       name: '横もも（筋膜・筋群）リリース',
-                       target: '大腿筋膜張筋・外側広筋',
-                       durationSec: 120,
-                       posture: '横向きに寝て、上の足を前に下ろし、外ももを優しく手やローラーでほぐします。',
-                       respiration: 'ゆっくり深呼吸しながら、張っている部分を緩めます。',
-                       mistakes: '強い力で押しすぎること。',
-                       precautions: 'あざができやすい方はソフトに行ってください。',
-                       alternative: '横向きで手を使って外ももを手でマッサージ。',
-                       svg: '<svg class="w-16 h-16 text-luna-sage mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+                       id: 'wed_1',
+                       name: '① ワイドスクワット',
+                       target: '内転筋・大臀筋（内腿＆ヒップ）',
+                       repsText: '12回',
+                       totalReps: 12,
+                       hasHoldTimer: false,
+                       holdSeconds: 0,
+                       explanation: '足を肩幅より広く開き、つま先を45度ほど外側に向けます。背筋を伸ばしたまま、ゆっくり腰を真下に下ろして戻ります。',
+                       points: '膝とつま先を必ず同じ方向に向け、立ち上がる時に内腿とお尻で床を押す感覚を意識しましょう。',
+                       cautions: '膝が内側に入らないように注意。股関節に違和感がある場合は足幅を少し狭め、浅い角度で行ってください。',
+                       svg: `
+                           <svg viewBox="0 0 200 100" class="w-44 h-24 mx-auto">
+                               <rect width="200" height="100" rx="12" fill="#F4F9F7"/>
+                               <line x1="30" y1="88" x2="170" y2="88" stroke="#CFE0DA" stroke-width="3" stroke-linecap="round"/>
+                               <!-- 頭・胴体 -->
+                               <circle cx="100" cy="20" r="8" fill="#D4A373"/>
+                               <path d="M100 28 L100 54" stroke="#78938A" stroke-width="8" stroke-linecap="round"/>
+                               <!-- 腕（前で組む） -->
+                               <path d="M88 36 L100 42 L112 36" fill="none" stroke="#566E66" stroke-width="4" stroke-linecap="round"/>
+                               <!-- ワイド脚 -->
+                               <path d="M100 54 L72 66 L66 85" fill="none" stroke="#E07A8C" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                               <path d="M100 54 L128 66 L134 85" fill="none" stroke="#E07A8C" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                               <text x="136" y="55" font-size="9" fill="#B85064" font-weight="bold">膝とつま先同方向</text>
+                           </svg>
+                       `
                    },
                    {
-                       name: '室内エアウォーク（体幹連動足踏み）',
-                       target: '全身有酸素・腸腰筋・体幹',
-                       durationSec: 180,
-                       posture: '背筋を伸ばし、みぞおちから脚が生えているイメージで高く足を上げずにその場で足踏み。',
-                       respiration: 'リズム良く「すっ・すっ・はっ・はっ」と息を吐きます。',
-                       mistakes: '前ももで足を引っ張り上げて歩くこと。',
-                       precautions: 'マンション等の場合は着地音に注意し、静かに足踏みしてください。',
-                       alternative: '座ったままでのリズム足踏み。',
-                       svg: '<svg class="w-16 h-16 text-luna-sage mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>'
+                       id: 'wed_2',
+                       name: '② 内腿クッション挟み',
+                       target: '内転筋（内腿の集中引き締め）',
+                       repsText: '15回（各5秒キープ）',
+                       totalReps: 15,
+                       hasHoldTimer: true,
+                       holdSeconds: 5,
+                       explanation: '仰向けで両膝を立て、ご自宅のクッションや丸めたバスタオルを両膝の間に挟みます。息を吐きながら5秒ずつゆっくり内側に押し潰します。',
+                       points: '「1・2・3・4・5」とカウントしながらじわ〜っと内腿に力を込め、ゆっくり緩めます。',
+                       cautions: '肩や首に力が入らないようリラックスして行いましょう。鼠径部に痛みが出たら中止してください。',
+                       svg: `
+                           <svg viewBox="0 0 200 100" class="w-44 h-24 mx-auto">
+                               <rect width="200" height="100" rx="12" fill="#FDF7F8"/>
+                               <!-- 膝正面イメージ -->
+                               <ellipse cx="100" cy="48" rx="16" ry="20" fill="#FBE8EB" stroke="#E07A8C" stroke-width="2" stroke-dasharray="3 2"/>
+                               <text x="86" y="51" font-size="8" fill="#B85064" font-weight="bold">クッション</text>
+                               <!-- 左脚 -->
+                               <path d="M68 85 L78 48 L82 85" fill="none" stroke="#78938A" stroke-width="7" stroke-linecap="round"/>
+                               <!-- 右脚 -->
+                               <path d="M132 85 L122 48 L118 85" fill="none" stroke="#78938A" stroke-width="7" stroke-linecap="round"/>
+                               <!-- 内向き矢印 -->
+                               <path d="M55 48 L70 48" stroke="#D4A373" stroke-width="2.5" stroke-linecap="round"/>
+                               <polygon points="74,48 68,44 68,52" fill="#D4A373"/>
+                               <path d="M145 48 L130 48" stroke="#D4A373" stroke-width="2.5" stroke-linecap="round"/>
+                               <polygon points="126,48 132,44 132,52" fill="#D4A373"/>
+                               <text x="68" y="20" font-size="9" fill="#566E66" font-weight="bold">5秒ゆっくり押す！</text>
+                           </svg>
+                       `
                    },
                    {
-                       name: 'ヒップリフト（お尻・裏もも強化）',
-                       target: '大臀筋・ハムストリングス',
-                       durationSec: 180,
-                       posture: '仰向けで膝を立て、かかとで床を押してお尻を持ち上げます。',
-                       respiration: 'お尻を上げるときに吐き、下ろすときに吸います。',
-                       mistakes: '腰を反らしてお尻を上げすぎること。',
-                       precautions: '前ももに力が入る場合は足の位置を少し離してください。',
-                       alternative: '立って足を後ろに引くスタンディングキックバック。',
-                       svg: '<svg class="w-16 h-16 text-luna-sage mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 10l7-7 7 7M5 19l7-7 7 7"/></svg>'
+                       id: 'wed_3',
+                       name: '③ 立位横脚上げ',
+                       target: '中臀筋（外腿の張り予防・美脚軸）',
+                       repsText: '左右各15回',
+                       totalReps: 30,
+                       hasHoldTimer: false,
+                       holdSeconds: 0,
+                       explanation: '壁や椅子の背もたれに軽く手を添えてまっすぐ立ち、片脚を真横にゆっくり上げてゆっくり下ろします。',
+                       points: '骨盤を傾けず、つま先は正面を向けたまま行うことで、外腿ではなくお尻の横（中臀筋）にしっかり効きます。',
+                       cautions: '高く上げようとして上半身が横に倒れないよう注意。小さく丁寧な動きで十分効果的です。',
+                       svg: `
+                           <svg viewBox="0 0 200 100" class="w-44 h-24 mx-auto">
+                               <rect width="200" height="100" rx="12" fill="#F5F3FA"/>
+                               <!-- 壁 -->
+                               <line x1="65" y1="15" x2="65" y2="88" stroke="#D8D2E7" stroke-width="4" stroke-linecap="round"/>
+                               <!-- 頭・胴体 -->
+                               <circle cx="95" cy="20" r="7" fill="#D4A373"/>
+                               <path d="M95 27 L95 54" stroke="#78938A" stroke-width="7" stroke-linecap="round"/>
+                               <!-- 壁に手 -->
+                               <path d="M95 34 L67 38" stroke="#566E66" stroke-width="4" stroke-linecap="round"/>
+                               <!-- 軸足 -->
+                               <path d="M93 54 L93 86" stroke="#78938A" stroke-width="6" stroke-linecap="round"/>
+                               <!-- 横に上げる脚 -->
+                               <path d="M98 54 L128 76" stroke="#8E7CC3" stroke-width="6" stroke-linecap="round"/>
+                               <!-- 矢印 -->
+                               <path d="M122 82 Q132 76 134 66" fill="none" stroke="#8E7CC3" stroke-width="2" stroke-linecap="round"/>
+                               <polygon points="134,63 130,68 137,69" fill="#8E7CC3"/>
+                               <text x="115" y="45" font-size="9" fill="#674EA7" font-weight="bold">骨盤まっすぐ</text>
+                           </svg>
+                       `
                    }
                ]
            },
-           '15': {
-               title: '15分コース（インドア代謝アッププログラム）',
-               desc: 'ほぐし・体幹・お尻トレ・エアウォークを組み合わせたフルケアコース。',
+           'thu': {
+               id: 'thu',
+               dayLabel: '木曜日',
+               badge: '全身バランス・体幹軸',
+               badgeColor: 'bg-purple-100 text-purple-800',
+               title: '木曜日：太極拳（ゆっくり体幹・股関節ケア）',
+               subtitle: 'しなやかな身体の軸と全身の巡り',
+               desc: 'ゆったりとした深い呼吸と重心移動で、インナーマッスルと下半身の連動性を高めます。股関節に負担をかけない優しい動きです。',
+               estimatedMinutes: 10,
                exercises: [
                    {
-                       name: '全身ほぐし＆骨盤調整ストレッチ',
-                       target: '股関節周り・前もも・横もも',
-                       durationSec: 180,
-                       posture: '四つんばいから股関節を大きく回し、骨盤周りをほぐします。',
-                       respiration: 'ゆったりとした深呼吸を継続。',
-                       mistakes: '力んで肩が上がってしまうこと。',
-                       precautions: '手首が痛い場合は肘をついて行ってください。',
-                       alternative: '座って股関節を開くストレッチ。',
-                       svg: '<svg class="w-16 h-16 text-luna-sage mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>'
-                   },
-                   {
-                       name: '体幹軸ドローイン＆クランチ',
-                       target: '腹直筋・腹横筋',
-                       durationSec: 240,
-                       posture: 'お腹を込めた状態で、みぞおちから上体を引き上げます。',
-                       respiration: '起き上がるときに息を吐ききります。',
-                       mistakes: '首を引っ張って起き上がること。',
-                       precautions: '首に負担を感じたら頭を手で支えてください。',
-                       alternative: '仰向けでの膝上げキープ。',
-                       svg: '<svg class="w-16 h-16 text-luna-sage mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>'
-                   },
-                   {
-                       name: '美尻クラムシェル＆ヒップアップ',
-                       target: '中臀筋・大臀筋',
-                       durationSec: 240,
-                       posture: '横向きで両膝を折り、かかとをつけたまま上の膝を開閉します。',
-                       respiration: '膝を開くときに息を吐きます。',
-                       mistakes: '骨盤が後ろに倒れてしまうこと。',
-                       precautions: '骨盤を垂直に立てた状態で固定します。',
-                       alternative: '立って足を横に持ち上げるアブダクション。',
-                       svg: '<svg class="w-16 h-16 text-luna-sage mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 10l7-7 7 7M5 19l7-7 7 7"/></svg>'
-                   },
-                   {
-                       name: '室内有酸素エアウォーク＆クールダウン',
-                       target: '全身脂肪燃焼＆リラクゼーション',
-                       durationSec: 240,
-                       posture: '軽やかな足踏みから徐々に深呼吸へ繋げます。',
-                       respiration: '大きく息を吸い、ゆっくり長く吐き出します。',
-                       mistakes: '急に動きを止めてしまうこと。',
-                       precautions: '心拍数をゆっくり落ち着かせていきましょう。',
-                       alternative: '深呼吸をしながらの軽い腕回し。',
-                       svg: '<svg class="w-16 h-16 text-luna-sage mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+                       id: 'thu_1',
+                       name: '太極拳・基本の重心移動と呼吸（雲手・起勢）',
+                       target: '体幹インナーマッスル・股関節の柔軟性・バランス感覚',
+                       repsText: 'ゆったり10分間',
+                       totalReps: 10,
+                       hasHoldTimer: false,
+                       holdSeconds: 0,
+                       explanation: '足裏全体で床を感じながら、ゆっくりと左右に重心を移動させ、呼吸に合わせて腕を滑らかに動かします。',
+                       points: '膝がつま先より前に出すぎないよう意識し、頭頂から糸で吊られているような美しい姿勢を保ちます。',
+                       cautions: '膝や股関節に痛みを感じる場合は、腰を落とす深さを浅くして無理なく行ってください。',
+                       svg: `
+                           <svg viewBox="0 0 200 100" class="w-44 h-24 mx-auto">
+                               <rect width="200" height="100" rx="12" fill="#F5F3FA"/>
+                               <circle cx="100" cy="22" r="8" fill="#D4A373"/>
+                               <path d="M100 30 L100 56" stroke="#78938A" stroke-width="7" stroke-linecap="round"/>
+                               <path d="M72 42 Q100 32 128 42" fill="none" stroke="#8E7CC3" stroke-width="4" stroke-linecap="round"/>
+                               <path d="M100 56 L82 84" stroke="#78938A" stroke-width="6" stroke-linecap="round"/>
+                               <path d="M100 56 L122 84" stroke="#78938A" stroke-width="6" stroke-linecap="round"/>
+                               <text x="64" y="95" font-size="9" fill="#674EA7" font-weight="bold">深い呼吸でゆったり軸づくり</text>
+                           </svg>
+                       `
                    }
                ]
            }
        };
+
+       // 週間スケジュール定義（重複を排除し、月・水・木を軸に、他は休息・軽い活動）
+       const WEEKLY_PLAN = [
+           { key: 'Mon', dayNum: 1, name: '月曜日', menu: '内腿＋お尻の横（約10分）', programKey: 'mon', isRest: false },
+           { key: 'Tue', dayNum: 2, name: '火曜日', menu: '休息または軽い活動', programKey: null, isRest: true },
+           { key: 'Wed', dayNum: 3, name: '水曜日', menu: '内腿全体＋脚のライン（約10分）', programKey: 'wed', isRest: false },
+           { key: 'Thu', dayNum: 4, name: '木曜日', menu: '太極拳（体幹・バランス）', programKey: 'thu', isRest: false },
+           { key: 'Fri', dayNum: 5, name: '金曜日', menu: '休息または軽い活動', programKey: null, isRest: true },
+           { key: 'Sat', dayNum: 6, name: '土曜日', menu: '休息（超回復・ご自愛日）', programKey: null, isRest: true },
+           { key: 'Sun', dayNum: 0, name: '日曜日', menu: '休息（からだリセット）', programKey: null, isRest: true }
+       ];
 
        const defaultState = {
            profile: {
@@ -250,13 +389,13 @@
                targetWeight: 0,
                currentHip: 0,
                experience: '',
-               goals: ['前もも・横ももの張り解消', 'お腹・下腹部の引き締め'],
+               goals: ['内腿の引き締め', '美脚ラインづくり'],
                atmosphere: 'しなやか、上品',
-               preferredTime: '8',
+               preferredTime: '10',
            },
            condition: {
                date: getTodayDateString(),
-               fatigue: 'normal',
+               fatigue: 'normal', // 'low'(元気満タン), 'normal'(少し疲れた), 'high'(やる気ゼロ・疲労が強い)
                appetite: 'normal',
                mood: 'good',
                stomach: 'good',
@@ -267,18 +406,19 @@
                lastPeriodStart: getTodayDateString(),
                cycleLength: 28,
                periodDuration: 5,
-               manualPhase: null // 周期不安定の方向けの手動フェーズ（'period', 'after_period', 'ovulation', 'before_period'）
+               manualPhase: null
            },
            workoutsLog: [],
            mealsLog: [],
            bodyLog: [],
+           thighLog: [], // 太腿3か所（付け根・中央・膝上）＆見た目メモの任意記録
            photos: [],
            weeklySchedule: {
-               'Mon': '前もも緊張リリース＆ドローイン（3分）',
-               'Tue': '横ももスッキリ＆室内エアウォーク（8分）',
-               'Wed': '下半身代謝アップ＆ヒップ強化（8分）',
-               'Thu': 'インドア完全燃焼フルケア（15分）',
-               'Fri': '週末スッキリコンディショニング（8分）'
+               'Mon': '内腿＋お尻の横（約10分）',
+               'Tue': '休息または軽い活動',
+               'Wed': '内腿全体＋脚のライン（約10分）',
+               'Thu': '太極拳（体幹・バランス）',
+               'Fri': '休息または軽い活動'
            }
        };
 
@@ -298,10 +438,20 @@
                const saved = localStorage.getItem(APP_STORAGE_KEY);
                if (saved) {
                    const parsed = JSON.parse(saved);
-                   if (!parsed.weeklySchedule) {
-                       parsed.weeklySchedule = defaultState.weeklySchedule;
-                   }
-                   return parsed;
+                   // 既存データを保持しつつ、不足している新プロパティを安全に補完
+                   return {
+                       ...defaultState,
+                       ...parsed,
+                       profile: { ...defaultState.profile, ...(parsed.profile || {}) },
+                       condition: { ...defaultState.condition, ...(parsed.condition || {}) },
+                       cycle: { ...defaultState.cycle, ...(parsed.cycle || {}) },
+                       workoutsLog: parsed.workoutsLog || [],
+                       mealsLog: parsed.mealsLog || [],
+                       bodyLog: parsed.bodyLog || [],
+                       thighLog: parsed.thighLog || [],
+                       photos: parsed.photos || [],
+                       weeklySchedule: defaultState.weeklySchedule
+                   };
                }
            } catch (e) {
                console.error('Failed to load state from localStorage', e);
@@ -317,8 +467,49 @@
            }
        }
 
+       /* 体調＆月経周期を考慮した運動調整アドバイス取得 */
+       function getAdjustedWorkoutGuidance() {
+           const fatigue = appData.condition.fatigue; // 'low'=元気満タン, 'normal'=少し疲れた, 'high'=やる気ゼロ・疲労が強い
+           const cyclePhase = getCyclePhase(appData.cycle.lastPeriodStart, appData.cycle.cycleLength);
+           const isGentleCycle = (cyclePhase.phaseKey === 'period' || cyclePhase.phaseKey === 'before_period');
+
+           if (fatigue === 'high') {
+               return {
+                   statusLabel: 'やる気ゼロ・疲労が強い',
+                   badgeColor: 'bg-rose-100 text-rose-800',
+                   recommendedSets: 0,
+                   shouldRest: true,
+                   title: '今日は「休息」を最優先にしましょう 🌿',
+                   message: '疲労が強い日ややる気が出ない日は、無理に運動しないことが一番のボディメイクです。今日まで頑張ってきたご自身をたっぷり労わってあげてくださいね。深呼吸するだけでも100点満点です！'
+               };
+           } else if (fatigue === 'normal' || isGentleCycle) {
+               const cycleNote = isGentleCycle ? `（※現在「${cyclePhase.phaseName}」のため、お身体に優しいペースに自動調整しています）` : '';
+               return {
+                   statusLabel: fatigue === 'normal' ? '少し疲れた' : '周期ご自愛モード',
+                   badgeColor: 'bg-amber-100 text-amber-800',
+                   recommendedSets: 1,
+                   shouldRest: false,
+                   title: '1セットのみ・ゆっくり丁寧に行いましょう 🍃',
+                   message: `今日は基本の【1セット】で十分です！反動を使わずゆっくりとした動作を意識し、つらければ種目数を1〜2つに減らしても大丈夫です。${cycleNote}`
+               };
+           } else {
+               return {
+                   statusLabel: '元気満タン',
+                   badgeColor: 'bg-emerald-100 text-emerald-800',
+                   recommendedSets: 1,
+                   canDoTwoSets: true,
+                   shouldRest: false,
+                   title: '全メニュー実施OK！余裕があれば2セットまで ✨',
+                   message: '体調バッチリですね！まずは基本の1セットを丁寧に行い、慣れてきて余裕があれば最大2セットまでチャレンジできます（初心者は1セットからが安心です）。'
+               };
+           }
+       }
+
        /* タブ切り替え処理 */
        function switchTab(tabName) {
+           // 運動中タイマーが動いていればクリア
+           clearAllWorkoutTimers();
+
            const tabs = ['home', 'workout', 'meal', 'cycle', 'progress'];
            tabs.forEach(t => {
                const btn = document.getElementById(`nav-${t}`);
@@ -347,26 +538,53 @@
           1. ホーム画面
           ========================================================================== */
        function renderHomeScreen(container) {
-           const todayScheduledMenu = getTodayScheduledMenu();
+           const todayDayNum = new Date().getDay();
+           const todayPlan = WEEKLY_PLAN.find(p => p.dayNum === todayDayNum) || WEEKLY_PLAN[0];
            const cyclePhase = getCyclePhase(appData.cycle.lastPeriodStart, appData.cycle.cycleLength);
+           const guidance = getAdjustedWorkoutGuidance();
+
+           // 今日のプログラムキー決定（休養日の場合は直近の月曜メニューをプレビュー可能に）
+           const targetProgramKey = todayPlan.programKey || 'mon';
+           const isRestDayOrFatigued = todayPlan.isRest || guidance.shouldRest;
 
            container.innerHTML = `
                <div class="space-y-4 fade-in">
                    <!-- 今日のメインカード -->
-                   <div class="bg-gradient-to-br from-luna-sageLight via-white to-luna-beige/40 p-4 rounded-2xl border border-luna-sage/20 shadow-sm space-y-3">
+                   <div class="bg-gradient-to-br from-luna-pastelPink/60 via-white to-luna-pastelMint/60 p-4 rounded-2xl border border-luna-sage/20 shadow-sm space-y-3">
                        <div class="flex justify-between items-start">
                            <div>
-                               <span class="px-2.5 py-0.5 bg-luna-sage text-white text-[10px] font-bold rounded-full">本日のおすすめ</span>
-                               <h2 class="text-base font-bold text-stone-800 mt-1">${getProgramTitleForMenu(todayScheduledMenu)}</h2>
+                               <span class="px-2.5 py-0.5 bg-luna-sage text-white text-[10px] font-bold rounded-full">本日の予定（${todayPlan.name}）</span>
+                               <h2 class="text-base font-bold text-stone-800 mt-1.5">
+                                   ${guidance.shouldRest ? '今日は休息を優先しましょう ☕' : todayPlan.menu}
+                               </h2>
                            </div>
-                           <span class="text-xs text-luna-sageDark font-semibold">目標: しなやかボディ</span>
+                           <span class="text-[11px] bg-white/80 px-2 py-0.5 rounded-full text-luna-sageDark font-semibold border border-stone-100">内腿すっきり・美脚</span>
                        </div>
-                       <p class="text-xs text-stone-600 leading-relaxed">${getCoachAdviceForMenu(todayScheduledMenu)}</p>
 
-                       <button onclick="${getActionClickForMenu(todayScheduledMenu)}" class="w-full py-3 bg-luna-sage hover:bg-luna-sageDark text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-2">
-                           <i class="fas fa-play text-xs"></i>
-                           <span>${getActionLabelForMenu(todayScheduledMenu)}</span>
-                       </button>
+                       <p class="text-xs text-stone-600 leading-relaxed">
+                           ${guidance.shouldRest
+                               ? guidance.message
+                               : todayPlan.isRest
+                                   ? '今日はお休み・軽い活動の日です。お尻や内腿の筋肉をしっかり休ませることで、引き締まった美しい脚のラインが作られます。'
+                                   : `外腿の張りを抑えつつ、内腿とお尻の筋肉をバランスよく整えます。${guidance.message}`}
+                       </p>
+
+                       ${isRestDayOrFatigued ? `
+                           <div class="flex gap-2">
+                               <button onclick="recordRestDayCompleted()" class="flex-1 py-3 bg-luna-sage hover:bg-luna-sageDark text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-1.5">
+                                   <span>🌿</span>
+                                   <span>ゆっくり休息できた！（記録）</span>
+                               </button>
+                               <button onclick="switchTab('workout')" class="px-3 py-3 bg-white hover:bg-stone-50 text-stone-600 font-bold text-xs rounded-xl border border-stone-200 transition">
+                                   メニュー一覧
+                               </button>
+                           </div>
+                       ` : `
+                           <button onclick="startInnerThighSession('${targetProgramKey}')" class="w-full py-3.5 bg-luna-sage hover:bg-luna-sageDark text-white font-bold text-sm rounded-xl shadow transition flex items-center justify-center space-x-2">
+                               <i class="fas fa-play text-xs"></i>
+                               <span>${todayPlan.menu} を始める</span>
+                           </button>
+                       `}
                    </div>
 
                    <!-- サブカード（周期・サイズ） -->
@@ -378,66 +596,70 @@
                            </div>
                            <div class="font-bold text-stone-800 text-sm flex items-center space-x-1">
                                <span class="text-pink-500">🌸</span>
-                               <span>${cyclePhase.phaseName}</span>
+                               <span class="truncate">${cyclePhase.phaseName}</span>
                            </div>
                            <p class="text-[11px] text-stone-500 mt-1 line-clamp-1">${cyclePhase.adviceShort}</p>
                        </div>
 
                        <div onclick="switchTab('progress')" class="bg-white p-3 rounded-2xl border border-stone-100 shadow-sm hover:border-luna-sage transition cursor-pointer">
                            <div class="flex items-center justify-between text-xs text-stone-500 mb-1">
-                               <span>サイズ記録</span>
+                               <span>サイズ・太腿記録</span>
                                <i class="fas fa-ruler-horizontal text-luna-sage"></i>
                            </div>
                            <div class="font-bold text-stone-800 text-xs">
-                               ${appData.bodyLog.length > 0 ? `W: ${appData.bodyLog[appData.bodyLog.length - 1].waist}cm / H: ${appData.bodyLog[appData.bodyLog.length - 1].hip}cm` : '未入力 (タップして登録)'}
+                               ${appData.thighLog && appData.thighLog.length > 0
+                                   ? `太腿中央: ${appData.thighLog[appData.thighLog.length - 1].mid || '-'}cm`
+                                   : (appData.bodyLog.length > 0 ? `W: ${appData.bodyLog[appData.bodyLog.length - 1].waist}cm / H: ${appData.bodyLog[appData.bodyLog.length - 1].hip}cm` : '任意で記録できます')}
                            </div>
-                           <p class="text-[11px] text-luna-sageDark mt-1 font-semibold">目標・変化を管理</p>
+                           <p class="text-[11px] text-luna-sageDark mt-1 font-semibold">達成率・変化を見る</p>
                        </div>
                    </div>
 
-                   <!-- 今日のコンディション入力 -->
+                   <!-- 今日の体調・気分チェック（運動自動調整と連動） -->
                    <div class="bg-white p-4 rounded-2xl border border-stone-200/60 shadow-sm space-y-3">
                        <div class="flex justify-between items-center">
                            <h3 class="font-bold text-stone-800 text-xs flex items-center space-x-1.5">
                                <i class="fas fa-heartbeat text-rose-400"></i>
-                               <span>今日のコンディションチェック</span>
+                               <span>今日の体調・気分（運動量を自動調整）</span>
                            </h3>
-                           <span class="text-[10px] text-stone-400">タップで記録</span>
+                           <span class="text-[10px] text-stone-400">タップで切替</span>
                        </div>
-                       <div class="flex justify-between items-center text-xs gap-2">
-                           <button onclick="recordConditionQuick('low')" class="flex-1 py-2 rounded-xl border ${appData.condition.fatigue === 'low' ? 'bg-emerald-50 border-emerald-400 text-emerald-700 font-bold' : 'border-stone-200 text-stone-600'} text-center transition">
-                               😊 元気
+                       <div class="grid grid-cols-3 gap-2 text-xs">
+                           <button onclick="recordConditionQuick('low')" class="py-2.5 px-1 rounded-xl border ${appData.condition.fatigue === 'low' ? 'bg-emerald-50 border-emerald-400 text-emerald-800 font-bold shadow-xs' : 'border-stone-200 text-stone-600'} text-center transition">
+                               <div class="text-base mb-0.5">😊</div>
+                               <div class="text-[11px]">元気満タン</div>
                            </button>
-                           <button onclick="recordConditionQuick('normal')" class="flex-1 py-2 rounded-xl border ${appData.condition.fatigue === 'normal' ? 'bg-amber-50 border-amber-400 text-amber-700 font-bold' : 'border-stone-200 text-stone-600'} text-center transition">
-                               😐 普通
+                           <button onclick="recordConditionQuick('normal')" class="py-2.5 px-1 rounded-xl border ${appData.condition.fatigue === 'normal' ? 'bg-amber-50 border-amber-400 text-amber-800 font-bold shadow-xs' : 'border-stone-200 text-stone-600'} text-center transition">
+                               <div class="text-base mb-0.5">😐</div>
+                               <div class="text-[11px]">少し疲れた</div>
                            </button>
-                           <button onclick="recordConditionQuick('high')" class="flex-1 py-2 rounded-xl border ${appData.condition.fatigue === 'high' ? 'bg-rose-50 border-rose-400 text-rose-700 font-bold' : 'border-stone-200 text-stone-600'} text-center transition">
-                               😫 疲れ気味・張り
+                           <button onclick="recordConditionQuick('high')" class="py-2.5 px-1 rounded-xl border ${appData.condition.fatigue === 'high' ? 'bg-rose-50 border-rose-400 text-rose-800 font-bold shadow-xs' : 'border-stone-200 text-stone-600'} text-center transition">
+                               <div class="text-base mb-0.5">😫</div>
+                               <div class="text-[10px] leading-tight">やる気ゼロ・<br>疲労が強い</div>
                            </button>
                        </div>
                    </div>
 
-                   <!-- 今週のおまかせスケジュール確認 -->
+                   <!-- 週間ボディメイク計画 -->
                    <div class="bg-white p-4 rounded-2xl border border-stone-200/60 shadow-sm space-y-2">
                        <div class="flex justify-between items-center">
-                           <h3 class="font-bold text-stone-800 text-xs">週間ボディメイク計画（土日は積極的休養）</h3>
-                           <span class="text-[10px] text-luna-sage font-bold">自動最適化済</span>
+                           <h3 class="font-bold text-stone-800 text-xs">週間スケジュール（内腿＋お尻＋太極拳）</h3>
+                           <span class="text-[10px] bg-luna-pastelMint text-luna-sageDark px-2 py-0.5 rounded-full font-bold">週2回＋太極拳</span>
                        </div>
                        <div class="text-xs space-y-1.5 text-stone-600 pt-1" id="weekly-schedule-list">
                        </div>
                    </div>
 
-                   <!-- 土日休養・リフレッシュのワンポイント解説 -->
-                   <div class="bg-gradient-to-r from-teal-50 via-white to-emerald-50 p-3.5 rounded-2xl border border-teal-200/60 shadow-xs space-y-1.5 text-xs">
-                       <div class="font-bold text-teal-900 flex items-center space-x-1.5">
-                           <span>🌿</span>
-                           <span>なぜ「土日お休み（完全休養/アクティブリフレッシュ）」でいいの？</span>
+                   <!-- 休息と継続のワンポイント解説 -->
+                   <div class="bg-gradient-to-r from-luna-pastelLavender/60 via-white to-luna-pastelPink/50 p-3.5 rounded-2xl border border-purple-200/50 shadow-xs space-y-1.5 text-xs">
+                       <div class="font-bold text-stone-800 flex items-center space-x-1.5">
+                           <span>🌷</span>
+                           <span>美脚づくりのヒミツ：「週2回の集中＋十分な休息」</span>
                        </div>
                        <p class="text-stone-600 leading-relaxed text-[11px]">
-                           筋肉や体幹の成長・前ももの張り緩和は、<strong>「刺激（平日）」＋「超回復（休養）」</strong>のセットで起こります。土日にしっかり休むことで平日の運動効果が引き出されます。疲労感がない時や動きたい時だけ、無理のない範囲で3分ストレッチ等を行いましょう。
+                           外腿がスッキリしてきた今の状態から、<strong>内腿（内転筋）とお尻（中臀筋・大臀筋）</strong>をバランスよく鍛えることで、脚全体のラインが美しく整います。火・金・土・日の休息日に筋肉がしっかり回復するため、毎日頑張りすぎなくて大丈夫です。
                        </p>
                    </div>
-
                </div>
            `;
 
@@ -448,250 +670,482 @@
            const listEl = document.getElementById('weekly-schedule-list');
            if (!listEl) return;
 
-           const days = [
-               { key: 'Mon', dayNum: 1, name: '月曜日' },
-               { key: 'Tue', dayNum: 2, name: '火曜日' },
-               { key: 'Wed', dayNum: 3, name: '水曜日' },
-               { key: 'Thu', dayNum: 4, name: '木曜日' },
-               { key: 'Fri', dayNum: 5, name: '金曜日' },
-               { key: 'Sat', dayNum: 6, name: '土曜日' },
-               { key: 'Sun', dayNum: 0, name: '日曜日' }
-           ];
-
            const todayDayNum = new Date().getDay();
 
-           listEl.innerHTML = days.map(item => {
+           listEl.innerHTML = WEEKLY_PLAN.map(item => {
                const isToday = item.dayNum === todayDayNum;
-               let menuName = appData.weeklySchedule ? (appData.weeklySchedule[item.key] || '完全休養・ストレッチ') : '完全休養・ストレッチ';
-               if (item.dayNum === 6) menuName = '完全休養・前ももほぐし（任意）';
-               if (item.dayNum === 0) menuName = '完全休養・からだリセット（任意）';
-
                if (isToday) {
                    return `
-                       <div class="flex justify-between py-1.5 px-2 bg-luna-sageLight/50 rounded-lg font-bold text-stone-800 border-l-4 border-luna-sage">
-                           <span>${item.name}（本日）: <span class="text-luna-sageDark">${menuName}</span></span>
-                           <span class="text-xs text-luna-sageDark font-extrabold">${item.dayNum === 0 || item.dayNum === 6 ? '☕ 休養日' : '▶ 実行中'}</span>
+                       <div class="flex justify-between items-center py-2 px-2.5 bg-luna-sageLight/70 rounded-xl font-bold text-stone-800 border-l-4 border-luna-sage">
+                           <span>${item.name}（本日）: <span class="text-luna-sageDark">${item.menu}</span></span>
+                           <span class="text-[11px] text-luna-sageDark font-extrabold shrink-0 ml-1">${item.isRest ? '☕ 休息日' : '▶ 実施日'}</span>
                        </div>
                    `;
                } else {
                    return `
-                       <div class="flex justify-between py-1 px-2 border-b border-stone-100 text-stone-600">
-                           <span>${item.name}: ${menuName}</span>
-                           <span class="text-stone-400 text-[11px]">${item.dayNum === 0 || item.dayNum === 6 ? 'OFF' : 'ON'}</span>
+                       <div class="flex justify-between items-center py-1.5 px-2 border-b border-stone-100 text-stone-600">
+                           <span>${item.name}: ${item.menu}</span>
+                           <span class="text-stone-400 text-[10px] shrink-0 ml-1">${item.isRest ? '休息' : '運動'}</span>
                        </div>
                    `;
                }
            }).join('');
        }
 
-       function getTodayScheduledMenu() {
-           const dayNum = new Date().getDay();
-           if (dayNum === 6 || dayNum === 0) {
-               return '土日お休み・リフレッシュコース（任意）';
-           }
-           const keys = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-           const key = keys[dayNum] || 'Mon';
-           return appData.weeklySchedule ? (appData.weeklySchedule[key] || '前もも緊張リリース＆ドローイン（3分）') : '前ももリリース';
-       }
-
-       function getCoachAdviceForMenu(menu) {
-           const dayNum = new Date().getDay();
-           if (dayNum === 6 || dayNum === 0) {
-               return `【土日はお休み日です☕】平日に頑張ったお腹や脚の筋肉をしっかり休ませることで超回復が進みます。「少し身体を伸ばしたいな」と思った時だけ、3分ストレッチを軽く行うくらいで十分ですよ！`;
-           }
-           return `月〜金まで、前ももの張り解消と筋肉量不足を補うおまかせメニューを組み立てました！外を歩けない日も室内エアウォークや体幹ドローインでしなやかなレッグラインをつくります。`;
-       }
-
-       function getProgramTitleForMenu(menu) {
-           const dayNum = new Date().getDay();
-           if (dayNum === 6 || dayNum === 0) {
-               return '土日はお休み日（軽めの前ももストレッチ・任意）';
-           }
-           if (menu.includes('エアウォーク') || menu.includes('代謝')) return '室内エアウォーク ＆ 下半身代謝アップ（8分）';
-           if (menu.includes('15分') || menu.includes('完全燃焼')) return '15分コース（インドア完全燃焼フルケア）';
-           if (menu.includes('3分') || menu.includes('ドローイン')) return '3分コース（前ももリリース＆腹筋スイッチ）';
-           return '8分コース（横ももスッキリ＆お尻強化）';
-       }
-
-       function getActionLabelForMenu(menu) {
-           const dayNum = new Date().getDay();
-           if (dayNum === 6 || dayNum === 0) return 'ゆったり3分ストレッチ（任意）';
-           if (menu.includes('15分')) return '15分メニューを開始';
-           if (menu.includes('3分')) return '3分メニューを開始';
-           return '8分メニューを開始';
-       }
-
-       function getActionClickForMenu(menu) {
-           const dayNum = new Date().getDay();
-           if (dayNum === 6 || dayNum === 0) return "startWorkoutProgram('3')";
-           if (menu.includes('15分')) return "startWorkoutProgram('15')";
-           if (menu.includes('3分')) return "startWorkoutProgram('3')";
-           return "startWorkoutProgram('8')";
-       }
-
        function recordConditionQuick(fatigueLevel) {
            appData.condition.fatigue = fatigueLevel;
+           appData.condition.date = getTodayDateString();
            saveState();
-           showToast(fatigueLevel === 'high' ? 'お疲れ様です。今日は前ももをゆるめる3分ストレッチがおすすめです！' : 'コンディションを更新しました！');
+
+           if (fatigueLevel === 'high') {
+               showToast('お疲れ様です。今日は休息を最優先にしましょう🌿');
+           } else if (fatigueLevel === 'normal') {
+               showToast('1セット・ゆっくりペースに自動調整しました🍃');
+           } else {
+               showToast('元気満タン！余裕があれば2セットまで挑戦できます✨');
+           }
+
+           // 現在開いているタブを再描画
+           const activeTab = ['home', 'workout', 'meal', 'cycle', 'progress'].find(t =>
+               document.getElementById(`nav-${t}`)?.classList.contains('font-bold')
+           ) || 'home';
+           switchTab(activeTab);
+       }
+
+       function recordRestDayCompleted() {
+           const todayStr = getTodayDateString();
+           appData.workoutsLog.push({
+               id: Date.now().toString(),
+               date: todayStr,
+               title: '休息・からだリセット（ご自愛日）',
+               durationMinutes: 0,
+               totalReps: 0,
+               isRestRecord: true,
+               fatigue: appData.condition.fatigue,
+               completed: true
+           });
+           saveState();
+           showToast('素晴らしいです！しっかり休むことも大切なトレーニングです🌷');
            switchTab('home');
        }
 
        /* ==========================================================================
-          2. 運動プログラム画面
+          2. 運動プログラム画面（内腿すっきり・美脚プログラム）
           ========================================================================== */
        function renderWorkoutScreen(container) {
+           const guidance = getAdjustedWorkoutGuidance();
+           const todayDayNum = new Date().getDay();
+
            container.innerHTML = `
                <div class="space-y-4 fade-in">
                    <div class="flex justify-between items-center">
-                       <h2 class="font-bold text-stone-800 text-base">おうちボディメイクメニュー</h2>
-                       <span class="text-xs text-stone-500">月〜金おまかせ最適化</span>
+                       <div>
+                           <h2 class="font-bold text-stone-800 text-base">内腿すっきり・美脚プログラム</h2>
+                           <p class="text-[11px] text-stone-500">週2回（月・水）各10分 ＋ 木曜太極拳</p>
+                       </div>
+                       <span class="px-2.5 py-1 ${guidance.badgeColor} text-[10px] font-bold rounded-full">
+                           ${guidance.statusLabel}
+                       </span>
                    </div>
 
-                   <!-- マッサージ指摘に対する対策解説カード -->
-                   <div class="bg-white p-3.5 rounded-2xl border border-amber-200/70 shadow-sm text-xs space-y-2">
-                       <div class="font-bold text-stone-800 flex items-center space-x-1 text-luna-sageDark">
-                           <i class="fas fa-comment-medical text-amber-600"></i>
-                           <span>月〜金 おまかせメニューのポイント</span>
+                   <!-- 体調に応じた自動調整ガイドバナー -->
+                   <div class="bg-white p-3.5 rounded-2xl border border-stone-200/80 shadow-xs space-y-2">
+                       <div class="flex justify-between items-center">
+                           <span class="font-bold text-stone-800 text-xs">${guidance.title}</span>
                        </div>
-                       <p class="text-stone-600 leading-relaxed text-[11px]">
-                           ・<strong>月〜金でバランス配置</strong>：前ももの張りケア、横もも・お尻の引き締め、室内エアウォークによる歩行代替を無理なくローテーションしています。<br>
-                           ・<strong>太極拳の軸づくり</strong>：インナーマッスル（腹横筋・骨盤底筋）を強化し、軸のブレないしなやかな身体へ導きます。
-                       </p>
-                   </div>
-
-                   <!-- コースカード選択 -->
-                   <div class="space-y-3">
-                       <!-- 3分コース -->
-                       <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm hover:shadow-md transition space-y-2">
-                           <div class="flex justify-between items-start">
-                               <div>
-                                   <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-md">月曜担当・張り解消</span>
-                                   <h3 class="font-bold text-stone-800 text-sm mt-1">3分コース（前ももリリース＆ドローイン）</h3>
-                               </div>
-                               <span class="text-xs font-bold text-stone-400">約3分</span>
-                           </div>
-                           <p class="text-xs text-stone-500">${WORKOUT_PROGRAMS['3'].desc}</p>
-                           <button onclick="startWorkoutProgram('3')" class="w-full py-2 bg-stone-100 hover:bg-luna-sage hover:text-white text-stone-700 font-bold text-xs rounded-xl transition">
-                               3分メニューを開始
-                           </button>
-                       </div>
-
-                       <!-- 8分コース -->
-                       <div class="bg-white p-4 rounded-2xl border-2 border-luna-sage/60 shadow-sm hover:shadow-md transition space-y-2 relative">
-                           <span class="absolute -top-2.5 right-4 bg-luna-sage text-white text-[9px] font-bold px-2 py-0.5 rounded-full">火・水曜担当・推奨</span>
-                           <div class="flex justify-between items-start">
-                               <div>
-                                   <span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">室内エアウォーク搭載</span>
-                                   <h3 class="font-bold text-stone-800 text-sm mt-1">8分コース（横ももスッキリ＆室内足踏み）</h3>
-                               </div>
-                               <span class="text-xs font-bold text-stone-400">約8分</span>
-                           </div>
-                           <p class="text-xs text-stone-500">${WORKOUT_PROGRAMS['8'].desc}</p>
-                           <button onclick="startWorkoutProgram('8')" class="w-full py-2.5 bg-luna-sage text-white font-bold text-xs rounded-xl shadow hover:brightness-105 transition">
-                               8分基本メニューを開始
-                           </button>
-                       </div>
-
-                       <!-- 15分コース -->
-                       <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm hover:shadow-md transition space-y-2">
-                           <div class="flex justify-between items-start">
-                               <div>
-                                   <span class="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-bold rounded-md">木・金曜担当・フルケア</span>
-                                   <h3 class="font-bold text-stone-800 text-sm mt-1">15分コース（インドア代謝アッププログラム）</h3>
-                               </div>
-                               <span class="text-xs font-bold text-stone-400">約15分</span>
-                           </div>
-                           <p class="text-xs text-stone-500">${WORKOUT_PROGRAMS['15'].desc}</p>
-                           <button onclick="startWorkoutProgram('15')" class="w-full py-2 bg-stone-100 hover:bg-luna-sage hover:text-white text-stone-700 font-bold text-xs rounded-xl transition">
-                               15分集中メニューを開始
-                           </button>
+                       <p class="text-[11px] text-stone-600 leading-relaxed">${guidance.message}</p>
+                       <div class="grid grid-cols-3 gap-1.5 pt-1">
+                           <button onclick="recordConditionQuick('low')" class="py-1.5 rounded-lg text-[11px] border ${appData.condition.fatigue === 'low' ? 'bg-emerald-50 border-emerald-400 text-emerald-800 font-bold' : 'border-stone-200 text-stone-500'}">😊 元気満タン</button>
+                           <button onclick="recordConditionQuick('normal')" class="py-1.5 rounded-lg text-[11px] border ${appData.condition.fatigue === 'normal' ? 'bg-amber-50 border-amber-400 text-amber-800 font-bold' : 'border-stone-200 text-stone-500'}">😐 少し疲れた</button>
+                           <button onclick="recordConditionQuick('high')" class="py-1.5 rounded-lg text-[11px] border ${appData.condition.fatigue === 'high' ? 'bg-rose-50 border-rose-400 text-rose-800 font-bold' : 'border-stone-200 text-stone-500'}">😫 疲労が強い</button>
                        </div>
                    </div>
 
+                   <!-- 月曜日メニューカード -->
+                   <div class="bg-white p-4 rounded-2xl border-2 ${todayDayNum === 1 ? 'border-pink-300 shadow-md' : 'border-stone-200/70 shadow-sm'} space-y-3 relative">
+                       ${todayDayNum === 1 ? '<span class="absolute -top-2.5 right-4 bg-pink-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">本日の推奨メニュー</span>' : ''}
+                       <div class="flex justify-between items-start">
+                           <div>
+                               <span class="px-2 py-0.5 ${INNER_THIGH_PROGRAMS.mon.badgeColor} text-[10px] font-bold rounded-md">${INNER_THIGH_PROGRAMS.mon.badge}</span>
+                               <h3 class="font-bold text-stone-800 text-sm mt-1">${INNER_THIGH_PROGRAMS.mon.title}</h3>
+                           </div>
+                           <span class="text-xs font-bold text-stone-400">約10分</span>
+                       </div>
+                       <p class="text-xs text-stone-500 leading-relaxed">${INNER_THIGH_PROGRAMS.mon.desc}</p>
+                       <div class="bg-luna-pastelPink/40 p-2.5 rounded-xl text-[11px] text-stone-700 space-y-1">
+                           <div>• <strong>① 内腿レッグリフト</strong>（左右各15回 / 内転筋）</div>
+                           <div>• <strong>② クラムシェル</strong>（左右各15回 / 中臀筋）</div>
+                           <div>• <strong>③ ヒップリフト</strong>（15回 / 大臀筋）</div>
+                       </div>
+                       <button onclick="startInnerThighSession('mon')" class="w-full py-3 bg-luna-sage hover:bg-luna-sageDark text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-2">
+                           <i class="fas fa-play text-xs"></i>
+                           <span>月曜メニューを開始する</span>
+                       </button>
+                   </div>
+
+                   <!-- 水曜日メニューカード -->
+                   <div class="bg-white p-4 rounded-2xl border-2 ${todayDayNum === 3 ? 'border-teal-300 shadow-md' : 'border-stone-200/70 shadow-sm'} space-y-3 relative">
+                       ${todayDayNum === 3 ? '<span class="absolute -top-2.5 right-4 bg-teal-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">本日の推奨メニュー</span>' : ''}
+                       <div class="flex justify-between items-start">
+                           <div>
+                               <span class="px-2 py-0.5 ${INNER_THIGH_PROGRAMS.wed.badgeColor} text-[10px] font-bold rounded-md">${INNER_THIGH_PROGRAMS.wed.badge}</span>
+                               <h3 class="font-bold text-stone-800 text-sm mt-1">${INNER_THIGH_PROGRAMS.wed.title}</h3>
+                           </div>
+                           <span class="text-xs font-bold text-stone-400">約10分</span>
+                       </div>
+                       <p class="text-xs text-stone-500 leading-relaxed">${INNER_THIGH_PROGRAMS.wed.desc}</p>
+                       <div class="bg-luna-pastelMint/50 p-2.5 rounded-xl text-[11px] text-stone-700 space-y-1">
+                           <div>• <strong>① ワイドスクワット</strong>（12回 / 内転筋・大臀筋）</div>
+                           <div>• <strong>② 内腿クッション挟み</strong>（15回・5秒キープ / 内転筋）</div>
+                           <div>• <strong>③ 立位横脚上げ</strong>（左右各15回 / 中臀筋）</div>
+                       </div>
+                       <button onclick="startInnerThighSession('wed')" class="w-full py-3 bg-luna-sage hover:bg-luna-sageDark text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-2">
+                           <i class="fas fa-play text-xs"></i>
+                           <span>水曜メニューを開始する</span>
+                       </button>
+                   </div>
+
+                   <!-- 木曜日：太極拳カード -->
+                   <div class="bg-white p-4 rounded-2xl border-2 ${todayDayNum === 4 ? 'border-purple-300 shadow-md' : 'border-stone-200/70 shadow-sm'} space-y-2.5 relative">
+                       ${todayDayNum === 4 ? '<span class="absolute -top-2.5 right-4 bg-purple-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">本日の推奨メニュー</span>' : ''}
+                       <div class="flex justify-between items-start">
+                           <div>
+                               <span class="px-2 py-0.5 ${INNER_THIGH_PROGRAMS.thu.badgeColor} text-[10px] font-bold rounded-md">${INNER_THIGH_PROGRAMS.thu.badge}</span>
+                               <h3 class="font-bold text-stone-800 text-sm mt-1">${INNER_THIGH_PROGRAMS.thu.title}</h3>
+                           </div>
+                           <span class="text-xs font-bold text-stone-400">約10分</span>
+                       </div>
+                       <p class="text-xs text-stone-500 leading-relaxed">${INNER_THIGH_PROGRAMS.thu.desc}</p>
+                       <button onclick="startInnerThighSession('thu')" class="w-full py-2.5 bg-luna-pastelLavender hover:bg-purple-200/70 text-purple-900 font-bold text-xs rounded-xl transition">
+                           太極拳セッションを記録・開始
+                       </button>
+                   </div>
+
+                   <!-- 安全ガイドラインカード -->
+                   <div class="bg-rose-50/70 p-3.5 rounded-2xl border border-rose-200/70 text-xs space-y-1.5">
+                       <div class="font-bold text-rose-900 flex items-center space-x-1.5">
+                           <i class="fas fa-shield-alt text-rose-500"></i>
+                           <span>安全に美しく引き締めるためのお約束</span>
+                       </div>
+                       <ul class="text-[11px] text-stone-600 space-y-1 list-disc list-inside leading-relaxed">
+                           <li>股関節や鼠径部に痛みや違和感が出たら、すぐに運動を中止してください。</li>
+                           <li>無理な開脚や強いストレッチは行わず、正しいフォームを最優先にします。</li>
+                           <li>初心者は<strong>1セット</strong>から開始し、筋肉痛や疲労がある日は休息を優先しましょう。</li>
+                           <li>以前の股関節の痛みが再発する場合は、無理をせず専門家にご相談ください。</li>
+                       </ul>
+                   </div>
                </div>
            `;
        }
 
-       /* 運動実行セッション＆タイマー */
-       let activeWorkoutSession = null;
-       let workoutTimerInterval = null;
+       /* ==========================================================================
+          運動セッション実行画面（大きな表示・回数カウンター・5秒カウントダウン・完了チェック）
+          ========================================================================== */
+       let sessionState = null;
+       let elapsedInterval = null;
+       let holdCountdownInterval = null;
 
-       function startWorkoutProgram(courseKey) {
-           const program = WORKOUT_PROGRAMS[courseKey];
+       function clearAllWorkoutTimers() {
+           if (elapsedInterval) clearInterval(elapsedInterval);
+           if (holdCountdownInterval) clearInterval(holdCountdownInterval);
+           elapsedInterval = null;
+           holdCountdownInterval = null;
+       }
+
+       function startInnerThighSession(programKey) {
+           const program = INNER_THIGH_PROGRAMS[programKey];
            if (!program) return;
 
-           activeWorkoutSession = {
-               courseKey: courseKey,
+           const guidance = getAdjustedWorkoutGuidance();
+
+           // 疲労が強い場合は確認モーダルを挟む（強制はせず休息を提案）
+           if (guidance.shouldRest) {
+               showFatigueRestConfirmModal(programKey);
+               return;
+           }
+
+           initSessionState(program, 1);
+       }
+
+       function showFatigueRestConfirmModal(programKey) {
+           const modalTitle = document.getElementById('modal-title');
+           const modalBody = document.getElementById('modal-body');
+
+           modalTitle.textContent = '🌿 今日は休息を優先しませんか？';
+           modalBody.innerHTML = `
+               <div class="space-y-3 text-xs text-stone-700">
+                   <p class="leading-relaxed">
+                       現在「やる気ゼロ・疲労が強い」が選択されています。疲れが溜まっている時は、無理に運動するよりも<strong>しっかり休むこと</strong>がボディメイクの近道です。
+                   </p>
+                   <button onclick="closeModal(); recordRestDayCompleted();" class="w-full py-3 bg-luna-sage text-white font-bold rounded-xl shadow">
+                       今日は休息日にする（達成記録をつける）
+                   </button>
+                   <button onclick="closeModal(); initSessionState(INNER_THIGH_PROGRAMS['${programKey}'], 1);" class="w-full py-2.5 bg-stone-100 text-stone-600 font-bold rounded-xl">
+                       それでも軽めに1セットだけやってみる
+                   </button>
+               </div>
+           `;
+           document.getElementById('modal').classList.remove('hidden');
+       }
+
+       function initSessionState(program, targetSets = 1) {
+           clearAllWorkoutTimers();
+           sessionState = {
+               programKey: program.id,
                title: program.title,
                exercises: program.exercises,
                currentIndex: 0,
-               secondsRemaining: program.exercises[0].durationSec,
-               isPaused: false
+               currentSet: 1,
+               targetSets: targetSets,
+               completedChecks: program.exercises.map(() => false),
+               elapsedSeconds: 0,
+               holdRemaining: 0,
+               isHoldRunning: false
            };
 
-           renderActiveExerciseScreen();
+           elapsedInterval = setInterval(() => {
+               if (!sessionState) return;
+               sessionState.elapsedSeconds++;
+               const el = document.getElementById('session-elapsed-time');
+               if (el) el.textContent = formatSeconds(sessionState.elapsedSeconds);
+           }, 1000);
+
+           renderSessionExecutionScreen();
        }
 
-       function renderActiveExerciseScreen() {
+       function renderSessionExecutionScreen() {
+           if (!sessionState) return;
            const container = document.getElementById('main-content');
-           const session = activeWorkoutSession;
-           const ex = session.exercises[session.currentIndex];
+           const ex = sessionState.exercises[sessionState.currentIndex];
+           const isChecked = sessionState.completedChecks[sessionState.currentIndex];
 
            container.innerHTML = `
                <div class="space-y-4 fade-in">
+                   <!-- 上部進捗バー -->
                    <div class="flex justify-between items-center text-xs font-bold text-stone-600">
-                       <span>${session.title}</span>
-                       <span>${session.currentIndex + 1} / ${session.exercises.length} 種目目</span>
-                   </div>
-                   <div class="w-full bg-stone-200 h-2 rounded-full overflow-hidden">
-                       <div class="bg-luna-sage h-full transition-all duration-300" style="width: ${((session.currentIndex + 1) / session.exercises.length) * 100}%"></div>
-                   </div>
-
-                   <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-md text-center space-y-3">
-                       <span class="inline-block px-2.5 py-1 bg-luna-sageLight text-luna-sageDark text-xs font-bold rounded-md">
-                           狙い: ${ex.target}
+                       <span class="truncate pr-2">${sessionState.title}（${sessionState.currentSet}セット目）</span>
+                       <span class="shrink-0 bg-luna-sageLight text-luna-sageDark px-2 py-0.5 rounded-full">
+                           経過: <span id="session-elapsed-time">${formatSeconds(sessionState.elapsedSeconds)}</span>
                        </span>
-                       <h2 class="text-lg font-bold text-stone-800">${ex.name}</h2>
+                   </div>
 
-                       <div class="py-2 bg-stone-50 rounded-xl flex items-center justify-center border border-dashed border-stone-200">
+                   <!-- 種目ステップ表示（タップで移動可能） -->
+                   <div class="grid grid-cols-${sessionState.exercises.length} gap-1.5">
+                       ${sessionState.exercises.map((item, idx) => `
+                           <button onclick="jumpToExercise(${idx})" class="py-1.5 px-1 rounded-lg text-[10px] font-bold border transition truncate ${idx === sessionState.currentIndex ? 'bg-luna-sage text-white border-luna-sage' : (sessionState.completedChecks[idx] ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-white text-stone-400 border-stone-200')}">
+                               ${sessionState.completedChecks[idx] ? '✓ ' : ''}${idx + 1}種目目
+                           </button>
+                       `).join('')}
+                   </div>
+
+                   <!-- メイン運動カード（スマホで見やすい大きな表示） -->
+                   <div class="bg-white p-5 rounded-3xl border border-stone-200 shadow-md space-y-4">
+                       <div class="text-center space-y-1.5">
+                           <span class="inline-block px-3 py-1 bg-luna-pastelPink text-pink-900 text-xs font-bold rounded-full">
+                               鍛える部位：${ex.target}
+                           </span>
+                           <h2 class="text-xl font-extrabold text-stone-800 pt-1">${ex.name}</h2>
+                           <div class="text-2xl font-extrabold text-luna-sageDark tracking-wide">
+                               目安：${ex.repsText}
+                           </div>
+                       </div>
+
+                       <!-- 正しい姿勢のイラスト -->
+                       <div class="py-1">
                            ${ex.svg}
                        </div>
 
-                       <div class="text-3xl font-extrabold text-luna-sage tracking-wider my-2" id="timer-display">
-                           ${formatSeconds(session.secondsRemaining)}
-                       </div>
+                       ${ex.hasHoldTimer ? `
+                           <!-- 5秒キープ用カウントダウン -->
+                           <div class="bg-luna-bg p-4 rounded-2xl border border-stone-200/80 text-center space-y-2">
+                               <div class="text-xs font-bold text-stone-600">5秒キープ カウントダウン</div>
+                               <div id="hold-timer-display" class="text-4xl font-extrabold ${sessionState.isHoldRunning ? 'text-pink-600 pulse-soft' : 'text-stone-800'}">
+                                   ${sessionState.isHoldRunning ? sessionState.holdRemaining + ' 秒' : '5 秒'}
+                               </div>
+                               <button onclick="startFiveSecondHold()" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold text-sm rounded-xl shadow transition">
+                                   <i class="fas fa-stopwatch mr-1"></i> ${sessionState.isHoldRunning ? 'カウント中...' : '5秒キープをスタート'}
+                               </button>
+                           </div>
+                       ` : ''}
 
-                       <div class="flex justify-center space-x-2 pt-1">
-                           <button onclick="toggleWorkoutPause()" id="pause-btn" class="px-4 py-2 bg-amber-100 text-amber-800 text-xs font-bold rounded-xl hover:bg-amber-200 transition">
-                               <i class="fas fa-pause mr-1"></i> 一時停止
-                           </button>
-                           <button onclick="makeWorkoutLighter()" class="px-4 py-2 bg-stone-100 text-stone-700 text-xs font-bold rounded-xl hover:bg-stone-200 transition">
-                               🍃 軽めにする
-                           </button>
-                       </div>
+                       <!-- 完了チェックボタン -->
+                       <button onclick="toggleExerciseCompletedCheck()" class="w-full py-4 rounded-2xl font-bold text-base border-2 transition flex items-center justify-center space-x-2 shadow-xs active:scale-[0.99] ${isChecked ? 'bg-emerald-500 border-emerald-500 text-white shadow' : 'bg-luna-sageLight/40 border-luna-sage text-luna-sageDark hover:bg-luna-sageLight'}">
+                           <i class="fas ${isChecked ? 'fa-check-circle' : 'fa-circle'} text-lg"></i>
+                           <span>${isChecked ? '完了しました！✓' : '完了したら押す'}</span>
+                       </button>
                    </div>
 
+                   <!-- 分かりやすい日本語の説明＆注意点 -->
                    <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm space-y-2.5 text-xs">
-                       <div class="font-bold text-stone-800 border-b pb-1">フォーム＆ポイント</div>
-                       <p><strong class="text-luna-sageDark">姿勢:</strong> ${ex.posture}</p>
-                       <p><strong class="text-luna-sageDark">呼吸:</strong> ${ex.respiration}</p>
-                       <p><strong class="text-amber-700">よくある間違い:</strong> ${ex.mistakes}</p>
-                       <p><strong class="text-rose-600">安全注意:</strong> ${ex.precautions}</p>
-                       <p><strong class="text-stone-500">代替運動:</strong> ${ex.alternative}</p>
+                       <div class="font-bold text-stone-800 border-b pb-1.5 flex items-center space-x-1.5">
+                           <i class="fas fa-info-circle text-luna-sage"></i>
+                           <span>やり方と意識するポイント</span>
+                       </div>
+                       <p class="text-stone-700 leading-relaxed"><strong>手順：</strong>${ex.explanation}</p>
+                       <p class="text-luna-sageDark leading-relaxed"><strong>コツ：</strong>${ex.points}</p>
+                       <div class="p-2.5 bg-rose-50 rounded-xl border border-rose-100 text-rose-800 leading-relaxed">
+                           <strong>⚠️ 注意点：</strong>${ex.cautions}
+                       </div>
                    </div>
 
-                   <div class="flex justify-between items-center gap-2 pt-2">
-                       <button onclick="cancelWorkoutSession()" class="flex-1 py-3 bg-stone-200 text-stone-700 font-bold text-xs rounded-xl text-center">
-                           中断・終了
+                   <!-- 下部ナビゲーションボタン（大きく押しやすく） -->
+                   <div class="flex gap-2 pt-1">
+                       <button onclick="cancelInnerThighSession()" class="px-4 py-3.5 bg-stone-200 text-stone-700 font-bold text-xs rounded-xl">
+                           中断する
                        </button>
-                       <button onclick="nextWorkoutExercise()" class="flex-2 w-2/3 py-3 bg-luna-sage text-white font-bold text-xs rounded-xl shadow-lg text-center hover:brightness-105">
-                           ${session.currentIndex < session.exercises.length - 1 ? '次の種目へ ➔' : 'トレーニング完了！'}
-                       </button>
+                       ${sessionState.currentIndex < sessionState.exercises.length - 1 ? `
+                           <button onclick="goToNextExercise()" class="flex-1 py-3.5 bg-luna-sage text-white font-bold text-sm rounded-xl shadow-md">
+                               次の種目へ進む ➔
+                           </button>
+                       ` : `
+                           <button onclick="finishInnerThighSession()" class="flex-1 py-3.5 bg-gradient-to-r from-luna-sage to-luna-sageDark text-white font-bold text-sm rounded-xl shadow-md">
+                               🎉 トレーニングを完了する
+                           </button>
+                       `}
                    </div>
                </div>
            `;
+       }
 
-           startTimer();
+       function jumpToExercise(index) {
+           if (!sessionState) return;
+           if (holdCountdownInterval) clearInterval(holdCountdownInterval);
+           sessionState.isHoldRunning = false;
+           sessionState.currentIndex = index;
+           renderSessionExecutionScreen();
+       }
+
+       function startFiveSecondHold() {
+           if (!sessionState || sessionState.isHoldRunning) return;
+           sessionState.isHoldRunning = true;
+           sessionState.holdRemaining = 5;
+           renderSessionExecutionScreen();
+
+           holdCountdownInterval = setInterval(() => {
+               if (!sessionState) {
+                   clearInterval(holdCountdownInterval);
+                   return;
+               }
+               sessionState.holdRemaining--;
+               const displayEl = document.getElementById('hold-timer-display');
+               if (displayEl) {
+                   displayEl.textContent = sessionState.holdRemaining > 0 ? `${sessionState.holdRemaining} 秒` : 'OK！';
+               }
+
+               if (sessionState.holdRemaining <= 0) {
+                   clearInterval(holdCountdownInterval);
+                   sessionState.isHoldRunning = false;
+                   showToast('5秒キープ完了！おつかれさまです✨');
+                   renderSessionExecutionScreen();
+               }
+           }, 1000);
+       }
+
+       function toggleExerciseCompletedCheck() {
+           if (!sessionState) return;
+           const idx = sessionState.currentIndex;
+           sessionState.completedChecks[idx] = true;
+
+           if (idx < sessionState.exercises.length - 1) {
+               showToast('完了！次の種目へ進みます✨');
+               goToNextExercise();
+           } else {
+               finishInnerThighSession();
+           }
+       }
+
+       function goToNextExercise() {
+           if (!sessionState) return;
+           if (holdCountdownInterval) clearInterval(holdCountdownInterval);
+           sessionState.isHoldRunning = false;
+           sessionState.completedChecks[sessionState.currentIndex] = true;
+           sessionState.currentIndex++;
+           renderSessionExecutionScreen();
+       }
+
+       function cancelInnerThighSession() {
+           clearAllWorkoutTimers();
+           sessionState = null;
+           showToast('運動を中断しました。無理せず自分のペースで大丈夫です🌷');
+           switchTab('workout');
+       }
+
+       function finishInnerThighSession() {
+           if (!sessionState) return;
+           clearAllWorkoutTimers();
+
+           // 未チェックの最終種目も完了に
+           sessionState.completedChecks[sessionState.currentIndex] = true;
+
+           const durationMin = Math.max(1, Math.round(sessionState.elapsedSeconds / 60)) || 10;
+           const totalRepsDone = sessionState.exercises.reduce((sum, ex, i) => {
+               return sum + (sessionState.completedChecks[i] ? ex.totalReps : 0);
+           }, 0);
+
+           const completedProgramKey = sessionState.programKey;
+           const completedTitle = sessionState.title;
+           const currentSetNum = sessionState.currentSet;
+           const guidance = getAdjustedWorkoutGuidance();
+
+           // 運動ログに保存
+           appData.workoutsLog.push({
+               id: Date.now().toString(),
+               date: getTodayDateString(),
+               programKey: completedProgramKey,
+               title: `${completedTitle}（${currentSetNum}セット目）`,
+               durationMinutes: durationMin,
+               totalReps: totalRepsDone,
+               fatigue: appData.condition.fatigue,
+               completed: true
+           });
+           saveState();
+
+           sessionState = null;
+
+           const mainContent = document.getElementById('main-content');
+           mainContent.innerHTML = `
+               <div class="space-y-5 py-4 text-center fade-in">
+                   <div class="w-20 h-20 mx-auto rounded-full bg-luna-pastelPink text-pink-600 flex items-center justify-center text-4xl shadow-md">
+                       🌸
+                   </div>
+                   <div class="space-y-1">
+                       <h2 class="text-xl font-extrabold text-stone-800">お疲れ様でした！達成です✨</h2>
+                       <p class="text-xs text-stone-500">${completedTitle}（${currentSetNum}セット目）を記録しました。</p>
+                   </div>
+
+                   <div class="grid grid-cols-2 gap-3 text-center">
+                       <div class="bg-white p-3 rounded-2xl border border-stone-200/80 shadow-xs">
+                           <span class="text-[10px] text-stone-400 block">今回の運動時間</span>
+                           <span class="text-lg font-extrabold text-luna-sageDark">${durationMin} 分</span>
+                       </div>
+                       <div class="bg-white p-3 rounded-2xl border border-stone-200/80 shadow-xs">
+                           <span class="text-[10px] text-stone-400 block">合計実施回数</span>
+                           <span class="text-lg font-extrabold text-pink-600">${totalRepsDone} 回</span>
+                       </div>
+                   </div>
+
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm text-left text-xs space-y-2">
+                       <div class="font-bold text-stone-800 border-b pb-1">専属コーチからのメッセージ</div>
+                       <p class="text-stone-700 leading-relaxed">
+                           「素晴らしいフォームと集中力でした！内腿とお尻の筋肉にしっかり刺激が入っています。体重の数値だけでなく、こうして丁寧にお身体を動かした積み重ねが、必ずしなやかな美脚ラインにつながりますよ。」
+                       </p>
+                   </div>
+
+                   ${guidance.canDoTwoSets && currentSetNum < 2 ? `
+                       <button onclick="initSessionState(INNER_THIGH_PROGRAMS['${completedProgramKey}'], 2)" class="w-full py-3 bg-luna-pastelMint hover:bg-emerald-100 text-luna-sageDark font-bold text-xs rounded-xl border border-luna-sage/30 transition">
+                           ✨ 元気満タンなので「2セット目」に挑戦する
+                       </button>
+                   ` : ''}
+
+                   <button onclick="switchTab('progress')" class="w-full py-3 bg-white border border-stone-200 text-stone-700 font-bold text-xs rounded-xl">
+                       📊 達成率・成長記録を見る
+                   </button>
+
+                   <button onclick="switchTab('home')" class="w-full py-3.5 bg-luna-sage text-white font-bold text-sm rounded-xl shadow-md">
+                       ホームに戻る
+                   </button>
+               </div>
+           `;
        }
 
        function formatSeconds(sec) {
@@ -700,101 +1154,8 @@
            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
        }
 
-       function startTimer() {
-           clearInterval(workoutTimerInterval);
-           workoutTimerInterval = setInterval(() => {
-               if (!activeWorkoutSession || activeWorkoutSession.isPaused) return;
-
-               activeWorkoutSession.secondsRemaining--;
-               const timerEl = document.getElementById('timer-display');
-               if (timerEl) {
-                   timerEl.textContent = formatSeconds(activeWorkoutSession.secondsRemaining);
-               }
-
-               if (activeWorkoutSession.secondsRemaining <= 0) {
-                   clearInterval(workoutTimerInterval);
-                   showToast('1種目が終了しました！');
-                   nextWorkoutExercise();
-               }
-           }, 1000);
-       }
-
-       function toggleWorkoutPause() {
-           if (!activeWorkoutSession) return;
-           activeWorkoutSession.isPaused = !activeWorkoutSession.isPaused;
-           const btn = document.getElementById('pause-btn');
-           if (btn) {
-               btn.innerHTML = activeWorkoutSession.isPaused ? '<i class="fas fa-play mr-1"></i> 再開' : '<i class="fas fa-pause mr-1"></i> 一時停止';
-           }
-       }
-
-       function makeWorkoutLighter() {
-           if (!activeWorkoutSession) return;
-           activeWorkoutSession.secondsRemaining = Math.max(10, Math.floor(activeWorkoutSession.secondsRemaining / 2));
-           showToast('運動時間を短縮しました');
-       }
-
-       function nextWorkoutExercise() {
-           clearInterval(workoutTimerInterval);
-           if (!activeWorkoutSession) return;
-
-           if (activeWorkoutSession.currentIndex < activeWorkoutSession.exercises.length - 1) {
-               activeWorkoutSession.currentIndex++;
-               activeWorkoutSession.secondsRemaining = activeWorkoutSession.exercises[activeWorkoutSession.currentIndex].durationSec;
-               renderActiveExerciseScreen();
-           } else {
-               completeWorkoutSession();
-           }
-       }
-
-       function cancelWorkoutSession() {
-           clearInterval(workoutTimerInterval);
-           activeWorkoutSession = null;
-           showToast('運動を中断しました');
-           switchTab('workout');
-       }
-
-       function completeWorkoutSession() {
-           clearInterval(workoutTimerInterval);
-           const duration = activeWorkoutSession.courseKey === '3' ? 3 : (activeWorkoutSession.courseKey === '8' ? 8 : 15);
-
-           appData.workoutsLog.push({
-               id: Date.now().toString(),
-               date: new Date().toISOString().split('T')[0],
-               title: activeWorkoutSession.title,
-               durationMinutes: duration,
-               completed: true
-           });
-           saveState();
-
-           const mainContent = document.getElementById('main-content');
-           mainContent.innerHTML = `
-               <div class="space-y-5 py-6 text-center fade-in">
-                   <div class="w-20 h-20 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl shadow-lg">
-                       🎉
-                   </div>
-                   <div class="space-y-1">
-                       <h2 class="text-xl font-bold text-stone-800">トレーニング完了！</h2>
-                       <p class="text-xs text-stone-500">外に出られなくても、おうちで素晴らしい一歩を踏み出せました。</p>
-                   </div>
-
-                   <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm text-left text-xs space-y-2">
-                       <div class="font-bold text-stone-800 border-b pb-1">専属コーチからのフィードバック</div>
-                       <p class="text-stone-700 leading-relaxed">
-                           「素晴らしい集中力です！月〜金のおまかせメニューを着実にこなすことで、前ももの張りがほぐれ、お腹の奥から太極拳の軸がしっかり安定してきますよ。」
-                       </p>
-                   </div>
-
-                   <button onclick="switchTab('home')" class="w-full py-3.5 bg-luna-sage text-white font-bold text-sm rounded-xl shadow-md">
-                       ホームに戻る
-                   </button>
-               </div>
-           `;
-           activeWorkoutSession = null;
-       }
-
        /* ==========================================================================
-          3. 食事管理画面
+          3. 食事管理画面（既存機能・デザインを完全維持）
           ========================================================================== */
        function getCycleNutritionTarget() {
            const cyclePhase = getCyclePhase(appData.cycle.lastPeriodStart, appData.cycle.cycleLength);
@@ -856,9 +1217,7 @@
                            </button>
                        </div>
 
-                       <!-- カロリー＆タンパク質 達成・残り表示メーター -->
                        <div class="grid grid-cols-2 gap-3 text-center">
-                           <!-- カロリー -->
                            <div class="bg-luna-beige/50 p-3 rounded-xl border border-amber-100 space-y-1.5">
                                <div class="flex justify-between items-center text-[10px]">
                                    <span class="text-stone-500 font-bold">摂取カロリー</span>
@@ -867,7 +1226,6 @@
                                <div class="text-lg font-extrabold text-stone-800">
                                    ${totalKcal} <span class="text-[10px] font-normal text-stone-500">kcal</span>
                                </div>
-                               <!-- 残り表示 -->
                                <div class="pt-1 border-t border-amber-200/60 flex justify-between items-center text-[11px]">
                                    <span class="text-stone-500">あと消費可能:</span>
                                    <span class="font-extrabold ${ (target.maxKcal - totalKcal) < 0 ? 'text-rose-500' : 'text-amber-800' }">
@@ -876,7 +1234,6 @@
                                </div>
                            </div>
 
-                           <!-- タンパク質 -->
                            <div class="bg-luna-sageLight/60 p-3 rounded-xl border border-luna-sage/20 space-y-1.5">
                                <div class="flex justify-between items-center text-[10px]">
                                    <span class="text-luna-sageDark font-bold">タンパク質 (P)</span>
@@ -885,7 +1242,6 @@
                                <div class="text-lg font-extrabold text-luna-sageDark">
                                    ${totalP} <span class="text-[10px] font-normal text-stone-500">g</span>
                                </div>
-                               <!-- 残り表示 -->
                                <div class="pt-1 border-t border-luna-sage/20 flex justify-between items-center text-[11px]">
                                    <span class="text-stone-500">あと必要:</span>
                                    <span class="font-extrabold ${ (target.minP - totalP) <= 0 ? 'text-emerald-600' : 'text-luna-sageDark' }">
@@ -896,7 +1252,6 @@
                        </div>
                    </div>
 
-                   <!-- たんぱく質配分ガイド -->
                    <div class="bg-gradient-to-r from-amber-50 to-orange-50/40 p-3.5 rounded-2xl border border-amber-200/60 shadow-xs space-y-2 text-xs">
                        <div class="flex justify-between items-center font-bold text-amber-900">
                            <span class="flex items-center space-x-1.5">
@@ -960,7 +1315,6 @@
            `;
        }
 
-       /* 食事カロリー目安の解説モーダル */
        function showCalorieGuideModal() {
            const modalTitle = document.getElementById('modal-title');
            const modalBody = document.getElementById('modal-body');
@@ -970,8 +1324,8 @@
                <div class="space-y-4 text-xs text-stone-700">
                    <div class="bg-stone-50 p-3 rounded-xl border border-stone-200 space-y-1">
                        <h4 class="font-bold text-stone-800 text-xs">【基本設定情報】</h4>
-                       <p class="text-[11px] text-stone-600">37歳 / 身長151cm / 体重約62kg / 事務仕事中心・運動ほぼゼロ</p>
-                       <p class="text-[11px] font-bold text-luna-sageDark">目標：減量 ＋ ボディラインづくり</p>
+                       <p class="text-[11px] text-stone-600">37歳 / 身長151cm / 体重約62kg / 事務仕事中心</p>
+                       <p class="text-[11px] font-bold text-luna-sageDark">目標：全身の体脂肪管理 ＋ 内腿＆美脚ラインづくり</p>
                    </div>
 
                    <div class="space-y-2">
@@ -999,17 +1353,10 @@
                    <div class="space-y-1.5">
                        <h4 class="font-bold text-stone-800 border-b pb-1">【減量＆成果のポイント】</h4>
                        <ul class="list-disc list-inside space-y-1 text-[11px] text-stone-600 leading-relaxed">
-                           <li>生理前は空腹や食欲に合わせて柔軟に調整する。</li>
-                           <li>毎日の体重より、数週間単位の変化を見る。</li>
-                           <li>ウエストやヒップのサイズ、見た目も確認する。</li>
-                           <li>可能なら、お尻・体幹の筋トレを週2回程度行う。</li>
-                           <li>2〜3週間続けて、体重や体調に合わせて調整する。</li>
+                           <li>全身の体脂肪管理と、週2回の内腿・お尻筋トレを組み合わせます。</li>
+                           <li>毎日の体重より、数週間単位のシルエット変化を確認します。</li>
+                           <li>太腿やウエスト・ヒップのサイズ、見た目も参考にしましょう。</li>
                        </ul>
-                   </div>
-
-                   <div class="p-2.5 bg-luna-sageLight/50 rounded-xl text-[11px] text-luna-sageDark font-bold">
-                       🌱 減量ペースの参考：1か月 約0.3〜1kg / 3か月 約1〜3kg<br>
-                       <span class="font-normal text-[10px] text-stone-500 block mt-0.5">※疲労や強烈な空腹を感じる場合は無理に制限しないでください。</span>
                    </div>
 
                    <button onclick="closeModal()" class="w-full py-2.5 bg-luna-sage text-white font-bold text-xs rounded-xl shadow-xs">
@@ -1030,7 +1377,6 @@
            const modalBody = document.getElementById('modal-body');
            const targetDate = selectedMealDate || getTodayDateString();
 
-           // 本日・指定日の既存ログから次に適した区分を自動判定 (朝食 -> 昼食 -> 夕食 -> 間食)
            const dayMeals = appData.mealsLog.filter(m => m.date === targetDate);
            const typesLogged = dayMeals.map(m => m.type);
 
@@ -1086,7 +1432,6 @@
            document.getElementById('modal').classList.remove('hidden');
        }
 
-       /* 区分変更時に初期カロリー・タンパク量を自動セット */
        function updateDefaultKcalP(selectedType) {
            const kcalInput = document.getElementById('meal-kcal');
            const pInput = document.getElementById('meal-p');
@@ -1121,7 +1466,6 @@
            }
 
            if (mealId) {
-               // 既存レコードの編集・更新
                const mealIndex = appData.mealsLog.findIndex(m => m.id === mealId);
                if (mealIndex !== -1) {
                    appData.mealsLog[mealIndex] = {
@@ -1134,7 +1478,6 @@
                    };
                }
            } else {
-               // 新規追加
                appData.mealsLog.push({
                    id: Date.now().toString(),
                    date: dateInput || getTodayDateString(),
@@ -1178,7 +1521,7 @@
                    </div>
                    <div>
                        <label class="block text-xs font-bold text-stone-700 mb-1">食事内容</label>
-                       <input id="meal-text" type="text" value="${meal.text}" placeholder="例: 鮭の塩焼き、ごはん" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
+                       <input id="meal-text" type="text" value="${meal.text}" class="w-full border border-stone-300 rounded-xl p-2 text-xs">
                    </div>
                    <div>
                        <label class="block text-xs font-bold text-stone-700 mb-1">概算カロリー (kcal)</label>
@@ -1202,48 +1545,43 @@
        }
 
        /* ==========================================================================
-          4. 生理周期 & 体調管理画面
+          4. 生理周期 & 体調管理画面（既存機能を維持）
           ========================================================================== */
        function getCyclePhase(startDateStr, cycleLength = 28) {
-           // 手動設定（manualPhase）がある場合は、周期の自動計算より手動設定を最優先
            if (appData.cycle.manualPhase) {
                switch (appData.cycle.manualPhase) {
                    case 'period':
-                       return { phaseKey: 'period', phaseName: '月経期（生理中）', adviceShort: '血行改善と温活。無理せずゆったりストレッチを。', intensity: 'light' };
+                       return { phaseKey: 'period', phaseName: '月経期（生理中）', adviceShort: '血行改善と温活。無理せず1セット・ゆっくりペースで。', intensity: 'light' };
                    case 'after_period':
-                       return { phaseKey: 'after_period', phaseName: '卵胞期（生理後〜排卵前）', adviceShort: '代謝アップ！お尻＆体幹の筋トレ成果が出やすい時期。', intensity: 'active' };
+                       return { phaseKey: 'after_period', phaseName: '卵胞期（生理後〜排卵前）', adviceShort: '代謝アップ！内腿＆お尻の筋トレ成果が出やすい時期。', intensity: 'active' };
                    case 'ovulation':
-                       return { phaseKey: 'ovulation', phaseName: '排卵前後', adviceShort: '体調は良好。フォームの正確さを重視。', intensity: 'normal' };
+                       return { phaseKey: 'ovulation', phaseName: '排卵前後', adviceShort: '体調は良好。丁寧なフォームを意識して美脚づくり。', intensity: 'normal' };
                    case 'before_period':
-                       return { phaseKey: 'before_period', phaseName: '黄体期（生理前・ご自愛期）', adviceShort: 'むくみや張りに注意。温かい食事と室内ストレッチで優しく。', intensity: 'gentle' };
+                       return { phaseKey: 'before_period', phaseName: '黄体期（生理前・ご自愛期）', adviceShort: 'むくみやすい時期。休息を優先しつつ優しくケアを。', intensity: 'gentle' };
                }
            }
 
            if (!startDateStr) {
-               return { phaseKey: 'period', phaseName: '月経期（生理中）', adviceShort: '血行改善と温活。無理せずゆったりストレッチを。', intensity: 'light' };
+               return { phaseKey: 'period', phaseName: '月経期（生理中）', adviceShort: '血行改善と温活。無理せず1セット・ゆっくりペースで。', intensity: 'light' };
            }
 
-           // 日付文字列 (YYYY-MM-DD) から時刻を除外した Date オブジェクトを作成して日付差分を正確に計算
            const [sYear, sMonth, sDay] = startDateStr.split('-').map(Number);
            const start = new Date(sYear, sMonth - 1, sDay);
-
            const todayObj = new Date();
            const today = new Date(todayObj.getFullYear(), todayObj.getMonth(), todayObj.getDate());
 
            const diffTime = today - start;
            let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-           // 生理開始日が今日より未来、または周期を越えている場合の余り計算
            diffDays = ((diffDays % cycleLength) + cycleLength) % cycleLength;
 
            if (diffDays >= 0 && diffDays < 5) {
-               return { phaseKey: 'period', phaseName: '月経期（生理中）', adviceShort: '血行改善と温活。無理せずゆったりストレッチを。', intensity: 'light' };
+               return { phaseKey: 'period', phaseName: '月経期（生理中）', adviceShort: '血行改善と温活。無理せず1セット・ゆっくりペースで。', intensity: 'light' };
            } else if (diffDays >= 5 && diffDays < 13) {
-               return { phaseKey: 'after_period', phaseName: '卵胞期（生理後〜排卵前）', adviceShort: '代謝アップ！お尻＆体幹の筋トレ成果が出やすい時期。', intensity: 'active' };
+               return { phaseKey: 'after_period', phaseName: '卵胞期（生理後〜排卵前）', adviceShort: '代謝アップ！内腿＆お尻の筋トレ成果が出やすい時期。', intensity: 'active' };
            } else if (diffDays >= 13 && diffDays < 17) {
-               return { phaseKey: 'ovulation', phaseName: '排卵前後', adviceShort: '体調は良好。フォームの正確さを重視。', intensity: 'normal' };
+               return { phaseKey: 'ovulation', phaseName: '排卵前後', adviceShort: '体調は良好。丁寧なフォームを意識して美脚づくり。', intensity: 'normal' };
            } else {
-               return { phaseKey: 'before_period', phaseName: '黄体期（生理前・ご自愛期）', adviceShort: 'むくみや張りに注意。温かい食事と室内ストレッチで優しく。', intensity: 'gentle' };
+               return { phaseKey: 'before_period', phaseName: '黄体期（生理前・ご自愛期）', adviceShort: 'むくみやすい時期。休息を優先しつつ優しくケアを。', intensity: 'gentle' };
            }
        }
 
@@ -1258,7 +1596,6 @@
                        <button onclick="showCycleConfigModal()" class="px-2.5 py-1 bg-stone-100 text-stone-600 font-bold text-xs rounded-lg border">自動予測設定</button>
                    </div>
 
-                   <!-- 周期不安定な方向け：ワンタップ状態設定カード -->
                    <div class="bg-white p-3.5 rounded-2xl border border-stone-200/80 shadow-xs space-y-2.5">
                        <div class="flex justify-between items-center">
                            <span class="font-bold text-stone-800 text-xs flex items-center space-x-1">
@@ -1268,7 +1605,7 @@
                            ${isManual ? `<button onclick="resetCycleManualMode()" class="text-[10px] text-luna-sageDark font-bold bg-luna-sageLight px-2 py-0.5 rounded">自動計算に戻す</button>` : `<span class="text-[10px] text-stone-400">周期不安定な方へ</span>`}
                        </div>
                        <p class="text-[11px] text-stone-500 leading-normal">
-                           周期が乱れている時は、日付計算に縛られず以下のボタンで「今のカラダの状態」を選ぶだけで、食事目標や運動が即座に最適化されます。
+                           周期が乱れている時は、日付計算に縛られず以下のボタンで「今のカラダの状態」を選ぶだけで、食事目標や運動負荷が即座に最適化されます。
                        </p>
                        <div class="grid grid-cols-2 gap-2 text-xs pt-1">
                            <button onclick="setManualCyclePhase('period')" class="p-2.5 rounded-xl border ${cyclePhase.phaseKey === 'period' ? 'bg-pink-100 border-pink-400 text-pink-900 font-bold shadow-xs' : 'bg-stone-50 border-stone-200 text-stone-700'} text-left transition">
@@ -1290,7 +1627,6 @@
                        </div>
                    </div>
 
-                   <!-- 現在のフェーズ表示 -->
                    <div class="bg-gradient-to-br from-pink-50 to-white p-4 rounded-2xl border border-pink-200/60 shadow-sm space-y-2">
                        <div class="flex items-center justify-between">
                            <span class="text-xs font-bold text-pink-700">適用中のフェーズ</span>
@@ -1307,7 +1643,6 @@
 
        function setManualCyclePhase(phaseKey) {
            appData.cycle.manualPhase = phaseKey;
-           // 生理中が選ばれた場合は、直近生理開始日も今日に更新
            if (phaseKey === 'period') {
                appData.cycle.lastPeriodStart = getTodayDateString();
            }
@@ -1357,59 +1692,245 @@
        }
 
        /* ==========================================================================
-          5. 記録・変化（グラフ＆写真）画面
+          5. 記録・変化（週ごとの達成率グラフ＆太腿3か所任意記録）画面
           ========================================================================== */
+       function calculateWeeklyAchievementStats() {
+           // 過去4週間（今週を含む）の週ごとの達成率を計算（目標：週3回＝月・水・木）
+           const weeks = [];
+           const now = new Date();
+           // 今週の月曜日を基準にする
+           const dayOfWeek = now.getDay();
+           const diffToMon = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+           const currentMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMon);
+
+           for (let w = 3; w >= 0; w--) {
+               const weekStart = new Date(currentMonday);
+               weekStart.setDate(currentMonday.getDate() - w * 7);
+               const weekEnd = new Date(weekStart);
+               weekEnd.setDate(weekStart.getDate() + 6);
+
+               const startStr = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`;
+               const endStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth() + 1).padStart(2, '0')}-${String(weekEnd.getDate()).padStart(2, '0')}`;
+
+               // その週に実施したユニークな運動日数（休息記録も自己管理としてカウント可能）
+               const logsInWeek = appData.workoutsLog.filter(l => l.date >= startStr && l.date <= endStr);
+               const uniqueDays = new Set(logsInWeek.map(l => l.date)).size;
+               // 週間目標は3回（月・水・木）を100%として算出
+               const rate = Math.min(100, Math.round((uniqueDays / 3) * 100));
+
+               weeks.push({
+                   label: w === 0 ? '今週' : `${w}週前`,
+                   count: uniqueDays,
+                   rate: rate
+               });
+           }
+           return weeks;
+       }
+
        function renderProgressScreen(container) {
+           const weeklyStats = calculateWeeklyAchievementStats();
+           const totalWorkouts = appData.workoutsLog.filter(w => !w.isRestRecord).length;
+           const totalMinutes = appData.workoutsLog.reduce((sum, w) => sum + (w.durationMinutes || 0), 0);
+           const latestThigh = appData.thighLog && appData.thighLog.length > 0 ? appData.thighLog[appData.thighLog.length - 1] : null;
+
            container.innerHTML = `
                <div class="space-y-4 fade-in">
                    <div class="flex justify-between items-center">
-                       <h2 class="font-bold text-stone-800 text-base">ボディライン変化＆記録</h2>
-                       <button onclick="showBodyLogModal()" class="px-3 py-1 bg-luna-sage text-white font-bold text-xs rounded-lg shadow-sm">
-                           <i class="fas fa-plus mr-1"></i> 初回・最新を記録
+                       <div>
+                           <h2 class="font-bold text-stone-800 text-base">成長記録＆変化の可視化</h2>
+                           <p class="text-[11px] text-stone-500">継続の積み重ねとシルエットの変化</p>
+                       </div>
+                       <button onclick="showBodyAndThighModal()" class="px-3 py-1.5 bg-luna-sage text-white font-bold text-xs rounded-xl shadow-sm">
+                           <i class="fas fa-plus mr-1"></i> サイズ・見た目記録
                        </button>
                    </div>
 
-                   ${appData.bodyLog.length === 0 ? `
-                       <div class="bg-white p-6 rounded-2xl border border-dashed border-stone-300 text-center space-y-3">
-                           <i class="fas fa-ruler text-3xl text-stone-300"></i>
-                           <div>
-                               <h3 class="font-bold text-stone-800 text-sm">まだ体重やウエストの記録がありません</h3>
-                               <p class="text-xs text-stone-500 mt-1">「初回・最新を記録」ボタンを押して、あなたの最初の数値を入力してください。</p>
-                           </div>
-                           <button onclick="showBodyLogModal()" class="px-4 py-2 bg-luna-sage text-white font-bold text-xs rounded-xl shadow">
-                               最初の数値を入力する
-                           </button>
+                   <!-- 運動の継続・筋力向上サマリー（体重以外も高く評価） -->
+                   <div class="grid grid-cols-3 gap-2 text-center">
+                       <div class="bg-luna-pastelPink/50 p-3 rounded-2xl border border-pink-100">
+                           <span class="text-[10px] text-pink-800 font-bold block">累計トレーニング</span>
+                           <span class="text-lg font-extrabold text-stone-800">${totalWorkouts} <span class="text-[10px] font-normal">回</span></span>
                        </div>
-                   ` : `
-                       <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm space-y-3">
-                           <div class="flex justify-between items-center">
-                               <h3 class="font-bold text-stone-800 text-xs">体重・ウエスト・ヒップ推移</h3>
+                       <div class="bg-luna-pastelMint/60 p-3 rounded-2xl border border-teal-100">
+                           <span class="text-[10px] text-luna-sageDark font-bold block">累計運動時間</span>
+                           <span class="text-lg font-extrabold text-stone-800">${totalMinutes} <span class="text-[10px] font-normal">分</span></span>
+                       </div>
+                       <div class="bg-luna-pastelLavender/60 p-3 rounded-2xl border border-purple-100">
+                           <span class="text-[10px] text-purple-800 font-bold block">今週の達成率</span>
+                           <span class="text-lg font-extrabold text-purple-900">${weeklyStats[3].rate}<span class="text-[10px] font-normal">%</span></span>
+                       </div>
+                   </div>
+
+                   <!-- 週ごとの達成率グラフ -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm space-y-2">
+                       <div class="flex justify-between items-center">
+                           <h3 class="font-bold text-stone-800 text-xs">📈 週ごとのプログラム達成率（週3回目安）</h3>
+                           <span class="text-[10px] text-stone-400">月・水・木ベース</span>
+                       </div>
+                       <div class="w-full h-40">
+                           <canvas id="weeklyAchievementChart"></canvas>
+                       </div>
+                   </div>
+
+                   <!-- 太腿の3か所（任意記録）＆見た目の変化カード -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm space-y-3">
+                       <div class="flex justify-between items-center">
+                           <h3 class="font-bold text-stone-800 text-xs">🦵 太腿ライン＆見た目の変化（任意記録）</h3>
+                           <button onclick="showBodyAndThighModal()" class="text-[11px] text-luna-sageDark font-bold hover:underline">入力・更新</button>
+                       </div>
+                       <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                           <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+                               <span class="text-[10px] text-stone-500 block">太腿の付け根</span>
+                               <span class="font-extrabold text-stone-800 text-sm">${latestThigh?.root ? latestThigh.root + ' cm' : '未入力'}</span>
                            </div>
-                           <div class="w-full h-48">
+                           <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+                               <span class="text-[10px] text-stone-500 block">太腿の中央</span>
+                               <span class="font-extrabold text-stone-800 text-sm">${latestThigh?.mid ? latestThigh.mid + ' cm' : '未入力'}</span>
+                           </div>
+                           <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-100">
+                               <span class="text-[10px] text-stone-500 block">膝上</span>
+                               <span class="font-extrabold text-stone-800 text-sm">${latestThigh?.aboveKnee ? latestThigh.aboveKnee + ' cm' : '未入力'}</span>
+                           </div>
+                       </div>
+                       ${latestThigh?.appearanceNote ? `
+                           <div class="p-2.5 bg-luna-beige/60 rounded-xl text-[11px] text-stone-700">
+                               <span class="font-bold text-amber-900">✨ 見た目の変化メモ（${latestThigh.date}）：</span>${latestThigh.appearanceNote}
+                           </div>
+                       ` : `
+                           <p class="text-[11px] text-stone-400 text-center">※測定は強制ではありません。「少し隙間ができた」「パンツが履きやすい」などの感覚メモも残せます。</p>
+                       `}
+                   </div>
+
+                   <!-- 体重・ウエスト・ヒップ推移（既存機能維持） -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm space-y-3">
+                       <div class="flex justify-between items-center">
+                           <h3 class="font-bold text-stone-800 text-xs">体重・ウエスト・ヒップ推移</h3>
+                           <button onclick="showBodyAndThighModal()" class="text-[11px] text-luna-sageDark font-bold hover:underline">記録する</button>
+                       </div>
+                       ${appData.bodyLog.length > 0 ? `
+                           <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                               <div class="bg-stone-50 p-2 rounded-xl border border-stone-100">
+                                   <span class="text-[10px] text-stone-400 block">最新体重</span>
+                                   <span class="font-bold text-stone-800">${appData.bodyLog[appData.bodyLog.length - 1]?.weight ? appData.bodyLog[appData.bodyLog.length - 1].weight + ' kg' : '-'}</span>
+                               </div>
+                               <div class="bg-stone-50 p-2 rounded-xl border border-stone-100">
+                                   <span class="text-[10px] text-stone-400 block">ウエスト</span>
+                                   <span class="font-bold text-stone-800">${appData.bodyLog[appData.bodyLog.length - 1]?.waist ? appData.bodyLog[appData.bodyLog.length - 1].waist + ' cm' : '-'}</span>
+                               </div>
+                               <div class="bg-stone-50 p-2 rounded-xl border border-stone-100">
+                                   <span class="text-[10px] text-stone-400 block">ヒップ</span>
+                                   <span class="font-bold text-stone-800">${appData.bodyLog[appData.bodyLog.length - 1]?.hip ? appData.bodyLog[appData.bodyLog.length - 1].hip + ' cm' : '-'}</span>
+                               </div>
+                           </div>
+                           <div class="relative w-full h-44">
                                <canvas id="progressChart"></canvas>
                            </div>
-                       </div>
+                       ` : `
+                           <p class="text-[11px] text-stone-400 text-center py-3">体重やサイズを記録すると、ここに推移グラフが表示されます。</p>
+                       `}
+                   </div>
 
-                       <div class="grid grid-cols-3 gap-2 text-center text-xs">
-                           <div class="bg-white p-2.5 rounded-xl border border-stone-100 shadow-xs">
-                               <span class="text-[10px] text-stone-400 block">最新体重</span>
-                               <span class="font-bold text-stone-800 text-sm">${appData.profile.currentWeight ? appData.profile.currentWeight + ' kg' : '-'}</span>
+                   <!-- 最近の運動・体調ログ一覧 -->
+                   <div class="bg-white p-4 rounded-2xl border border-stone-200/70 shadow-sm space-y-2.5">
+                       <h3 class="font-bold text-stone-800 text-xs">最近の運動・体調ログ</h3>
+                       ${appData.workoutsLog.length === 0 ? `
+                           <p class="text-xs text-stone-400 text-center py-3">まだ運動記録がありません。無理のない日から始めてみましょう🌷</p>
+                       ` : `
+                           <div class="space-y-2 max-h-48 overflow-y-auto">
+                               ${[...appData.workoutsLog].reverse().slice(0, 10).map(log => `
+                                   <div class="flex justify-between items-center text-xs p-2.5 rounded-xl bg-stone-50 border border-stone-100">
+                                       <div>
+                                           <span class="text-[10px] text-stone-400 block">${log.date}</span>
+                                           <span class="font-bold text-stone-800">${log.title}</span>
+                                       </div>
+                                       <div class="text-right">
+                                           <span class="px-2 py-0.5 bg-luna-sageLight text-luna-sageDark rounded text-[10px] font-bold">
+                                               ${log.isRestRecord ? '休息達成' : `${log.durationMinutes}分 / ${log.totalReps || 0}回`}
+                                           </span>
+                                       </div>
+                                   </div>
+                               `).join('')}
                            </div>
-                           <div class="bg-white p-2.5 rounded-xl border border-stone-100 shadow-xs">
-                               <span class="text-[10px] text-stone-400 block">ウエスト</span>
-                               <span class="font-bold text-stone-800 text-sm">${appData.bodyLog[appData.bodyLog.length - 1]?.waist ? appData.bodyLog[appData.bodyLog.length - 1].waist + ' cm' : '-'}</span>
-                           </div>
-                           <div class="bg-white p-2.5 rounded-xl border border-stone-100 shadow-xs">
-                               <span class="text-[10px] text-luna-sageDark block">ヒップ</span>
-                               <span class="font-bold text-luna-sageDark text-sm">${appData.profile.currentHip ? appData.profile.currentHip + ' cm' : '-'}</span>
-                           </div>
-                       </div>
-                   `}
+                       `}
+                   </div>
                </div>
            `;
-           if (appData.bodyLog.length > 0) {
-               setTimeout(initProgressChart, 100);
+
+           setTimeout(() => {
+               initWeeklyAchievementChart(weeklyStats);
+               if (appData.bodyLog && appData.bodyLog.length > 0) {
+                   initProgressChart();
+               }
+           }, 120);
+       }
+
+       let weeklyChartInstance = null;
+       let progressChartInstance = null;
+
+       function initWeeklyAchievementChart(weeklyStats) {
+           const ctx = document.getElementById('weeklyAchievementChart');
+           if (!ctx) return;
+           if (weeklyChartInstance) {
+               weeklyChartInstance.destroy();
            }
+
+           weeklyChartInstance = new Chart(ctx, {
+               type: 'bar',
+               data: {
+                   labels: weeklyStats.map(w => w.label),
+                   datasets: [{
+                       label: '達成率 (%)',
+                       data: weeklyStats.map(w => w.rate),
+                       backgroundColor: ['#E8EFEA', '#DCE8E2', '#B7CFC6', '#78938A'],
+                       borderRadius: 8,
+                       barThickness: 28
+                   }]
+               },
+               options: {
+                   responsive: true,
+                   maintainAspectRatio: false,
+                   plugins: { legend: { display: false } },
+                   scales: {
+                       y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%', font: { size: 10 } }, grid: { color: '#F3F4F6' } },
+                       x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+                   }
+               }
+           });
+       }
+
+       function initProgressChart() {
+           const ctx = document.getElementById('progressChart');
+           if (!ctx) return;
+           if (progressChartInstance) {
+               progressChartInstance.destroy();
+           }
+
+           const sortedLogs = [...appData.bodyLog].sort((a, b) => a.date.localeCompare(b.date));
+           const labels = sortedLogs.map(item => item.date.slice(5)); // MM-DD表記で見やすく
+           const weights = sortedLogs.map(item => (item.weight && item.weight > 0) ? item.weight : null);
+           const waists = sortedLogs.map(item => (item.waist && item.waist > 0) ? item.waist : null);
+           const hips = sortedLogs.map(item => (item.hip && item.hip > 0) ? item.hip : null);
+
+           progressChartInstance = new Chart(ctx, {
+               type: 'line',
+               data: {
+                   labels: labels,
+                   datasets: [
+                       { label: '体重(kg)', data: weights, borderColor: '#D4A373', backgroundColor: 'rgba(212, 163, 115, 0.15)', borderWidth: 2.5, pointRadius: 4, spanGaps: true, tension: 0.3 },
+                       { label: 'ウエスト(cm)', data: waists, borderColor: '#566E66', backgroundColor: 'rgba(86, 110, 102, 0.15)', borderWidth: 2.5, pointRadius: 4, spanGaps: true, tension: 0.3 },
+                       { label: 'ヒップ(cm)', data: hips, borderColor: '#78938A', backgroundColor: 'rgba(120, 147, 138, 0.15)', borderWidth: 2.5, pointRadius: 4, spanGaps: true, tension: 0.3 }
+                   ]
+               },
+               options: {
+                   responsive: true,
+                   maintainAspectRatio: false,
+                   plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } },
+                   scales: {
+                       y: { beginAtZero: false, grid: { color: '#F3F4F6' }, ticks: { font: { size: 10 } } },
+                       x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                   }
+               }
+           });
        }
 
        function initProgressChart() {
@@ -1439,48 +1960,97 @@
            });
        }
 
-       function showBodyLogModal() {
+       /* サイズ・太腿3か所・見た目の変化記録モーダル（すべて任意入力） */
+       function showBodyAndThighModal() {
            const modalTitle = document.getElementById('modal-title');
            const modalBody = document.getElementById('modal-body');
-           const lastLog = appData.bodyLog[appData.bodyLog.length - 1] || {};
+           const lastBody = appData.bodyLog[appData.bodyLog.length - 1] || {};
+           const lastThigh = appData.thighLog[appData.thighLog.length - 1] || {};
 
-           modalTitle.textContent = '体型・サイズの記録';
+           modalTitle.textContent = '体型・太腿ラインの記録（すべて任意）';
            modalBody.innerHTML = `
                <div class="space-y-3 text-xs">
                    <div>
                        <label class="block font-bold text-stone-700 mb-1">記録日</label>
                        <input id="log-date" type="date" value="${getTodayDateString()}" class="w-full border border-stone-300 rounded-xl p-2">
                    </div>
-                   <div>
-                       <label class="block font-bold text-stone-700 mb-1">体重 (kg)</label>
-                       <input id="log-weight" type="number" step="0.1" value="${appData.profile.currentWeight || lastLog.weight || ''}" placeholder="例: 60.0" class="w-full border border-stone-300 rounded-xl p-2">
+
+                   <div class="p-3 bg-luna-pastelPink/40 rounded-xl border border-pink-100 space-y-2">
+                       <div class="font-bold text-pink-900">🦵 太腿サイズ3か所（任意）</div>
+                       <div class="grid grid-cols-3 gap-2">
+                           <div>
+                               <label class="block text-[10px] text-stone-600 mb-0.5">太腿の付け根</label>
+                               <input id="log-thigh-root" type="number" step="0.1" value="${lastThigh.root || ''}" placeholder="cm" class="w-full border border-stone-300 rounded-lg p-1.5 bg-white">
+                           </div>
+                           <div>
+                               <label class="block text-[10px] text-stone-600 mb-0.5">太腿の中央</label>
+                               <input id="log-thigh-mid" type="number" step="0.1" value="${lastThigh.mid || ''}" placeholder="cm" class="w-full border border-stone-300 rounded-lg p-1.5 bg-white">
+                           </div>
+                           <div>
+                               <label class="block text-[10px] text-stone-600 mb-0.5">膝上</label>
+                               <input id="log-thigh-knee" type="number" step="0.1" value="${lastThigh.aboveKnee || ''}" placeholder="cm" class="w-full border border-stone-300 rounded-lg p-1.5 bg-white">
+                           </div>
+                       </div>
+                       <div>
+                           <label class="block text-[10px] text-stone-600 mb-0.5">内腿・見た目の変化メモ（任意）</label>
+                           <input id="log-appearance" type="text" value="${lastThigh.appearanceNote || ''}" placeholder="例: 内腿が少し引き締まった気がする" class="w-full border border-stone-300 rounded-lg p-1.5 bg-white">
+                       </div>
                    </div>
-                   <div>
-                       <label class="block font-bold text-stone-700 mb-1">ウエスト (cm)</label>
-                       <input id="log-waist" type="number" step="0.5" value="${lastLog.waist || ''}" placeholder="例: 80.0" class="w-full border border-stone-300 rounded-xl p-2">
+
+                   <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-2">
+                       <div class="font-bold text-stone-700">体重・ウエスト・ヒップ（任意）</div>
+                       <div class="grid grid-cols-3 gap-2">
+                           <div>
+                               <label class="block text-[10px] text-stone-600 mb-0.5">体重 (kg)</label>
+                               <input id="log-weight" type="number" step="0.1" value="${appData.profile.currentWeight || lastBody.weight || ''}" placeholder="kg" class="w-full border border-stone-300 rounded-lg p-1.5 bg-white">
+                           </div>
+                           <div>
+                               <label class="block text-[10px] text-stone-600 mb-0.5">ウエスト (cm)</label>
+                               <input id="log-waist" type="number" step="0.5" value="${lastBody.waist || ''}" placeholder="cm" class="w-full border border-stone-300 rounded-lg p-1.5 bg-white">
+                           </div>
+                           <div>
+                               <label class="block text-[10px] text-stone-600 mb-0.5">ヒップ (cm)</label>
+                               <input id="log-hip" type="number" step="0.5" value="${appData.profile.currentHip || lastBody.hip || ''}" placeholder="cm" class="w-full border border-stone-300 rounded-lg p-1.5 bg-white">
+                           </div>
+                       </div>
                    </div>
-                   <div>
-                       <label class="block font-bold text-stone-700 mb-1">ヒップ (cm)</label>
-                       <input id="log-hip" type="number" step="0.5" value="${appData.profile.currentHip || lastLog.hip || ''}" placeholder="例: 95.0" class="w-full border border-stone-300 rounded-xl p-2">
-                   </div>
-                   <button onclick="saveBodyLogEntry()" class="w-full py-2.5 bg-luna-sage text-white font-bold rounded-xl mt-2">保存する</button>
+
+                   <button onclick="saveBodyAndThighEntry()" class="w-full py-2.5 bg-luna-sage text-white font-bold rounded-xl mt-2">保存する</button>
                </div>
            `;
            document.getElementById('modal').classList.remove('hidden');
        }
 
-       function saveBodyLogEntry() {
+       function saveBodyAndThighEntry() {
            const dateVal = document.getElementById('log-date').value || getTodayDateString();
+           const root = parseFloat(document.getElementById('log-thigh-root').value) || 0;
+           const mid = parseFloat(document.getElementById('log-thigh-mid').value) || 0;
+           const aboveKnee = parseFloat(document.getElementById('log-thigh-knee').value) || 0;
+           const appearanceNote = document.getElementById('log-appearance').value.trim();
+
            const weight = parseFloat(document.getElementById('log-weight').value) || 0;
            const waist = parseFloat(document.getElementById('log-waist').value) || 0;
            const hip = parseFloat(document.getElementById('log-hip').value) || 0;
 
-           appData.profile.currentWeight = weight;
-           appData.profile.currentHip = hip;
-           appData.bodyLog.push({ date: dateVal, weight, waist, hip, postureScore: 4, taichiEase: '記録' });
+           if (root > 0 || mid > 0 || aboveKnee > 0 || appearanceNote) {
+               appData.thighLog.push({
+                   date: dateVal,
+                   root,
+                   mid,
+                   aboveKnee,
+                   appearanceNote
+               });
+           }
+
+           if (weight > 0 || waist > 0 || hip > 0) {
+               if (weight > 0) appData.profile.currentWeight = weight;
+               if (hip > 0) appData.profile.currentHip = hip;
+               appData.bodyLog.push({ date: dateVal, weight, waist, hip, postureScore: 4, taichiEase: '記録' });
+           }
+
            saveState();
            closeModal();
-           showToast('体型記録を保存しました');
+           showToast('記録を保存しました✨');
            switchTab('progress');
        }
 
@@ -1488,14 +2058,14 @@
        function triggerKatsu() {
            const modalTitle = document.getElementById('modal-title');
            const modalBody = document.getElementById('modal-body');
-           modalTitle.textContent = '🔥 コーチからの熱い励まし';
+           modalTitle.textContent = '🔥 コーチからの優しいエール';
            modalBody.innerHTML = `
                <div class="space-y-3 py-1">
-                   <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-stone-800 text-xs leading-relaxed font-semibold">
-                       「外に出られなくても全然大丈夫！月〜金のおまかせメニューで『前ももの張り』と『腹筋不足』をしっかりケアすれば、鏡に映るラインは確実に変わるよ。今日も自分のペースで体を動かそう！」
+                   <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-stone-800 text-xs leading-relaxed font-semibold">
+                       「外腿が以前よりスッキリしてきたのは、これまでの積み重ねの証拠です！週2回・1回10分の内腿＆お尻ケアで、脚のラインはもっと綺麗に整います。今日も無理なく、自分のペースで進みましょう！」
                    </div>
-                   <button onclick="closeModal(); startWorkoutProgram('8');" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs rounded-xl shadow-md">
-                       本日のメニューを今すぐ始める！
+                   <button onclick="closeModal(); switchTab('workout');" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs rounded-xl shadow-md">
+                       内腿すっきりメニューを見る
                    </button>
                </div>
            `;
@@ -1508,7 +2078,7 @@
            if (toast && toastMsg) {
                toastMsg.textContent = msg;
                toast.classList.remove('hidden');
-               setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+               setTimeout(() => { toast.classList.add('hidden'); }, 3200);
            }
        }
 
