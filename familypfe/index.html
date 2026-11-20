@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>かぞくの鉄・タンパク手帳</title>
+   <!-- Tailwind CSS -->
+   <script src="https://cdn.tailwindcss.com"></script>
+   <!-- Google Fonts: Noto Sans JP & Inter -->
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+   <!-- Font Awesome for Icons -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   <style>
+       body {
+           font-family: 'Inter', 'Noto Sans JP', sans-serif;
+           background-color: #f8fafc;
+           -webkit-tap-highlight-color: transparent;
+       }
+       /* Custom scrollbar for horizontal member list */
+       .no-scrollbar::-webkit-scrollbar {
+           display: none;
+       }
+       .no-scrollbar {
+           -ms-overflow-style: none;
+           scrollbar-width: none;
+       }
+       .progress-ring-circle {
+           transition: stroke-dashoffset 0.5s ease-in-out;
+           transform: rotate(-90deg);
+           transform-origin: 50% 50%;
+       }
+   </style>
+</head>
+<body class="text-slate-800 antialiased pb-24">
+
+   <!-- Header -->
+   <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+       <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+           <div class="flex items-center space-x-2.5">
+               <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-amber-500 flex items-center justify-center text-white shadow-sm">
+                   <i class="fa-solid fa-heart-pulse text-lg"></i>
+               </div>
+               <div>
+                   <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">かぞくの鉄・タンパク手帳</h1>
+                   <p class="text-[11px] text-slate-500">年齢・性別・仕事量から最適な目標を自動計算</p>
+               </div>
+           </div>
+           <button onclick="openMemberModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-medium px-3.5 py-2 rounded-xl transition flex items-center space-x-1.5 shadow-sm active:scale-95">
+               <i class="fa-solid fa-user-plus"></i>
+               <span>家族を追加</span>
+           </button>
+       </div>
+   </header>
+
+   <!-- Main Container -->
+   <main class="max-w-3xl mx-auto px-4 pt-4 space-y-5">
+
+       <!-- Date Navigation -->
+       <div class="flex items-center justify-between bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-100">
+           <button onclick="changeDate(-1)" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition">
+               <i class="fa-solid fa-chevron-left"></i>
+           </button>
+           <div class="flex items-center space-x-2">
+               <i class="fa-regular fa-calendar text-rose-500"></i>
+               <span id="currentDateDisplay" class="font-bold text-sm sm:text-base text-slate-800">今日</span>
+           </div>
+           <button onclick="changeDate(1)" id="nextDateBtn" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition">
+               <i class="fa-solid fa-chevron-right"></i>
+           </button>
+       </div>
+
+       <!-- Family Overview Cards (Horizontal Scroll on Mobile, Grid on Desktop) -->
+       <section>
+           <div class="flex items-center justify-between mb-2 px-1">
+               <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">家族メンバー選択</h2>
+               <span class="text-xs text-slate-400">タップして記録・詳細確認</span>
+           </div>
+           <div id="familyList" class="flex sm:grid sm:grid-cols-2 md:grid-cols-3 gap-3 overflow-x-auto no-scrollbar pb-1">
+               <!-- Member cards injected by JS -->
+           </div>
+       </section>
+
+       <!-- Active Member Dashboard -->
+       <section id="activeDashboard" class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 space-y-5">
+           <!-- Member Header -->
+           <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+               <div class="flex items-center space-x-3">
+                   <div id="activeAvatar" class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl bg-amber-100 text-amber-600 font-bold">
+                       👨
+                   </div>
+                   <div>
+                       <div class="flex items-center space-x-2">
+                           <h2 id="activeName" class="text-lg font-bold text-slate-900">パパ</h2>
+                           <span id="activeRoleBadge" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">パートナー</span>
+                       </div>
+                       <p id="activeMeta" class="text-xs text-slate-500 mt-0.5">35歳・男性・デスクワーク中心</p>
+                   </div>
+               </div>
+               <div class="flex space-x-1">
+                   <button onclick="editActiveMember()" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition" title="プロフィール編集">
+                       <i class="fa-solid fa-pen-to-square"></i>
+                   </button>
+                   <button onclick="confirmDeleteMember()" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition" title="削除">
+                       <i class="fa-solid fa-trash-can"></i>
+                   </button>
+               </div>
+           </div>
+
+           <!-- Dual Progress Cards: Protein & Iron -->
+           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <!-- Protein Card -->
+               <div class="bg-gradient-to-br from-amber-50 to-orange-50/60 border border-amber-200/60 rounded-2xl p-4 relative overflow-hidden">
+                   <div class="flex justify-between items-start mb-2">
+                       <div>
+                           <span class="inline-flex items-center space-x-1 text-xs font-bold text-amber-800 bg-amber-200/60 px-2.5 py-0.5 rounded-full">
+                               <i class="fa-solid fa-drumstick-bite"></i>
+                               <span>タンパク質</span>
+                           </span>
+                           <div class="mt-2 flex items-baseline space-x-1">
+                               <span id="proteinCurrent" class="text-3xl font-bold text-slate-900">0</span>
+                               <span class="text-sm text-slate-500 font-medium">/ <span id="proteinTarget">65</span> g</span>
+                           </div>
+                       </div>
+                       <div id="proteinPercent" class="text-sm font-bold text-amber-700 bg-white/80 px-2.5 py-1 rounded-xl shadow-sm">
+                           0%
+                       </div>
+                   </div>
+                   <!-- Progress Bar -->
+                   <div class="w-full bg-amber-200/50 rounded-full h-3 mt-3 overflow-hidden">
+                       <div id="proteinBar" class="bg-amber-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                   </div>
+                   <p id="proteinRemaining" class="text-xs text-amber-900/80 mt-2 font-medium">あと 65.0g で目標達成！</p>
+               </div>
+
+               <!-- Iron Card -->
+               <div class="bg-gradient-to-br from-rose-50 to-pink-50/60 border border-rose-200/60 rounded-2xl p-4 relative overflow-hidden">
+                   <div class="flex justify-between items-start mb-2">
+                       <div>
+                           <span class="inline-flex items-center space-x-1 text-xs font-bold text-rose-800 bg-rose-200/60 px-2.5 py-0.5 rounded-full">
+                               <i class="fa-solid fa-droplet"></i>
+                               <span>鉄分</span>
+                           </span>
+                           <div class="mt-2 flex items-baseline space-x-1">
+                               <span id="ironCurrent" class="text-3xl font-bold text-slate-900">0.0</span>
+                               <span class="text-sm text-slate-500 font-medium">/ <span id="ironTarget">7.5</span> mg</span>
+                           </div>
+                       </div>
+                       <div id="ironPercent" class="text-sm font-bold text-rose-700 bg-white/80 px-2.5 py-1 rounded-xl shadow-sm">
+                           0%
+                       </div>
+                   </div>
+                   <!-- Progress Bar -->
+                   <div class="w-full bg-rose-200/50 rounded-full h-3 mt-3 overflow-hidden">
+                       <div id="ironBar" class="bg-rose-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                   </div>
+                   <p id="ironRemaining" class="text-xs text-rose-900/80 mt-2 font-medium">あと 7.5mg で目標達成！</p>
+               </div>
+           </div>
+
+           <!-- Quick Add Presets -->
+           <div>
+               <div class="flex items-center justify-between mb-2.5">
+                   <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-1.5">
+                       <i class="fa-solid fa-bolt text-amber-500"></i>
+                       <span>ワンタップ食材追加</span>
+                   </h3>
+                   <button onclick="openCustomFoodModal()" class="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl transition">
+                       + 手入力で追加
+                   </button>
+               </div>
+
+               <!-- Category Filter Tabs -->
+               <div class="flex space-x-1.5 overflow-x-auto no-scrollbar pb-2 mb-1">
+                   <button onclick="filterPresets('all')" class="preset-tab active px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-white transition whitespace-nowrap" data-cat="all">すべて</button>
+                   <button onclick="filterPresets('meat_fish')" class="preset-tab px-3 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap" data-cat="meat_fish">肉・魚</button>
+                   <button onclick="filterPresets('egg_dairy_soy')" class="preset-tab px-3 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap" data-cat="egg_dairy_soy">卵・乳・大豆</button>
+                   <button onclick="filterPresets('iron_boost')" class="preset-tab px-3 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap" data-cat="iron_boost">鉄分強化・野菜</button>
+               </div>
+
+               <div id="presetGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                   <!-- Presets injected by JS -->
+               </div>
+           </div>
+
+           <!-- Today's Log History -->
+           <div class="pt-2 border-t border-slate-100">
+               <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center justify-between">
+                   <span>食べた記録リスト</span>
+                   <span id="logCount" class="text-xs font-normal text-slate-400">0件</span>
+               </h3>
+               <div id="logList" class="space-y-2">
+                   <!-- Logs injected by JS -->
+               </div>
+           </div>
+       </section>
+
+       <!-- Nutrition Basis Info Card -->
+       <section class="bg-slate-100/80 rounded-2xl p-4 text-xs text-slate-600 space-y-1.5">
+           <div class="font-bold text-slate-700 flex items-center space-x-1.5">
+               <i class="fa-solid fa-circle-info text-slate-500"></i>
+               <span>目標値の計算基準について</span>
+           </div>
+           <p>「日本人の食事摂取基準」をベースに、お子様は成長期に必要な推奨量、大人（パートナー）は年齢・性別に加えて**お仕事や日常の身体活動レベル**（デスクワーク・立ち仕事・肉体労働など）から必要なタンパク質・鉄分量を自動算出しています。</p>
+       </section>
+
+   </main>
+
+   <!-- Toast Notification -->
+   <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-lg text-sm font-medium flex items-center space-x-2 opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+       <i class="fa-solid fa-circle-check text-emerald-400"></i>
+       <span id="toastMessage">追加しました</span>
+   </div>
+
+   <!-- Modal: Add / Edit Family Member -->
+   <div id="memberModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+       <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+           <div class="flex items-center justify-between">
+               <h3 id="memberModalTitle" class="text-lg font-bold text-slate-900">家族メンバーを追加</h3>
+               <button onclick="closeMemberModal()" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl">
+                   <i class="fa-solid fa-xmark text-lg"></i>
+               </button>
+           </div>
+
+           <form id="memberForm" onsubmit="saveMember(event)" class="space-y-4">
+               <input type="hidden" id="memberId">
+
+               <!-- Role Selection: Child vs Partner/Adult -->
+               <div>
+                   <label class="block text-xs font-bold text-slate-700 mb-1.5">区分</label>
+                   <div class="grid grid-cols-2 gap-2">
+                       <label class="cursor-pointer">
+                           <input type="radio" name="role" value="child" class="peer sr-only" onchange="toggleRoleFields()" checked>
+                           <div class="text-center py-2.5 px-3 rounded-xl border border-slate-200 peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:text-amber-900 font-bold text-sm transition">
+                               🧒 子供
+                           </div>
+                       </label>
+                       <label class="cursor-pointer">
+                           <input type="radio" name="role" value="partner" class="peer sr-only" onchange="toggleRoleFields()">
+                           <div class="text-center py-2.5 px-3 rounded-xl border border-slate-200 peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:text-rose-900 font-bold text-sm transition">
+                               🧑 パートナー・大人
+                           </div>
+                       </label>
+                   </div>
+               </div>
+
+               <!-- Name & Avatar -->
+               <div class="grid grid-cols-3 gap-3">
+                   <div class="col-span-2">
+                       <label class="block text-xs font-bold text-slate-700 mb-1">ニックネーム</label>
+                       <input type="text" id="memberName" required placeholder="例：はると、ママ" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm">
+                   </div>
+                   <div>
+                       <label class="block text-xs font-bold text-slate-700 mb-1">アイコン</label>
+                       <select id="memberAvatar" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500 text-base bg-white">
+                           <option value="👦">👦 男の子</option>
+                           <option value="👧">👧 女の子</option>
+                           <option value="👶">👶 赤ちゃん</option>
+                           <option value="👨">👨 パパ</option>
+                           <option value="👩">👩 ママ</option>
+                           <option value="🧑">🧑 大人</option>
+                       </select>
+                   </div>
+               </div>
+
+               <!-- Age & Gender -->
+               <div class="grid grid-cols-2 gap-3">
+                   <div>
+                       <label class="block text-xs font-bold text-slate-700 mb-1">年齢 (歳)</label>
+                       <input type="number" id="memberAge" required min="1" max="100" value="6" oninput="updatePreviewTargets()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm">
+                   </div>
+                   <div>
+                       <label class="block text-xs font-bold text-slate-700 mb-1">性別</label>
+                       <select id="memberGender" onchange="updatePreviewTargets()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white">
+                           <option value="male">男性</option>
+                           <option value="female">女性</option>
+                       </select>
+                   </div>
+               </div>
+
+               <!-- Partner Specific: Work / Activity Level -->
+               <div id="partnerFields" class="hidden space-y-3 pt-1">
+                   <div>
+                       <label class="block text-xs font-bold text-slate-700 mb-1">お仕事内容・普段の活動量</label>
+                       <select id="memberWorkType" onchange="updatePreviewTargets()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white">
+                           <option value="desk">デスクワーク中心（座り仕事・車移動メイン）</option>
+                           <option value="standing">立ち仕事・接客・家事育児（よく歩く・動く）</option>
+                           <option value="active">肉体労働・外回り・スポーツ習慣あり（運動量が多い）</option>
+                       </select>
+                   </div>
+                   <div id="femaleIronOption" class="hidden bg-rose-50 p-3 rounded-xl border border-rose-100">
+                       <label class="flex items-center space-x-2.5 cursor-pointer">
+                           <input type="checkbox" id="hasMenstruation" checked onchange="updatePreviewTargets()" class="w-4 h-4 text-rose-600 rounded focus:ring-rose-500">
+                           <span class="text-xs font-medium text-rose-900">月経あり（鉄分の推奨量を多めに設定します）</span>
+                       </label>
+                   </div>
+               </div>
+
+               <!-- Auto-calculated Target Preview -->
+               <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                   <div class="text-xs font-bold text-slate-500 mb-2">自動計算された1日の目標目安</div>
+                   <div class="grid grid-cols-2 gap-3">
+                       <div class="bg-white p-2.5 rounded-xl border border-slate-100">
+                           <span class="text-[11px] text-amber-700 font-bold block">タンパク質</span>
+                           <span class="text-lg font-bold text-slate-900"><span id="previewProtein">30</span> g</span>
+                       </div>
+                       <div class="bg-white p-2.5 rounded-xl border border-slate-100">
+                           <span class="text-[11px] text-rose-700 font-bold block">鉄分</span>
+                           <span class="text-lg font-bold text-slate-900"><span id="previewIron">5.5</span> mg</span>
+                       </div>
+                   </div>
+               </div>
+
+               <div class="pt-2 flex space-x-2">
+                   <button type="button" onclick="closeMemberModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition">キャンセル</button>
+                   <button type="submit" class="flex-1 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition shadow-sm">保存する</button>
+               </div>
+           </form>
+       </div>
+   </div>
+
+   <!-- Modal: Custom Food Entry -->
+   <div id="customFoodModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+       <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-xl space-y-4">
+           <div class="flex items-center justify-between">
+               <h3 class="text-lg font-bold text-slate-900">手入力で食事を追加</h3>
+               <button onclick="closeCustomFoodModal()" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl">
+                   <i class="fa-solid fa-xmark text-lg"></i>
+               </button>
+           </div>
+           <form onsubmit="addCustomFood(event)" class="space-y-4">
+               <div>
+                   <label class="block text-xs font-bold text-slate-700 mb-1">メニュー・食材名</label>
+                   <input type="text" id="customFoodName" required placeholder="例：鶏むね肉、プロテイン、給食" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm">
+               </div>
+               <div class="grid grid-cols-2 gap-3">
+                   <div>
+                       <label class="block text-xs font-bold text-amber-800 mb-1">タンパク質 (g)</label>
+                       <input type="number" id="customFoodProtein" step="0.1" min="0" required placeholder="0.0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                   </div>
+                   <div>
+                       <label class="block text-xs font-bold text-rose-800 mb-1">鉄分 (mg)</label>
+                       <input type="number" id="customFoodIron" step="0.1" min="0" required placeholder="0.0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm">
+                   </div>
+               </div>
+               <div class="pt-2 flex space-x-2">
+                   <button type="button" onclick="closeCustomFoodModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition">キャンセル</button>
+                   <button type="submit" class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-sm hover:bg-rose-700 transition shadow-sm">追加する</button>
+               </div>
+           </form>
+       </div>
+   </div>
+
+   <!-- Modal: Confirm Delete -->
+   <div id="deleteConfirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+       <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-xl text-center space-y-4">
+           <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl">
+               <i class="fa-solid fa-triangle-exclamation"></i>
+           </div>
+           <div>
+               <h3 class="text-base font-bold text-slate-900">メンバーを削除しますか？</h3>
+               <p class="text-xs text-slate-500 mt-1">これまでの食事記録もすべて削除されます。</p>
+           </div>
+           <div class="flex space-x-2 pt-1">
+               <button onclick="closeDeleteModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50">やめる</button>
+               <button onclick="executeDeleteMember()" class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs hover:bg-rose-700">削除する</button>
+           </div>
+       </div>
+   </div>
+
+   <script>
+       // --- 1. 栄養目標値の自動計算ロジック (日本人の食事摂取基準をベースに最適化) ---
+       function calculateTargets(role, age, gender, workType = 'desk', hasMenstruation = true) {
+           let protein = 50;
+           let iron = 6.5;
+
+           if (role === 'child') {
+               // 子供（年齢と性別）
+               if (age <= 2) {
+                   protein = 20;
+                   iron = 4.5;
+               } else if (age <= 5) {
+                   protein = 25;
+                   iron = 5.5;
+               } else if (age <= 7) {
+                   protein = 30;
+                   iron = 5.5;
+               } else if (age <= 9) {
+                   protein = 40;
+                   iron = gender === 'male' ? 7.0 : 7.5;
+               } else if (age <= 11) {
+                   protein = gender === 'male' ? 45 : 50;
+                   iron = gender === 'male' ? 8.5 : 10.0; // 初潮考慮
+               } else if (age <= 14) {
+                   protein = gender === 'male' ? 60 : 55;
+                   iron = gender === 'male' ? 10.0 : 12.0;
+               } else {
+                   protein = gender === 'male' ? 65 : 55;
+                   iron = gender === 'male' ? 10.0 : 10.5;
+               }
+           } else {
+               // パートナー・大人（年齢・性別・仕事内容/活動量）
+               if (gender === 'male') {
+                   // ベースタンパク質
+                   let baseProtein = age >= 65 ? 60 : 65;
+                   // 仕事内容によるタンパク質補正（活動量が多いほど筋修復・エネルギー消費で必要）
+                   if (workType === 'standing') baseProtein += 5;
+                   if (workType === 'active') baseProtein += 15;
+                   protein = baseProtein;
+
+                   // 鉄分（男性）
+                   iron = age >= 75 ? 7.0 : 7.5;
+                   if (workType === 'active') iron += 0.5; // 発汗等による微増考慮
+               } else {
+                   // 女性ベースタンパク質
+                   let baseProtein = 50;
+                   if (workType === 'standing') baseProtein += 5;
+                   if (workType === 'active') baseProtein += 12;
+                   protein = baseProtein;
+
+                   // 鉄分（女性：月経有無と年齢）
+                   if (age >= 50 && !hasMenstruation) {
+                       iron = 6.5;
+                   } else if (hasMenstruation) {
+                       iron = 10.5;
+                   } else {
+                       iron = 6.5;
+                   }
+                   if (workType === 'active') iron += 0.5;
+               }
+           }
+
+           return {
+               protein: Math.round(protein * 10) / 10,
+               iron: Math.round(iron * 10) / 10
+           };
+       }
+
+       // --- 2. プリセット食材データ（タンパク質 & 鉄分） ---
+       const PRESET_FOODS = [
+           { id: 'egg', name: '卵 1個', icon: '🥚', protein: 6.2, iron: 0.9, cat: 'egg_dairy_soy' },
+           { id: 'natto', name: '納豆 1パック', icon: '🫘', protein: 7.4, iron: 1.5, cat: 'egg_dairy_soy' },
+           { id: 'tofu', name: '木綿豆腐 1/3丁', icon: '⬜', protein: 7.0, iron: 1.5, cat: 'egg_dairy_soy' },
+           { id: 'milk', name: '牛乳 200ml', icon: '🥛', protein: 6.8, iron: 0.0, cat: 'egg_dairy_soy' },
+           { id: 'chicken', name: '鶏むね・ささみ 100g', icon: '🍗', protein: 23.0, iron: 0.4, cat: 'meat_fish' },
+           { id: 'beef', name: '牛赤身肉 100g', icon: '🥩', protein: 21.0, iron: 2.5, cat: 'meat_fish' },
+           { id: 'pork', name: '豚ひれ・もも 100g', icon: '🍖', protein: 21.5, iron: 0.9, cat: 'meat_fish' },
+           { id: 'salmon', name: '鮭 1切れ', icon: '🐟', protein: 18.0, iron: 0.5, cat: 'meat_fish' },
+           { id: 'mackerel', name: 'サバ缶 1/2缶', icon: '🥫', protein: 15.0, iron: 1.8, cat: 'meat_fish' },
+           { id: 'liver', name: '鶏レバー 50g', icon: '串', protein: 9.5, iron: 4.5, cat: 'meat_fish' },
+           { id: 'spinach', name: 'ほうれん草お浸し', icon: '🥬', protein: 1.5, iron: 1.4, cat: 'iron_boost' },
+           { id: 'komatsuna', name: '小松菜の副菜', icon: '🥗', protein: 1.2, iron: 2.1, cat: 'iron_boost' },
+           { id: 'hijiki', name: 'ひじき煮 小鉢', icon: '🌿', protein: 1.5, iron: 2.7, cat: 'iron_boost' },
+           { id: 'soy_milk', name: '調整豆乳 200ml', icon: '🧃', protein: 7.2, iron: 1.2, cat: 'egg_dairy_soy' },
+           { id: 'iron_yogurt', name: '鉄分強化ヨーグルト', icon: '🥄', protein: 4.0, iron: 4.0, cat: 'iron_boost' }
+       ];
+
+       const WORK_LABELS = {
+           desk: 'デスクワーク中心',
+           standing: '立ち仕事・家事育児',
+           active: '肉体労働・運動多め'
+       };
+
+       // --- 3. アプリ状態管理 (LocalStorage永続化) ---
+       let state = {
+           members: [],
+           activeMemberId: null,
+           currentDate: getTodayStr(),
+           logs: {} // key: "YYYY-MM-DD_memberId" -> array of { id, name, protein, iron, time }
+       };
+
+       let currentPresetFilter = 'all';
+
+       function getTodayStr() {
+           const d = new Date();
+           return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+       }
+
+       function loadState() {
+           const saved = localStorage.getItem('family_nutrition_app_v1');
+           if (saved) {
+               try {
+                   const parsed = JSON.parse(saved);
+                   state.members = parsed.members || [];
+                   state.activeMemberId = parsed.activeMemberId || (state.members[0]?.id || null);
+                   state.logs = parsed.logs || {};
+               } catch (e) {
+                   console.error("Failed to parse saved state", e);
+               }
+           }
+
+           // 初回起動時のサンプル家族データ
+           if (state.members.length === 0) {
+               const m1Targets = calculateTargets('partner', 36, 'male', 'desk', false);
+               const m2Targets = calculateTargets('partner', 34, 'female', 'standing', true);
+               const m3Targets = calculateTargets('child', 6, 'male');
+
+               state.members = [
+                   {
+                       id: 'm1',
+                       role: 'partner',
+                       name: 'パパ',
+                       avatar: '👨',
+                       age: 36,
+                       gender: 'male',
+                       workType: 'desk',
+                       hasMenstruation: false,
+                       proteinTarget: m1Targets.protein,
+                       ironTarget: m1Targets.iron
+                   },
+                   {
+                       id: 'm2',
+                       role: 'partner',
+                       name: 'ママ',
+                       avatar: '👩',
+                       age: 34,
+                       gender: 'female',
+                       workType: 'standing',
+                       hasMenstruation: true,
+                       proteinTarget: m2Targets.protein,
+                       ironTarget: m2Targets.iron
+                   },
+                   {
+                       id: 'm3',
+                       role: 'child',
+                       name: 'キッズ (6歳)',
+                       avatar: '👦',
+                       age: 6,
+                       gender: 'male',
+                       workType: 'desk',
+                       hasMenstruation: false,
+                       proteinTarget: m3Targets.protein,
+                       ironTarget: m3Targets.iron
+                   }
+               ];
+               state.activeMemberId = 'm1';
+               saveState();
+           }
+       }
+
+       function saveState() {
+           localStorage.setItem('family_nutrition_app_v1', JSON.stringify({
+               members: state.members,
+               activeMemberId: state.activeMemberId,
+               logs: state.logs
+           }));
+       }
+
+       // --- 4. UIレンダリング関数 ---
+       function renderAll() {
+           renderDate();
+           renderFamilyList();
+           renderActiveDashboard();
+           renderPresets();
+       }
+
+       function renderDate() {
+           const today = getTodayStr();
+           const display = document.getElementById('currentDateDisplay');
+           if (state.currentDate === today) {
+               display.textContent = `今日 (${state.currentDate.replace(/-/g, '/')})`;
+           } else {
+               const parts = state.currentDate.split('-');
+               const d = new Date(parts[0], parts[1] - 1, parts[2]);
+               const days = ['日', '月', '火', '水', '木', '金', '土'];
+               display.textContent = `${parts[0]}/${parts[1]}/${parts[2]} (${days[d.getDay()]})`;
+           }
+       }
+
+       function changeDate(delta) {
+           const parts = state.currentDate.split('-');
+           const d = new Date(parts[0], parts[1] - 1, parts[2]);
+           d.setDate(d.getDate() + delta);
+           state.currentDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+           renderAll();
+       }
+
+       function getMemberDailyTotals(memberId, dateStr = state.currentDate) {
+           const key = `${dateStr}_${memberId}`;
+           const entries = state.logs[key] || [];
+           let protein = 0;
+           let iron = 0;
+           entries.forEach(item => {
+               protein += Number(item.protein) || 0;
+               iron += Number(item.iron) || 0;
+           });
+           return {
+               protein: Math.round(protein * 10) / 10,
+               iron: Math.round(iron * 10) / 10,
+               entries
+           };
+       }
+
+       function renderFamilyList() {
+           const container = document.getElementById('familyList');
+           container.innerHTML = '';
+
+           state.members.forEach(member => {
+               const isActive = member.id === state.activeMemberId;
+               const totals = getMemberDailyTotals(member.id);
+               const pPct = Math.min(100, Math.round((totals.protein / member.proteinTarget) * 100));
+               const iPct = Math.min(100, Math.round((totals.iron / member.ironTarget) * 100));
+
+               const card = document.createElement('div');
+               card.onclick = () => {
+                   state.activeMemberId = member.id;
+                   saveState();
+                   renderAll();
+               };
+               card.className = `min-w-[165px] sm:min-w-0 cursor-pointer rounded-2xl p-3.5 transition border ${
+                   isActive
+                   ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+                   : 'bg-white text-slate-800 border-slate-200/80 hover:border-slate-300 shadow-sm'
+               }`;
+
+               card.innerHTML = `
+                   <div class="flex items-center space-x-2.5 mb-2.5">
+                       <span class="text-xl bg-white/10 w-8 h-8 rounded-xl flex items-center justify-center ${isActive ? 'bg-white/15' : 'bg-slate-100'}">${member.avatar}</span>
+                       <div class="overflow-hidden">
+                           <div class="font-bold text-sm truncate">${escapeHtml(member.name)}</div>
+                           <div class="text-[10px] ${isActive ? 'text-slate-300' : 'text-slate-400'}">${member.age}歳・${member.gender === 'male' ? '男' : '女'}</div>
+                       </div>
+                   </div>
+                   <div class="space-y-1.5 text-[11px]">
+                       <div>
+                           <div class="flex justify-between mb-0.5">
+                               <span class="${isActive ? 'text-amber-300' : 'text-amber-700'} font-medium">タンパク</span>
+                               <span class="font-bold">${totals.protein}/${member.proteinTarget}g</span>
+                           </div>
+                           <div class="w-full h-1.5 rounded-full ${isActive ? 'bg-slate-700' : 'bg-slate-100'} overflow-hidden">
+                               <div class="bg-amber-400 h-1.5 rounded-full" style="width: ${pPct}%"></div>
+                           </div>
+                       </div>
+                       <div>
+                           <div class="flex justify-between mb-0.5">
+                               <span class="${isActive ? 'text-rose-300' : 'text-rose-700'} font-medium">鉄分</span>
+                               <span class="font-bold">${totals.iron}/${member.ironTarget}mg</span>
+                           </div>
+                           <div class="w-full h-1.5 rounded-full ${isActive ? 'bg-slate-700' : 'bg-slate-100'} overflow-hidden">
+                               <div class="bg-rose-400 h-1.5 rounded-full" style="width: ${iPct}%"></div>
+                           </div>
+                       </div>
+                   </div>
+               `;
+               container.appendChild(card);
+           });
+       }
+
+       function renderActiveDashboard() {
+           const dashboard = document.getElementById('activeDashboard');
+           const member = state.members.find(m => m.id === state.activeMemberId);
+
+           if (!member) {
+               dashboard.innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">右上の「家族を追加」からメンバーを登録してください。</div>`;
+               return;
+           }
+
+           // Header Info
+           document.getElementById('activeAvatar').textContent = member.avatar;
+           document.getElementById('activeName').textContent = member.name;
+           document.getElementById('activeRoleBadge').textContent = member.role === 'child' ? '子供' : 'パートナー・大人';
+
+           let metaText = `${member.age}歳・${member.gender === 'male' ? '男性' : '女性'}`;
+           if (member.role === 'partner') {
+               metaText += `・${WORK_LABELS[member.workType] || ''}`;
+           }
+           document.getElementById('activeMeta').textContent = metaText;
+
+           // Totals & Progress
+           const totals = getMemberDailyTotals(member.id);
+
+           // Protein
+           const pPct = Math.round((totals.protein / member.proteinTarget) * 100);
+           const pRemaining = Math.max(0, Math.round((member.proteinTarget - totals.protein) * 10) / 10);
+           document.getElementById('proteinCurrent').textContent = totals.protein.toFixed(1);
+           document.getElementById('proteinTarget').textContent = member.proteinTarget;
+           document.getElementById('proteinPercent').textContent = `${pPct}%`;
+           document.getElementById('proteinBar').style.width = `${Math.min(100, pPct)}%`;
+           document.getElementById('proteinRemaining').textContent = pRemaining > 0
+               ? `あと ${pRemaining}g で目標達成！`
+               : `🎉 目標達成！（+${Math.round((totals.protein - member.proteinTarget)*10)/10}g）`;
+
+           // Iron
+           const iPct = Math.round((totals.iron / member.ironTarget) * 100);
+           const iRemaining = Math.max(0, Math.round((member.ironTarget - totals.iron) * 10) / 10);
+           document.getElementById('ironCurrent').textContent = totals.iron.toFixed(1);
+           document.getElementById('ironTarget').textContent = member.ironTarget;
+           document.getElementById('ironPercent').textContent = `${iPct}%`;
+           document.getElementById('ironBar').style.width = `${Math.min(100, iPct)}%`;
+           document.getElementById('ironRemaining').textContent = iRemaining > 0
+               ? `あと ${iRemaining}mg で目標達成！`
+               : `🎉 目標達成！（+${Math.round((totals.iron - member.ironTarget)*10)/10}mg）`;
+
+           // Logs
+           renderLogList(totals.entries);
+       }
+
+       function renderPresets() {
+           const grid = document.getElementById('presetGrid');
+           grid.innerHTML = '';
+
+           const filtered = currentPresetFilter === 'all'
+               ? PRESET_FOODS
+               : PRESET_FOODS.filter(f => f.cat === currentPresetFilter);
+
+           filtered.forEach(food => {
+               const btn = document.createElement('button');
+               btn.onclick = () => addFoodEntry(food.name, food.protein, food.iron);
+               btn.className = 'flex items-center justify-between p-2.5 rounded-xl border border-slate-200/90 bg-white hover:border-rose-300 hover:bg-rose-50/30 active:scale-95 transition text-left shadow-2xs';
+               btn.innerHTML = `
+                   <div class="flex items-center space-x-2 overflow-hidden">
+                       <span class="text-lg shrink-0">${food.icon}</span>
+                       <div class="truncate">
+                           <div class="text-xs font-bold text-slate-800 truncate">${food.name}</div>
+                           <div class="text-[10px] text-slate-500 space-x-1.5 mt-0.5">
+                               <span class="text-amber-700 font-medium">P:${food.protein}g</span>
+                               <span class="text-rose-700 font-medium">Fe:${food.iron}mg</span>
+                           </div>
+                       </div>
+                   </div>
+                   <span class="text-slate-300 text-xs ml-1"><i class="fa-solid fa-plus-circle text-slate-400"></i></span>
+               `;
+               grid.appendChild(btn);
+           });
+       }
+
+       function filterPresets(cat) {
+           currentPresetFilter = cat;
+           document.querySelectorAll('.preset-tab').forEach(tab => {
+               if (tab.dataset.cat === cat) {
+                   tab.className = 'preset-tab active px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-white transition whitespace-nowrap';
+               } else {
+                   tab.className = 'preset-tab px-3 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap';
+               }
+           });
+           renderPresets();
+       }
+
+       function renderLogList(entries) {
+           const list = document.getElementById('logList');
+           document.getElementById('logCount').textContent = `${entries.length}件`;
+
+           if (entries.length === 0) {
+               list.innerHTML = `<div class="text-center py-6 bg-slate-50 rounded-2xl text-xs text-slate-400">まだ記録がありません。上の食材ボタンから追加してみましょう！</div>`;
+               return;
+           }
+
+           list.innerHTML = '';
+           // Show newest first
+           [...entries].reverse().forEach(entry => {
+               const row = document.createElement('div');
+               row.className = 'flex items-center justify-between bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-100';
+               row.innerHTML = `
+                   <div>
+                       <div class="text-xs font-bold text-slate-800">${escapeHtml(entry.name)}</div>
+                       <div class="text-[11px] text-slate-500 mt-0.5 space-x-2">
+                           <span class="text-amber-700 font-medium">タンパク質 ${entry.protein}g</span>
+                           <span>•</span>
+                           <span class="text-rose-700 font-medium">鉄分 ${entry.iron}mg</span>
+                           <span class="text-slate-400 text-[10px]">(${entry.time})</span>
+                       </div>
+                   </div>
+                   <button onclick="removeFoodEntry('${entry.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition" title="取り消し">
+                       <i class="fa-solid fa-xmark"></i>
+                   </button>
+               `;
+               list.appendChild(row);
+           });
+       }
+
+       // --- 5. アクションハンドラ ---
+       function addFoodEntry(name, protein, iron) {
+           if (!state.activeMemberId) return;
+           const key = `${state.currentDate}_${state.activeMemberId}`;
+           if (!state.logs[key]) state.logs[key] = [];
+
+           const now = new Date();
+           const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+           state.logs[key].push({
+               id: 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+               name,
+               protein: Number(protein),
+               iron: Number(iron),
+               time: timeStr
+           });
+
+           saveState();
+           renderAll();
+           showToast(`「${name}」を記録しました`);
+       }
+
+       function removeFoodEntry(logId) {
+           if (!state.activeMemberId) return;
+           const key = `${state.currentDate}_${state.activeMemberId}`;
+           if (state.logs[key]) {
+               state.logs[key] = state.logs[key].filter(item => item.id !== logId);
+               saveState();
+               renderAll();
+               showToast('記録を削除しました');
+           }
+       }
+
+       // --- 6. モーダル制御 (メンバー追加・編集) ---
+       function openMemberModal(memberToEdit = null) {
+           const modal = document.getElementById('memberModal');
+           const title = document.getElementById('memberModalTitle');
+
+           if (memberToEdit) {
+               title.textContent = 'プロフィールを編集';
+               document.getElementById('memberId').value = memberToEdit.id;
+               document.querySelector(`input[name="role"][value="${memberToEdit.role}"]`).checked = true;
+               document.getElementById('memberName').value = memberToEdit.name;
+               document.getElementById('memberAvatar').value = memberToEdit.avatar;
+               document.getElementById('memberAge').value = memberToEdit.age;
+               document.getElementById('memberGender').value = memberToEdit.gender;
+               document.getElementById('memberWorkType').value = memberToEdit.workType || 'desk';
+               document.getElementById('hasMenstruation').checked = memberToEdit.hasMenstruation !== false;
+           } else {
+               title.textContent = '家族メンバーを追加';
+               document.getElementById('memberId').value = '';
+               document.querySelector('input[name="role"][value="child"]').checked = true;
+               document.getElementById('memberName').value = '';
+               document.getElementById('memberAvatar').value = '👦';
+               document.getElementById('memberAge').value = 5;
+               document.getElementById('memberGender').value = 'male';
+               document.getElementById('memberWorkType').value = 'desk';
+               document.getElementById('hasMenstruation').checked = true;
+           }
+
+           toggleRoleFields();
+           modal.classList.remove('hidden');
+       }
+
+       function editActiveMember() {
+           const member = state.members.find(m => m.id === state.activeMemberId);
+           if (member) openMemberModal(member);
+       }
+
+       function closeMemberModal() {
+           document.getElementById('memberModal').classList.add('hidden');
+       }
+
+       function toggleRoleFields() {
+           const role = document.querySelector('input[name="role"]:checked').value;
+           const partnerFields = document.getElementById('partnerFields');
+           const ageInput = document.getElementById('memberAge');
+           const avatarSelect = document.getElementById('memberAvatar');
+
+           if (role === 'partner') {
+               partnerFields.classList.remove('hidden');
+               if (!document.getElementById('memberId').value && Number(ageInput.value) < 18) {
+                   ageInput.value = 32;
+                   avatarSelect.value = '👩';
+               }
+           } else {
+               partnerFields.classList.add('hidden');
+               if (!document.getElementById('memberId').value && Number(ageInput.value) >= 18) {
+                   ageInput.value = 5;
+                   avatarSelect.value = '👦';
+               }
+           }
+           updatePreviewTargets();
+       }
+
+       function updatePreviewTargets() {
+           const role = document.querySelector('input[name="role"]:checked').value;
+           const age = Number(document.getElementById('memberAge').value) || 1;
+           const gender = document.getElementById('memberGender').value;
+           const workType = document.getElementById('memberWorkType').value;
+           const hasMenstruation = document.getElementById('hasMenstruation').checked;
+
+           // Show menstruation toggle only for adult females under 60
+           const femaleIronOption = document.getElementById('femaleIronOption');
+           if (role === 'partner' && gender === 'female') {
+               femaleIronOption.classList.remove('hidden');
+           } else {
+               femaleIronOption.classList.add('hidden');
+           }
+
+           const targets = calculateTargets(role, age, gender, workType, hasMenstruation);
+           document.getElementById('previewProtein').textContent = targets.protein;
+           document.getElementById('previewIron').textContent = targets.iron;
+       }
+
+       function saveMember(e) {
+           e.preventDefault();
+           const id = document.getElementById('memberId').value;
+           const role = document.querySelector('input[name="role"]:checked').value;
+           const name = document.getElementById('memberName').value.trim();
+           const avatar = document.getElementById('memberAvatar').value;
+           const age = Number(document.getElementById('memberAge').value);
+           const gender = document.getElementById('memberGender').value;
+           const workType = document.getElementById('memberWorkType').value;
+           const hasMenstruation = document.getElementById('hasMenstruation').checked;
+
+           const targets = calculateTargets(role, age, gender, workType, hasMenstruation);
+
+           if (id) {
+               const idx = state.members.findIndex(m => m.id === id);
+               if (idx !== -1) {
+                   state.members[idx] = {
+                       ...state.members[idx],
+                       role, name, avatar, age, gender, workType, hasMenstruation,
+                       proteinTarget: targets.protein,
+                       ironTarget: targets.iron
+                   };
+               }
+               showToast('プロフィールを更新しました');
+           } else {
+               const newId = 'm_' + Date.now();
+               state.members.push({
+                   id: newId,
+                   role, name, avatar, age, gender, workType, hasMenstruation,
+                   proteinTarget: targets.protein,
+                   ironTarget: targets.iron
+               });
+               state.activeMemberId = newId;
+               showToast(`${name}さんを追加しました`);
+           }
+
+           saveState();
+           closeMemberModal();
+           renderAll();
+       }
+
+       // Delete Member
+       function confirmDeleteMember() {
+           if (state.members.length <= 1) {
+               showToast('最後の1人は削除できません');
+               return;
+           }
+           document.getElementById('deleteConfirmModal').classList.remove('hidden');
+       }
+
+       function closeDeleteModal() {
+           document.getElementById('deleteConfirmModal').classList.add('hidden');
+       }
+
+       function executeDeleteMember() {
+           const targetId = state.activeMemberId;
+           state.members = state.members.filter(m => m.id !== targetId);
+           state.activeMemberId = state.members[0]?.id || null;
+           saveState();
+           closeDeleteModal();
+           renderAll();
+           showToast('メンバーを削除しました');
+       }
+
+       // Custom Food Modal
+       function openCustomFoodModal() {
+           document.getElementById('customFoodName').value = '';
+           document.getElementById('customFoodProtein').value = '';
+           document.getElementById('customFoodIron').value = '';
+           document.getElementById('customFoodModal').classList.remove('hidden');
+       }
+
+       function closeCustomFoodModal() {
+           document.getElementById('customFoodModal').classList.add('hidden');
+       }
+
+       function addCustomFood(e) {
+           e.preventDefault();
+           const name = document.getElementById('customFoodName').value.trim();
+           const protein = parseFloat(document.getElementById('customFoodProtein').value) || 0;
+           const iron = parseFloat(document.getElementById('customFoodIron').value) || 0;
+
+           addFoodEntry(name, protein, iron);
+           closeCustomFoodModal();
+       }
+
+       // Utility
+       function escapeHtml(str) {
+           return str.replace(/[&<>"']/g, function(m) {
+               return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+           });
+       }
+
+       let toastTimer;
+       function showToast(msg) {
+           const toast = document.getElementById('toast');
+           document.getElementById('toastMessage').textContent = msg;
+           toast.classList.remove('opacity-0');
+           clearTimeout(toastTimer);
+           toastTimer = setTimeout(() => {
+               toast.classList.add('opacity-0');
+           }, 2200);
+       }
+
+       // Initialize App
+       window.onload = function() {
+           loadState();
+           renderAll();
+       };
+   </script>
+</body>
+</html>
